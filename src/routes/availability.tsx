@@ -41,7 +41,7 @@ const STATUS_DOT: Record<AvailabilityStatus, string> = {
 };
 
 function AvailabilityPage() {
-  const [rows, setRows] = useState<AvailabilityRow[]>(seed);
+  const rows = useAvailability();
   const [model, setModel] = useState<string>("all");
   const [cluster, setCluster] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
@@ -85,16 +85,22 @@ function AvailabilityPage() {
   }
   function cancelEdit() { setEditingId(null); setDraft({}); }
   function saveEdit(id: string) {
-    setRows(prev => prev.map(r => r.id === id
-      ? { ...r, ...draft, updatedAt: new Date().toISOString().slice(0, 10) } as AvailabilityRow
-      : r));
-    const target = rows.find(r => r.id === id);
-    cancelEdit();
-    toast.success("Availability updated", {
-      description: target?.propertyId
-        ? `Synced to ${target.propertyId} · pushed to mobile API`
-        : "Synced via REST API · mobile clients will refresh",
+    const { syncedPropertyIds } = updateAvailabilityRow(id, {
+      price: draft.price,
+      delivery: draft.delivery,
+      status: draft.status,
+      notes: draft.notes,
     });
+    cancelEdit();
+    if (syncedPropertyIds.length > 0) {
+      toast.success("Availability updated", {
+        description: `Status synced to property ${syncedPropertyIds.join(", ")} · pushed to mobile API`,
+      });
+    } else {
+      toast.success("Availability updated", {
+        description: "Synced via REST API · mobile clients will refresh",
+      });
+    }
   }
 
   function toggleRow(id: string, on: boolean) {
@@ -112,11 +118,12 @@ function AvailabilityPage() {
     });
   }
   function applyBulk() {
-    setRows(prev => prev.map(r => selected.has(r.id)
-      ? { ...r, status: bulkStatus, updatedAt: new Date().toISOString().slice(0, 10) }
-      : r));
+    const { syncedPropertyIds } = bulkUpdateAvailabilityStatus(selected, bulkStatus);
+    const propsNote = syncedPropertyIds.length > 0
+      ? ` · ${syncedPropertyIds.length} propert${syncedPropertyIds.length === 1 ? "y" : "ies"} synced (${syncedPropertyIds.join(", ")})`
+      : "";
     toast.success(`${selected.size} unit(s) marked ${bulkStatus}`, {
-      description: "availability_master · UPDATE WHERE id IN (…) · synced to /api/availability",
+      description: `availability_master · UPDATE WHERE id IN (…) · synced to /api/availability${propsNote}`,
     });
     setBulkOpen(false);
     setSelected(new Set());
