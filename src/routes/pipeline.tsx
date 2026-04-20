@@ -39,7 +39,19 @@ function PipelinePage() {
   return (
     <AppShell title="Embudo de Ventas" subtitle="Arrastra los prospectos entre etapas para actualizar su estatus">
       <DndContext sensors={sensors} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        {/* Horizontal scroll on mobile, grid on desktop */}
+        <div className="md:hidden -mx-4 px-4 overflow-x-auto snap-x snap-mandatory pb-2">
+          <div className="flex gap-3" style={{ width: "max-content" }}>
+            {columns.map(col => (
+              <div key={col.id} className="snap-start w-[80vw] max-w-[320px] shrink-0">
+                <Column id={col.id} label={col.label} tint={col.tint} count={grouped[col.id].length}>
+                  {grouped[col.id].map(l => <LeadCard key={l.id} lead={l} />)}
+                </Column>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-5 gap-4">
           {columns.map(col => (
             <Column key={col.id} id={col.id} label={col.label} tint={col.tint} count={grouped[col.id].length}>
               {grouped[col.id].map(l => <LeadCard key={l.id} lead={l} />)}
@@ -55,7 +67,7 @@ function PipelinePage() {
 function Column({ id, label, tint, count, children }: { id: LeadStatus; label: string; tint: string; count: number; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
-    <div ref={setNodeRef} className={cn("rounded-xl border border-border bg-card border-t-4 flex flex-col min-h-[60vh]", tint, isOver && "ring-2 ring-primary/30")}>
+    <div ref={setNodeRef} className={cn("rounded-2xl border border-border bg-card border-t-4 flex flex-col min-h-[40vh] md:min-h-[60vh] h-full", tint, isOver && "ring-2 ring-primary/30")}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="text-sm font-semibold">{label}</div>
         <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{count}</span>

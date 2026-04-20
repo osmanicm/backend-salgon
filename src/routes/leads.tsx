@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Phone, Mail } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Plus, Phone, Mail, MessageCircle } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -26,9 +26,63 @@ function LeadsPage() {
       <PageCard
         title="Todos los Prospectos"
         description={`${leads.length} prospectos activos`}
-        action={<AddLeadDialog />}
+        action={<div className="hidden md:block"><AddLeadDialog /></div>}
       >
-        <div className="overflow-x-auto -mx-5">
+        {/* Mobile: card list */}
+        <ul className="md:hidden space-y-3">
+          {leads.map((l) => {
+            const agent = agents.find((a) => a.id === l.agentId);
+            const initials = l.name.split(" ").map(n => n[0]).slice(0, 2).join("");
+            return (
+              <li key={l.id} className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]">
+                <div className="flex items-start gap-3">
+                  <div className="h-11 w-11 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-semibold shrink-0">
+                    {initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-sm truncate">{l.name}</div>
+                        <div className="text-[11px] text-muted-foreground truncate">{l.interest}</div>
+                      </div>
+                      <StatusBadge status={l.status} />
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-primary tabular-nums">{fmtMoney(l.budget)}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground">{SOURCE_ES[l.source] ?? l.source}</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-1.5 truncate">Agente · {agent?.name}</div>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <a
+                    href={`tel:${l.phone.replace(/\s/g, "")}`}
+                    className="flex items-center justify-center gap-1.5 h-9 rounded-lg border border-border text-xs font-medium hover:bg-muted/40 active:scale-95 transition"
+                  >
+                    <Phone className="h-3.5 w-3.5" /> Llamar
+                  </a>
+                  <a
+                    href={`https://wa.me/${l.phone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-1.5 h-9 rounded-lg bg-success/10 text-success text-xs font-medium hover:bg-success/15 active:scale-95 transition"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                  </a>
+                  <a
+                    href={`mailto:${l.email}`}
+                    className="flex items-center justify-center gap-1.5 h-9 rounded-lg border border-border text-xs font-medium hover:bg-muted/40 active:scale-95 transition"
+                  >
+                    <Mail className="h-3.5 w-3.5" /> Email
+                  </a>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block overflow-x-auto -mx-5">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
@@ -66,6 +120,17 @@ function LeadsPage() {
           </table>
         </div>
       </PageCard>
+
+      {/* Mobile FAB */}
+      <div className="md:hidden fixed right-4 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}>
+        <Link
+          to="/leads"
+          aria-label="Agregar prospecto"
+          className="h-14 w-14 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-elevated)] hover:bg-primary/90 active:scale-95 transition"
+        >
+          <Plus className="h-6 w-6" />
+        </Link>
+      </div>
     </AppShell>
   );
 }

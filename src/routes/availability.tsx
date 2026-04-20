@@ -191,8 +191,8 @@ function AvailabilityPage() {
             options={[["all","Todos los estatus"],["Available","Disponible"],["Reserved","Apartado"],["Sold","Vendido"]]} />
         </div>
 
-        <div className="overflow-x-auto -mx-5 border-y border-border">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto -mx-4 md:-mx-5 border-y border-border">
+          <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-muted/40">
               <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <th className="pl-5 pr-2 py-2.5 w-10">
@@ -238,12 +238,12 @@ function AvailabilityPage() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-3">
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-            Los cambios se envían al instante · <code className="font-mono">PUT /api/availability/&#123;id&#125;</code>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1 text-xs text-muted-foreground pt-3">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+            <span className="truncate">Cambios sincronizados al instante</span>
           </div>
-          <div>Actualizado {new Date().toLocaleString("es-MX")}</div>
+          <div className="text-[11px]">Actualizado {new Date().toLocaleString("es-MX")}</div>
         </div>
       </PageCard>
 
@@ -534,26 +534,29 @@ function PdfPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0">
-        <DialogHeader className="px-6 pt-5 pb-3 border-b border-border flex-row items-center justify-between space-y-0">
-          <div>
-            <DialogTitle className="text-base">Vista previa de PDF · Reporte de Disponibilidad</DialogTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
-          </div>
-          <div className="flex items-center gap-2 mr-8">
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5 border-success/40 text-success hover:bg-success/10 hover:text-success"
-              onClick={handleSendWhatsapp}
-              disabled={sending || downloading}
-            >
-              <Send className="h-3.5 w-3.5" />
-              {sending ? "Preparando…" : "Enviar PDF por WhatsApp"}
-            </Button>
-            <Button size="sm" className="gap-1.5" onClick={handleDownload} disabled={downloading || sending}>
-              <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
-            </Button>
+      <DialogContent className="max-w-4xl w-[100vw] sm:w-auto h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden p-0 gap-0 sm:rounded-2xl rounded-none">
+        <DialogHeader className="px-4 md:px-6 pt-4 md:pt-5 pb-3 border-b border-border space-y-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="min-w-0">
+              <DialogTitle className="text-sm md:text-base">Vista previa de PDF · Reporte de Disponibilidad</DialogTitle>
+              <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
+            </div>
+            <div className="flex items-center gap-2 md:mr-8">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 md:flex-none gap-1.5 border-success/40 text-success hover:bg-success/10 hover:text-success"
+                onClick={handleSendWhatsapp}
+                disabled={sending || downloading}
+              >
+                <Send className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{sending ? "Preparando…" : "Enviar PDF por WhatsApp"}</span>
+                <span className="sm:hidden">{sending ? "…" : "WhatsApp"}</span>
+              </Button>
+              <Button size="sm" className="flex-1 md:flex-none gap-1.5" onClick={handleDownload} disabled={downloading || sending}>
+                <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
