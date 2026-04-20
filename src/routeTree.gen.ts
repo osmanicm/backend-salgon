@@ -13,6 +13,7 @@ import { Route as WhatsappRouteImport } from './routes/whatsapp'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PipelineRouteImport } from './routes/pipeline'
+import { Route as MoreRouteImport } from './routes/more'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
@@ -36,6 +37,11 @@ const PropertiesRoute = PropertiesRouteImport.update({
 const PipelineRoute = PipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoreRoute = MoreRouteImport.update({
+  id: '/more',
+  path: '/more',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LeadsRoute = LeadsRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AppointmentsRoute
   '/availability': typeof AvailabilityRoute
   '/leads': typeof LeadsRoute
+  '/more': typeof MoreRoute
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRoute
   '/users': typeof UsersRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/appointments': typeof AppointmentsRoute
   '/availability': typeof AvailabilityRoute
   '/leads': typeof LeadsRoute
+  '/more': typeof MoreRoute
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRoute
   '/users': typeof UsersRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/appointments': typeof AppointmentsRoute
   '/availability': typeof AvailabilityRoute
   '/leads': typeof LeadsRoute
+  '/more': typeof MoreRoute
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRoute
   '/users': typeof UsersRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/availability'
     | '/leads'
+    | '/more'
     | '/pipeline'
     | '/properties'
     | '/users'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/availability'
     | '/leads'
+    | '/more'
     | '/pipeline'
     | '/properties'
     | '/users'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/availability'
     | '/leads'
+    | '/more'
     | '/pipeline'
     | '/properties'
     | '/users'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   AppointmentsRoute: typeof AppointmentsRoute
   AvailabilityRoute: typeof AvailabilityRoute
   LeadsRoute: typeof LeadsRoute
+  MoreRoute: typeof MoreRoute
   PipelineRoute: typeof PipelineRoute
   PropertiesRoute: typeof PropertiesRoute
   UsersRoute: typeof UsersRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/pipeline'
       fullPath: '/pipeline'
       preLoaderRoute: typeof PipelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/more': {
+      id: '/more'
+      path: '/more'
+      fullPath: '/more'
+      preLoaderRoute: typeof MoreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/leads': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppointmentsRoute: AppointmentsRoute,
   AvailabilityRoute: AvailabilityRoute,
   LeadsRoute: LeadsRoute,
+  MoreRoute: MoreRoute,
   PipelineRoute: PipelineRoute,
   PropertiesRoute: PropertiesRoute,
   UsersRoute: UsersRoute,
