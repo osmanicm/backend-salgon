@@ -109,7 +109,14 @@ function PropertiesPage() {
                   </div>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline" className="flex-1 gap-1.5"><Eye className="h-3.5 w-3.5" /> Ver</Button>
-                    <Button size="sm" variant="outline" className="flex-1 gap-1.5"><Pencil className="h-3.5 w-3.5" /> Editar</Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+                      onClick={() => shareOnWhatsapp(p)}
+                      aria-label="Compartir por WhatsApp"
+                    >
+                      <Share2 className="h-3.5 w-3.5" /> WhatsApp
+                    </Button>
                     <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar">
                       <Trash2 className="h-4 w-4" />
                     </Button>
