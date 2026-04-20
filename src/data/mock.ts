@@ -56,11 +56,11 @@ export interface ActivityItem {
 }
 
 export const agents: Agent[] = [
-  { id: "U-001", name: "Layla Haddad", email: "layla@salgon.com", phone: "+961 70 111 222", role: "Admin", propertiesAssigned: 12, leadsAssigned: 24 },
-  { id: "U-002", name: "Omar Khalil", email: "omar@salgon.com", phone: "+961 71 333 444", role: "Agent", propertiesAssigned: 18, leadsAssigned: 31 },
-  { id: "U-003", name: "Nour Saab", email: "nour@salgon.com", phone: "+961 76 555 666", role: "Agent", propertiesAssigned: 9, leadsAssigned: 17 },
-  { id: "U-004", name: "Karim Aoun", email: "karim@salgon.com", phone: "+961 78 777 888", role: "Agent", propertiesAssigned: 14, leadsAssigned: 22 },
-  { id: "U-005", name: "Sara Mansour", email: "sara@salgon.com", phone: "+961 79 999 000", role: "Agent", propertiesAssigned: 7, leadsAssigned: 11 },
+  { id: "U-001", name: "Layla Haddad", email: "layla@salgon.com", phone: "+52 55 1100 2200", role: "Admin", propertiesAssigned: 12, leadsAssigned: 24 },
+  { id: "U-002", name: "Omar Khalil", email: "omar@salgon.com", phone: "+52 55 3300 4400", role: "Agent", propertiesAssigned: 18, leadsAssigned: 31 },
+  { id: "U-003", name: "Nour Saab", email: "nour@salgon.com", phone: "+52 55 5500 6600", role: "Agent", propertiesAssigned: 9, leadsAssigned: 17 },
+  { id: "U-004", name: "Karim Aoun", email: "karim@salgon.com", phone: "+52 55 7700 8800", role: "Agent", propertiesAssigned: 14, leadsAssigned: 22 },
+  { id: "U-005", name: "Sara Mansour", email: "sara@salgon.com", phone: "+52 55 9900 0011", role: "Agent", propertiesAssigned: 7, leadsAssigned: 11 },
 ];
 
 export const properties: Property[] = [
