@@ -14,10 +14,10 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
         <div className="ml-auto flex items-center gap-3">
           <div className="relative hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search properties, leads…" className="pl-9 w-72 bg-muted/50 border-transparent focus-visible:bg-card" />
+            <Input placeholder="Buscar propiedades, prospectos…" className="pl-9 w-72 bg-muted/50 border-transparent focus-visible:bg-card" />
           </div>
           <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="h-4 w-4" /> New
+            <Plus className="h-4 w-4" /> Nuevo
           </Button>
           <button className="relative h-9 w-9 grid place-items-center rounded-full hover:bg-muted">
             <Bell className="h-4 w-4" />
@@ -29,7 +29,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
             </Avatar>
             <div className="hidden sm:block leading-tight">
               <div className="text-sm font-medium">Layla Haddad</div>
-              <div className="text-[11px] text-muted-foreground">Admin</div>
+              <div className="text-[11px] text-muted-foreground">Administrador</div>
             </div>
           </div>
         </div>
