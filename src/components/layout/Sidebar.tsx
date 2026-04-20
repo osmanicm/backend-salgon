@@ -9,12 +9,14 @@ import {
   UserCog,
   Settings,
   LogOut,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/properties", label: "Properties", icon: Building2 },
+  { to: "/availability", label: "Availability", icon: ClipboardList },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/appointments", label: "Appointments", icon: CalendarDays },
   { to: "/pipeline", label: "Sales Pipeline", icon: KanbanSquare },
