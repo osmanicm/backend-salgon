@@ -494,25 +494,25 @@ function PdfPreviewDialog({
                     <h3 className="text-[13px] font-semibold tracking-wide text-[#1f4d3a] uppercase">Modelo {model}</h3>
                     <span className="text-[10px] uppercase tracking-wider text-neutral-500">{items.length} unidades</span>
                   </div>
-                  <table className="w-full text-[11px]">
+                  <table className="w-full text-[11px] border-collapse">
                     <thead>
                       <tr className="text-left text-neutral-500 uppercase tracking-wider text-[9px] border-b border-neutral-300">
-                        <th className="py-1.5 font-medium w-14">Lote</th>
-                        <th className="py-1.5 font-medium">Cluster</th>
-                        <th className="py-1.5 font-medium text-right">Precio MXN</th>
-                        <th className="py-1.5 font-medium">Entrega</th>
-                        <th className="py-1.5 font-medium w-24">Estatus</th>
+                        <th className="py-1.5 pr-3 font-medium w-14">Lote</th>
+                        <th className="py-1.5 pr-3 font-medium">Cluster</th>
+                        <th className="py-1.5 pr-3 font-medium text-right whitespace-nowrap">Precio MXN</th>
+                        <th className="py-1.5 pr-3 font-medium whitespace-nowrap">Entrega</th>
+                        <th className="py-1.5 pr-3 font-medium w-24">Estatus</th>
                         <th className="py-1.5 font-medium">Observaciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {items.map((r, i) => (
                         <tr key={r.id} className={i % 2 ? "bg-neutral-50" : ""}>
-                          <td className="py-1.5 font-mono">{r.lot}</td>
-                          <td className="py-1.5">{r.cluster}</td>
-                          <td className="py-1.5 text-right tabular-nums font-medium">{fmtMXN(r.price)}</td>
-                          <td className="py-1.5">{new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" })}</td>
-                          <td className="py-1.5">
+                          <td className="py-1.5 pr-3 font-mono">{r.lot}</td>
+                          <td className="py-1.5 pr-3">{r.cluster}</td>
+                          <td className="py-1.5 pr-3 text-right tabular-nums font-medium whitespace-nowrap">{fmtMXN(r.price)}</td>
+                          <td className="py-1.5 pr-3 whitespace-nowrap">{new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" })}</td>
+                          <td className="py-1.5 pr-3">
                             <span className={cn("inline-block px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider",
                               r.status === "Available" && "bg-emerald-100 text-emerald-800",
                               r.status === "Reserved"  && "bg-amber-100  text-amber-900",
