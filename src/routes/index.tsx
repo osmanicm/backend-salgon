@@ -83,7 +83,7 @@ function DashboardPage() {
           className="min-w-0"
           title="Citas de hoy"
           description={todayAppointments.length === 0 ? "Sin citas programadas" : `${todayAppointments.length} cita(s) programada(s)`}
-          actions={
+          action={
             <Link to="/appointments" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
               Ver todas <ArrowRight className="h-3 w-3" />
             </Link>
@@ -127,7 +127,7 @@ function DashboardPage() {
           className="min-w-0"
           title="Ventas cerradas recientes"
           description="Últimas unidades vendidas"
-          actions={
+          action={
             <Link to="/availability" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
               Ver inventario <ArrowRight className="h-3 w-3" />
             </Link>
