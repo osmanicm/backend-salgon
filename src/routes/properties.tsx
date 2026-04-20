@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, RefreshCw } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, RefreshCw, Share2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { agents, fmtMoney, type Property } from "@/data/mock";
 import { useProperties } from "@/data/store";
+import { setWhatsappHandoff } from "@/data/whatsappHandoff";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/properties")({ component: PropertiesPage });
