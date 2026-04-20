@@ -194,16 +194,20 @@ function PropertiesPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver"><Eye className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-success"
-                          aria-label="Compartir por WhatsApp"
-                          title="Compartir por WhatsApp"
-                          onClick={() => shareOnWhatsapp(p)}
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
+                        <LeadPickerPopover
+                          onPick={(lead) => shareOnWhatsapp(p, lead)}
+                          trigger={
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-success"
+                              aria-label="Compartir por WhatsApp"
+                              title="Compartir por WhatsApp"
+                            >
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar"><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </td>
