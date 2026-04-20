@@ -137,7 +137,7 @@ export function AvailabilityPdfDoc({ groups, folio, dateLabel }: AvailabilityPdf
             Esta cotización tiene una vigencia de 15 días naturales. Reservaciones sujetas a disponibilidad y aprobación crediticia. Precios no incluyen gastos de escrituración, avalúo ni notariales.
           </Text>
           <View style={styles.footerRow}>
-            <Text>Salgon Real Estate · Centralized Inventory · {totalUnits} unidades</Text>
+            <Text>Salgon Real Estate · Inventario Centralizado · {totalUnits} unidades</Text>
             <Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
           </View>
         </View>

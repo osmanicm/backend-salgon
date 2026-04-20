@@ -132,8 +132,8 @@ function AvailabilityPage() {
 
   return (
     <AppShell
-      title="Global Availability"
-      subtitle="Disponibilidad General · single source of truth synced to all properties & the mobile app"
+      title="Disponibilidad General"
+      subtitle="Fuente única de información sincronizada con todas las propiedades y la app móvil"
     >
       {/* Sync status banner */}
       <div className="rounded-xl border border-border bg-card p-4 flex flex-wrap items-center gap-4 shadow-[var(--shadow-card)]">
@@ -142,36 +142,36 @@ function AvailabilityPage() {
             <span className="absolute inset-0 rounded-full bg-success/60 animate-ping" />
             <span className="relative h-2.5 w-2.5 rounded-full bg-success" />
           </span>
-          <span className="text-sm font-medium">Live · synced</span>
+          <span className="text-sm font-medium">En vivo · sincronizado</span>
         </div>
         <div className="text-xs text-muted-foreground flex items-center gap-1.5">
           <Database className="h-3.5 w-3.5" /> <code className="font-mono">availability_master</code> → <code className="font-mono">properties</code>
         </div>
         <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <Smartphone className="h-3.5 w-3.5" /> Flutter app · last push 2 min ago
+          <Smartphone className="h-3.5 w-3.5" /> App Flutter · último envío hace 2 min
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Stat label="Total"     value={counts.total} />
-          <Stat label="Available" value={counts.available} tint="text-emerald-600" />
-          <Stat label="Reserved"  value={counts.reserved}  tint="text-amber-600" />
-          <Stat label="Sold"      value={counts.sold}      tint="text-rose-600" />
+          <Stat label="Total"      value={counts.total} />
+          <Stat label="Disponible" value={counts.available} tint="text-emerald-600" />
+          <Stat label="Apartado"   value={counts.reserved}  tint="text-amber-600" />
+          <Stat label="Vendido"    value={counts.sold}      tint="text-rose-600" />
         </div>
       </div>
 
       {/* Toolbar */}
       <PageCard
-        title="Inventory matrix"
-        description={`${filtered.length} of ${rows.length} units · grouped by model`}
+        title="Matriz de inventario"
+        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo`}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5"
               disabled={selected.size === 0}
               onClick={() => setBulkOpen(true)}>
               <RefreshCw className="h-3.5 w-3.5" />
-              Bulk update {selected.size > 0 && `(${selected.size})`}
+              Actualizar en lote {selected.size > 0 && `(${selected.size})`}
             </Button>
             <Button size="sm" className="gap-1.5" onClick={() => setPdfOpen(true)}>
-              <FileText className="h-3.5 w-3.5" /> Generate Availability PDF
+              <FileText className="h-3.5 w-3.5" /> Generar PDF de Disponibilidad
             </Button>
           </div>
         }
@@ -180,14 +180,14 @@ function AvailabilityPage() {
           <div className="relative md:col-span-1">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)}
-              placeholder="Search lot, model, notes…" className="pl-9" />
+              placeholder="Buscar lote, modelo, notas…" className="pl-9" />
           </div>
-          <FilterSelect icon={<Filter className="h-3.5 w-3.5" />} label="Model"
-            value={model} onChange={setModel} options={[["all", "All models"], ...models.map(m => [m, m] as [string, string])]} />
+          <FilterSelect icon={<Filter className="h-3.5 w-3.5" />} label="Modelo"
+            value={model} onChange={setModel} options={[["all", "Todos los modelos"], ...models.map(m => [m, m] as [string, string])]} />
           <FilterSelect label="Cluster" value={cluster} onChange={setCluster}
-            options={[["all", "All clusters"], ...clusters.map(c => [c, c] as [string, string])]} />
-          <FilterSelect label="Status" value={status} onChange={setStatus}
-            options={[["all","All status"],["Available","Available"],["Reserved","Reserved"],["Sold","Sold"]]} />
+            options={[["all", "Todos los clusters"], ...clusters.map(c => [c, c] as [string, string])]} />
+          <FilterSelect label="Estatus" value={status} onChange={setStatus}
+            options={[["all","Todos los estatus"],["Available","Disponible"],["Reserved","Apartado"],["Sold","Vendido"]]} />
         </div>
 
         <div className="overflow-x-auto -mx-5 border-y border-border">
@@ -200,14 +200,14 @@ function AvailabilityPage() {
                     onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
                   />
                 </th>
-                <th className="px-2 py-2.5 font-medium">Lot</th>
+                <th className="px-2 py-2.5 font-medium">Lote</th>
                 <th className="px-2 py-2.5 font-medium">Cluster</th>
-                <th className="px-2 py-2.5 font-medium text-right">Price (MXN)</th>
-                <th className="px-2 py-2.5 font-medium">Delivery</th>
-                <th className="px-2 py-2.5 font-medium">Status</th>
-                <th className="px-2 py-2.5 font-medium">Notes</th>
-                <th className="px-2 py-2.5 font-medium">Property</th>
-                <th className="px-5 py-2.5 font-medium text-right">Actions</th>
+                <th className="px-2 py-2.5 font-medium text-right">Precio (MXN)</th>
+                <th className="px-2 py-2.5 font-medium">Entrega</th>
+                <th className="px-2 py-2.5 font-medium">Estatus</th>
+                <th className="px-2 py-2.5 font-medium">Notas</th>
+                <th className="px-2 py-2.5 font-medium">Propiedad</th>
+                <th className="px-5 py-2.5 font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -229,7 +229,7 @@ function AvailabilityPage() {
               {grouped.length === 0 && (
                 <tr>
                   <td colSpan={9} className="text-center text-muted-foreground py-12">
-                    No units match the current filters.
+                    Ninguna unidad coincide con los filtros actuales.
                   </td>
                 </tr>
               )}
@@ -240,9 +240,9 @@ function AvailabilityPage() {
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-3">
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-            Edits push instantly · <code className="font-mono">PUT /api/availability/&#123;id&#125;</code>
+            Los cambios se envían al instante · <code className="font-mono">PUT /api/availability/&#123;id&#125;</code>
           </div>
-          <div>Updated {new Date().toLocaleString("es-MX")}</div>
+          <div>Actualizado {new Date().toLocaleString("es-MX")}</div>
         </div>
       </PageCard>
 
@@ -499,11 +499,11 @@ function PdfPreviewDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0">
         <DialogHeader className="px-6 pt-5 pb-3 border-b border-border flex-row items-center justify-between space-y-0">
           <div>
-            <DialogTitle className="text-base">PDF preview · Reporte de Disponibilidad</DialogTitle>
+            <DialogTitle className="text-base">Vista previa de PDF · Reporte de Disponibilidad</DialogTitle>
             <p className="text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
           </div>
           <Button size="sm" className="gap-1.5 mr-8" onClick={handleDownload} disabled={downloading}>
-            <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Download PDF"}
+            <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
           </Button>
         </DialogHeader>
 
@@ -582,7 +582,7 @@ function PdfPreviewDialog({
               <p><span className="font-semibold text-neutral-700">Notas:</span> "Entrega inmediata" no aplica a unidades en proceso de escrituración. "X meses firma" indica el plazo estimado de entrega a partir de la firma del contrato.</p>
               <p>Esta cotización tiene una vigencia de 15 días naturales. Reservaciones sujetas a disponibilidad y aprobación crediticia. Precios no incluyen gastos de escrituración, avalúo ni notariales.</p>
               <div className="flex items-center justify-between pt-2 mt-2 border-t border-neutral-200 text-[9px] text-neutral-400">
-                <span>Salgon Real Estate · Centralized Inventory · {totalUnits} unidades</span>
+                <span>Salgon Real Estate · Inventario Centralizado · {totalUnits} unidades</span>
                 <span>Documento generado por sistema · página 1 de 1</span>
               </div>
             </div>
