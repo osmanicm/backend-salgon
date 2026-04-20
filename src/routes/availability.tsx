@@ -534,26 +534,29 @@ function PdfPreviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0">
-        <DialogHeader className="px-6 pt-5 pb-3 border-b border-border flex-row items-center justify-between space-y-0">
-          <div>
-            <DialogTitle className="text-base">Vista previa de PDF · Reporte de Disponibilidad</DialogTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
-          </div>
-          <div className="flex items-center gap-2 mr-8">
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5 border-success/40 text-success hover:bg-success/10 hover:text-success"
-              onClick={handleSendWhatsapp}
-              disabled={sending || downloading}
-            >
-              <Send className="h-3.5 w-3.5" />
-              {sending ? "Preparando…" : "Enviar PDF por WhatsApp"}
-            </Button>
-            <Button size="sm" className="gap-1.5" onClick={handleDownload} disabled={downloading || sending}>
-              <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
-            </Button>
+      <DialogContent className="max-w-4xl w-[100vw] sm:w-auto h-[100dvh] sm:h-auto sm:max-h-[90vh] overflow-hidden p-0 gap-0 sm:rounded-2xl rounded-none">
+        <DialogHeader className="px-4 md:px-6 pt-4 md:pt-5 pb-3 border-b border-border space-y-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div className="min-w-0">
+              <DialogTitle className="text-sm md:text-base">Vista previa de PDF · Reporte de Disponibilidad</DialogTitle>
+              <p className="text-[11px] md:text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
+            </div>
+            <div className="flex items-center gap-2 md:mr-8">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 md:flex-none gap-1.5 border-success/40 text-success hover:bg-success/10 hover:text-success"
+                onClick={handleSendWhatsapp}
+                disabled={sending || downloading}
+              >
+                <Send className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{sending ? "Preparando…" : "Enviar PDF por WhatsApp"}</span>
+                <span className="sm:hidden">{sending ? "…" : "WhatsApp"}</span>
+              </Button>
+              <Button size="sm" className="flex-1 md:flex-none gap-1.5" onClick={handleDownload} disabled={downloading || sending}>
+                <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
+              </Button>
+            </div>
           </div>
         </DialogHeader>
 
