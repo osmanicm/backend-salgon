@@ -63,8 +63,8 @@ function DashboardPage() {
           </div>
         </PageCard>
 
-        <PageCard title="Properties by Status" description="Current inventory split">
-          <div className="h-72">
+        <PageCard className="min-w-0" title="Properties by Status" description="Current inventory split">
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={propertiesByStatus} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.005 150)" />
