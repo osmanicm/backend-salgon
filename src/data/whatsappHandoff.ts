@@ -13,6 +13,13 @@ export interface WhatsappHandoff {
     dataUrl: string;
     sizeBytes: number;
   };
+  /** Optional image attachment (e.g. property photo) shown inline in chat */
+  image?: {
+    filename: string;
+    dataUrl: string;
+    sizeBytes: number;
+    mimeType: string;
+  };
   /** Optional pre-selected lead id */
   toLeadId?: string;
   meta?: {
