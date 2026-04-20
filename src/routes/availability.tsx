@@ -540,9 +540,21 @@ function PdfPreviewDialog({
             <DialogTitle className="text-base">Vista previa de PDF · Reporte de Disponibilidad</DialogTitle>
             <p className="text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
           </div>
-          <Button size="sm" className="gap-1.5 mr-8" onClick={handleDownload} disabled={downloading}>
-            <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
-          </Button>
+          <div className="flex items-center gap-2 mr-8">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-success/40 text-success hover:bg-success/10 hover:text-success"
+              onClick={handleSendWhatsapp}
+              disabled={sending || downloading}
+            >
+              <Send className="h-3.5 w-3.5" />
+              {sending ? "Preparando…" : "Enviar PDF por WhatsApp"}
+            </Button>
+            <Button size="sm" className="gap-1.5" onClick={handleDownload} disabled={downloading || sending}>
+              <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="overflow-y-auto bg-neutral-200 p-6">
