@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Send, MessageCircle, CheckCheck, FileText, X, Download } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Send, MessageCircle, CheckCheck, FileText, X, Download, ImagePlus } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { whatsappTemplates, leads } from "@/data/mock";
-import { consumeWhatsappHandoff, type WhatsappHandoff } from "@/data/whatsappHandoff";
+import { consumeWhatsappHandoff, blobToDataUrl, type WhatsappHandoff } from "@/data/whatsappHandoff";
 import { toast } from "sonner";
+
+interface ExtraPhoto {
+  id: string;
+  filename: string;
+  dataUrl: string;
+  sizeBytes: number;
+  mimeType: string;
+}
+
+const MAX_EXTRA_PHOTOS = 6;
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export const Route = createFileRoute("/whatsapp")({ component: WhatsappPage });
 
@@ -25,6 +36,49 @@ function WhatsappPage() {
   const [to, setTo] = useState(leads[0].id);
   const [attachment, setAttachment] = useState<WhatsappHandoff["attachment"] | null>(null);
   const [image, setImage] = useState<WhatsappHandoff["image"] | null>(null);
+  const [extraPhotos, setExtraPhotos] = useState<ExtraPhoto[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handlePhotoPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (!files.length) return;
+    const slotsLeft = MAX_EXTRA_PHOTOS - extraPhotos.length;
+    if (slotsLeft <= 0) {
+      toast.error(`Máximo ${MAX_EXTRA_PHOTOS} fotos adicionales`);
+      return;
+    }
+    const accepted = files.filter((f) => f.type.startsWith("image/")).slice(0, slotsLeft);
+    const rejectedType = files.length - files.filter((f) => f.type.startsWith("image/")).length;
+    if (rejectedType > 0) toast.error(`${rejectedType} archivo(s) ignorados (no son imágenes)`);
+    const next: ExtraPhoto[] = [];
+    for (const f of accepted) {
+      if (f.size > MAX_PHOTO_BYTES) {
+        toast.error(`${f.name} supera 5 MB`);
+        continue;
+      }
+      try {
+        const dataUrl = await blobToDataUrl(f);
+        next.push({
+          id: `${f.name}-${f.lastModified}-${f.size}`,
+          filename: f.name,
+          dataUrl,
+          sizeBytes: f.size,
+          mimeType: f.type,
+        });
+      } catch {
+        toast.error(`No se pudo leer ${f.name}`);
+      }
+    }
+    if (next.length) {
+      setExtraPhotos((prev) => [...prev, ...next]);
+      toast.success(`${next.length} foto(s) adjuntada(s)`);
+    }
+  }
+
+  function removeExtraPhoto(id: string) {
+    setExtraPhotos((prev) => prev.filter((p) => p.id !== id));
+  }
 
   // Consume handoff from Availability → WhatsApp on mount
   useEffect(() => {
@@ -56,6 +110,7 @@ function WhatsappPage() {
     const parts: string[] = [];
     if (attachment) parts.push(`adjunto ${attachment.filename}`);
     if (image) parts.push(`imagen ${image.filename}`);
+    if (extraPhotos.length) parts.push(`${extraPhotos.length} foto(s) extra`);
     toast.success(`Mensaje enviado a ${lead?.name}`, {
       description: parts.length
         ? `Envío simulado por WhatsApp API · ${parts.join(" · ")}`
@@ -63,6 +118,7 @@ function WhatsappPage() {
     });
     setAttachment(null);
     setImage(null);
+    setExtraPhotos([]);
   }
 
   function downloadAttachment() {
