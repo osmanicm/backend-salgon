@@ -132,8 +132,8 @@ function AvailabilityPage() {
 
   return (
     <AppShell
-      title="Global Availability"
-      subtitle="Disponibilidad General · single source of truth synced to all properties & the mobile app"
+      title="Disponibilidad General"
+      subtitle="Fuente única de información sincronizada con todas las propiedades y la app móvil"
     >
       {/* Sync status banner */}
       <div className="rounded-xl border border-border bg-card p-4 flex flex-wrap items-center gap-4 shadow-[var(--shadow-card)]">
