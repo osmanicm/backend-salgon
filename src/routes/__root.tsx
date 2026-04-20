@@ -34,10 +34,14 @@ export const Route = createRootRoute({
       { name: "description", content: "Panel de administración Salgon para gestionar propiedades, prospectos, citas y agentes." },
       { name: "author", content: "Salgon" },
       { property: "og:title", content: "Salgon — Panel de Administración Inmobiliaria" },
-      { property: "og:description", content: "Administra tus operaciones inmobiliarias de principio a fin." },
+      { property: "og:description", content: "Panel de administración Salgon para gestionar propiedades, prospectos, citas y agentes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Salgon — Panel de Administración Inmobiliaria" },
+      { name: "twitter:description", content: "Panel de administración Salgon para gestionar propiedades, prospectos, citas y agentes." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/t2Vw5GFTphgxpGSxkvHJKqBLfMo1/social-images/social-1776724155353-1000383238.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/t2Vw5GFTphgxpGSxkvHJKqBLfMo1/social-images/social-1776724155353-1000383238.webp" },
     ],
     links: [
       {
