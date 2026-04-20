@@ -19,6 +19,7 @@ export const Route = createFileRoute("/properties")({ component: PropertiesPage 
 
 function PropertiesPage() {
   const properties = useProperties();
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
   const flashed = useFlashedProperties(properties);
@@ -28,6 +29,20 @@ function PropertiesPage() {
     const matchesS = status === "all" || p.status === status;
     return matchesQ && matchesS;
   });
+
+  function shareOnWhatsapp(p: Property) {
+    const message =
+      `¡Hola! Te comparto esta propiedad que podría interesarte:\n\n` +
+      `🏠 *${p.title}*\n` +
+      `📍 ${p.location}\n` +
+      `💰 ${fmtMoney(p.price)} MXN\n` +
+      `🛏️ ${p.bedrooms} recámaras · 🛁 ${p.bathrooms} baños · 📐 ${p.area} m²\n\n` +
+      `🖼️ Foto: ${p.image}\n\n` +
+      `Folio: ${p.id}\n` +
+      `¿Te gustaría agendar una visita?`;
+    setWhatsappHandoff({ message, meta: { propertyId: p.id } });
+    navigate({ to: "/whatsapp" });
+  }
 
   return (
     <AppShell title="Propiedades" subtitle="Administra tu catálogo de propiedades">
