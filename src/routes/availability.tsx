@@ -499,11 +499,11 @@ function PdfPreviewDialog({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0 gap-0">
         <DialogHeader className="px-6 pt-5 pb-3 border-b border-border flex-row items-center justify-between space-y-0">
           <div>
-            <DialogTitle className="text-base">PDF preview · Reporte de Disponibilidad</DialogTitle>
+            <DialogTitle className="text-base">Vista previa de PDF · Reporte de Disponibilidad</DialogTitle>
             <p className="text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
           </div>
           <Button size="sm" className="gap-1.5 mr-8" onClick={handleDownload} disabled={downloading}>
-            <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Download PDF"}
+            <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Descargar PDF"}
           </Button>
         </DialogHeader>
 
