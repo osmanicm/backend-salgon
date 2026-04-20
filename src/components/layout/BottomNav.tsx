@@ -2,13 +2,13 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { Home, Building2, Users, CalendarDays, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const tabs = [
+const tabs: { to: "/" | "/properties" | "/leads" | "/appointments" | "/more"; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
   { to: "/properties", label: "Propiedades", icon: Building2 },
   { to: "/leads", label: "Prospectos", icon: Users },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
   { to: "/more", label: "Más", icon: MoreHorizontal },
-] as const;
+];
 
 export function BottomNav() {
   const { pathname } = useLocation();
