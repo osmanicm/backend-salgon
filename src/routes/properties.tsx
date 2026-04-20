@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -10,13 +10,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { agents, properties, fmtMoney } from "@/data/mock";
+import { agents, fmtMoney, type Property } from "@/data/mock";
+import { useProperties } from "@/data/store";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/properties")({ component: PropertiesPage });
 
 function PropertiesPage() {
+  const properties = useProperties();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const flashed = useFlashedProperties(properties);
+
   const filtered = properties.filter((p) => {
     const matchesQ = (p.title + p.location + p.id).toLowerCase().includes(q.toLowerCase());
     const matchesS = status === "all" || p.status === status;
