@@ -17,9 +17,12 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  availabilityRows as seed, fmtMXN,
+  fmtMXN,
   type AvailabilityRow, type AvailabilityStatus,
 } from "@/data/mock";
+import {
+  useAvailability, updateAvailabilityRow, bulkUpdateAvailabilityStatus,
+} from "@/data/store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
