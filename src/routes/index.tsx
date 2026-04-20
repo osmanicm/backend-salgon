@@ -1,120 +1,165 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import {
-  Building2, CheckCircle2, BadgeDollarSign, Users as UsersIcon,
-  TrendingUp, Receipt, ArrowUpRight, ArrowDownRight, Activity,
+  Home, BadgeDollarSign, Users as UsersIcon,
+  CalendarCheck, CheckCircle2, ArrowRight, Phone, MapPin,
 } from "lucide-react";
-import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip,
-  CartesianGrid, BarChart, Bar, Legend,
-} from "recharts";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
-import { activity, monthlyStats, propertiesByStatus } from "@/data/mock";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { appointments, leads, fmtMXN } from "@/data/mock";
+import { useAvailability, useProperties } from "@/data/store";
 
 export const Route = createFileRoute("/")({ component: DashboardPage });
 
-const kpis = [
-  { label: "Propiedades Totales", value: "248", delta: "+4.2%", up: true, icon: Building2, tint: "text-primary bg-primary/10" },
-  { label: "Propiedades Activas", value: "187", delta: "+1.8%", up: true, icon: CheckCircle2, tint: "text-success bg-success/10" },
-  { label: "Propiedades Vendidas", value: "42", delta: "+12%", up: true, icon: BadgeDollarSign, tint: "text-gold-foreground bg-gold/20" },
-  { label: "Prospectos Totales", value: "1,284", delta: "+8.4%", up: true, icon: UsersIcon, tint: "text-info bg-info/10" },
-  { label: "Tasa de Conversión", value: "16.2%", delta: "-0.6%", up: false, icon: TrendingUp, tint: "text-warning-foreground bg-warning/15" },
-  { label: "Ventas del Mes", value: "$3.42M MXN", delta: "+22%", up: true, icon: Receipt, tint: "text-primary bg-primary/10" },
-];
-
-const STATUS_ES: Record<string, string> = {
-  Available: "Disponible",
-  Reserved: "Apartado",
-  Sold: "Vendido",
-};
-
-const ACTIVITY_TYPE_ES: Record<string, string> = {
-  lead: "Prospecto",
-  property: "Propiedad",
-  appointment: "Cita",
-  sale: "Venta",
-};
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function isSameMonth(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+}
 
 function DashboardPage() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  const chartData = propertiesByStatus.map((p) => ({ ...p, status: STATUS_ES[p.status] ?? p.status }));
+  const availability = useAvailability();
+  const properties = useProperties();
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const disponibles = availability.filter((r) => r.status === "Available").length;
+    const vendidasMes = availability.filter(
+      (r) => r.status === "Sold" && isSameMonth(new Date(r.updatedAt), now),
+    ).length;
+    const prospectosActivos = leads.filter((l) => l.status !== "Closed").length;
+    const citasHoy = appointments.filter((a) => isSameDay(new Date(a.date), now));
+    const ventasCerradas = availability.filter((r) => r.status === "Sold");
+    return { disponibles, vendidasMes, prospectosActivos, citasHoy, ventasCerradas };
+  }, [availability]);
+
+  const kpis = [
+    { label: "Propiedades disponibles", value: String(stats.disponibles), icon: Home, tint: "text-success bg-success/10", to: "/availability" as const },
+    { label: "Vendidas este mes", value: String(stats.vendidasMes), icon: BadgeDollarSign, tint: "text-gold-foreground bg-gold/20", to: "/availability" as const },
+    { label: "Prospectos activos", value: String(stats.prospectosActivos), icon: UsersIcon, tint: "text-info bg-info/10", to: "/leads" as const },
+    { label: "Citas hoy", value: String(stats.citasHoy.length), icon: CalendarCheck, tint: "text-primary bg-primary/10", to: "/appointments" as const },
+    { label: "Ventas cerradas", value: String(stats.ventasCerradas.length), icon: CheckCircle2, tint: "text-success bg-success/10", to: "/pipeline" as const },
+  ];
+
+  const propsById = useMemo(() => Object.fromEntries(properties.map((p) => [p.id, p])), [properties]);
+  const leadsById = useMemo(() => Object.fromEntries(leads.map((l) => [l.id, l])), []);
+
+  const todayAppointments = stats.citasHoy
+    .slice()
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const recentSales = stats.ventasCerradas
+    .slice()
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .slice(0, 5);
+
   return (
-    <AppShell title="Panel de Control" subtitle="Vista general de tus operaciones inmobiliarias">
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
+    <AppShell title="Panel de Control" subtitle="Resumen operativo de Salgon Bienes Raíces">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
         {kpis.map((k) => {
           const Icon = k.icon;
           return (
-            <div key={k.label} className="rounded-2xl border border-border bg-card p-3.5 md:p-4 shadow-[var(--shadow-card)]">
-              <div className="flex items-center justify-between">
-                <div className={`h-9 w-9 rounded-lg grid place-items-center ${k.tint}`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <span className={`inline-flex items-center text-[11px] font-medium ${k.up ? "text-success" : "text-destructive"}`}>
-                  {k.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                  {k.delta}
-                </span>
+            <Link
+              key={k.label}
+              to={k.to}
+              className="rounded-2xl border border-border bg-card p-3.5 md:p-4 shadow-[var(--shadow-card)] hover:border-primary/40 transition-colors"
+            >
+              <div className={`h-9 w-9 rounded-lg grid place-items-center ${k.tint}`}>
+                <Icon className="h-4 w-4" />
               </div>
-              <div className="mt-3 text-xl md:text-2xl font-semibold tracking-tight">{k.value}</div>
+              <div className="mt-3 text-2xl md:text-3xl font-semibold tracking-tight">{k.value}</div>
               <div className="text-[11px] md:text-xs text-muted-foreground mt-0.5 leading-tight">{k.label}</div>
-            </div>
+            </Link>
           );
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PageCard className="lg:col-span-2 min-w-0" title="Prospectos vs Ventas" description="Desempeño de los últimos 6 meses">
-          <div style={{ width: "100%", height: 288 }}>
-            {mounted && (
-              <ResponsiveContainer>
-                <LineChart data={monthlyStats} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="month" stroke="#6b7280" fontSize={12} />
-                  <YAxis stroke="#6b7280" fontSize={12} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb" }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} formatter={(v) => v === "leads" ? "Prospectos" : "Ventas"} />
-                  <Line type="monotone" dataKey="leads" name="Prospectos" stroke="#1f4d3a" strokeWidth={2.5} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="sales" name="Ventas" stroke="#d4a437" strokeWidth={2.5} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Citas hoy */}
+        <PageCard
+          className="min-w-0"
+          title="Citas de hoy"
+          description={todayAppointments.length === 0 ? "Sin citas programadas" : `${todayAppointments.length} cita(s) programada(s)`}
+          action={
+            <Link to="/appointments" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
+              Ver todas <ArrowRight className="h-3 w-3" />
+            </Link>
+          }
+        >
+          {todayAppointments.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">No hay citas para hoy.</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {todayAppointments.map((a) => {
+                const lead = leadsById[a.leadId];
+                const prop = propsById[a.propertyId];
+                const time = new Date(a.date).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+                return (
+                  <li key={a.id} className="flex items-center gap-3 py-3">
+                    <div className="h-10 w-12 rounded-lg bg-primary/10 text-primary grid place-items-center text-sm font-semibold tabular-nums">
+                      {time}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{lead?.name ?? a.leadId}</p>
+                      <p className="text-xs text-muted-foreground truncate">{prop?.title ?? a.propertyId}</p>
+                    </div>
+                    {lead?.phone && (
+                      <a
+                        href={`tel:${lead.phone}`}
+                        className="h-8 w-8 rounded-full grid place-items-center text-muted-foreground hover:text-primary hover:bg-accent"
+                        aria-label="Llamar"
+                      >
+                        <Phone className="h-4 w-4" />
+                      </a>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </PageCard>
 
-        <PageCard className="min-w-0" title="Propiedades por Estatus" description="Distribución actual del inventario">
-          <div style={{ width: "100%", height: 288 }}>
-            {mounted && (
-              <ResponsiveContainer>
-                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="status" stroke="#6b7280" fontSize={12} />
-                  <YAxis stroke="#6b7280" fontSize={12} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb" }} formatter={(v) => [v, "Unidades"]} />
-                  <Bar dataKey="count" name="Unidades" fill="#1f4d3a" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </div>
+        {/* Ventas recientes */}
+        <PageCard
+          className="min-w-0"
+          title="Ventas cerradas recientes"
+          description="Últimas unidades vendidas"
+          action={
+            <Link to="/availability" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
+              Ver inventario <ArrowRight className="h-3 w-3" />
+            </Link>
+          }
+        >
+          {recentSales.length === 0 ? (
+            <div className="py-8 text-center text-sm text-muted-foreground">Aún no hay ventas registradas.</div>
+          ) : (
+            <ul className="divide-y divide-border">
+              {recentSales.map((r) => (
+                <li key={r.id} className="flex items-center gap-3 py-3">
+                  <div className="h-9 w-9 rounded-lg bg-gold/20 text-gold-foreground grid place-items-center">
+                    <BadgeDollarSign className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {r.model} · Lote {r.lot}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate inline-flex items-center gap-1">
+                      <MapPin className="h-3 w-3" /> {r.cluster}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-semibold tabular-nums">{fmtMXN(r.price)}</div>
+                    <div className="mt-0.5"><StatusBadge status={r.status} /></div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </PageCard>
       </div>
-
-      <PageCard title="Actividad Reciente" description="Últimos eventos en la plataforma">
-        <ul className="divide-y divide-border">
-          {activity.map((a) => (
-            <li key={a.id} className="flex items-center gap-3 py-3">
-              <div className="h-8 w-8 rounded-full bg-accent grid place-items-center text-accent-foreground">
-                <Activity className="h-4 w-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm">{a.message}</p>
-                <p className="text-xs text-muted-foreground">{a.time}</p>
-              </div>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{ACTIVITY_TYPE_ES[a.type] ?? a.type}</span>
-            </li>
-          ))}
-        </ul>
-      </PageCard>
     </AppShell>
   );
 }
