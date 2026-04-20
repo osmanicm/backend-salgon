@@ -69,7 +69,13 @@ function PropertiesPage() {
               {filtered.map((p) => {
                 const agent = agents.find((a) => a.id === p.agentId);
                 return (
-                  <tr key={p.id} className="border-b border-border/60 hover:bg-muted/40">
+                  <tr
+                    key={p.id}
+                    className={cn(
+                      "border-b border-border/60 hover:bg-muted/40 transition-colors",
+                      flashed.has(p.id) && "bg-success/10 ring-1 ring-success/40",
+                    )}
+                  >
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <img src={p.image} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
@@ -82,7 +88,16 @@ function PropertiesPage() {
                     <td className="px-3 py-3 font-mono text-xs text-muted-foreground">{p.id}</td>
                     <td className="px-3 py-3 font-medium">{fmtMoney(p.price)}</td>
                     <td className="px-3 py-3"><span className="inline-flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3" />{p.location}</span></td>
-                    <td className="px-3 py-3"><StatusBadge status={p.status} /></td>
+                    <td className="px-3 py-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <StatusBadge status={p.status} />
+                        {flashed.has(p.id) && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success">
+                            <RefreshCw className="h-3 w-3 animate-spin" /> synced
+                          </span>
+                        )}
+                      </span>
+                    </td>
                     <td className="px-3 py-3">{agent?.name}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1">
