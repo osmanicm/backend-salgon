@@ -39,7 +39,19 @@ function PipelinePage() {
   return (
     <AppShell title="Embudo de Ventas" subtitle="Arrastra los prospectos entre etapas para actualizar su estatus">
       <DndContext sensors={sensors} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={onDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        {/* Horizontal scroll on mobile, grid on desktop */}
+        <div className="md:hidden -mx-4 px-4 overflow-x-auto snap-x snap-mandatory pb-2">
+          <div className="flex gap-3" style={{ width: "max-content" }}>
+            {columns.map(col => (
+              <div key={col.id} className="snap-start w-[80vw] max-w-[320px] shrink-0">
+                <Column id={col.id} label={col.label} tint={col.tint} count={grouped[col.id].length}>
+                  {grouped[col.id].map(l => <LeadCard key={l.id} lead={l} />)}
+                </Column>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="hidden md:grid md:grid-cols-2 xl:grid-cols-5 gap-4">
           {columns.map(col => (
             <Column key={col.id} id={col.id} label={col.label} tint={col.tint} count={grouped[col.id].length}>
               {grouped[col.id].map(l => <LeadCard key={l.id} lead={l} />)}
