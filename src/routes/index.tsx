@@ -42,22 +42,22 @@ function DashboardPage() {
   const chartData = propertiesByStatus.map((p) => ({ ...p, status: STATUS_ES[p.status] ?? p.status }));
   return (
     <AppShell title="Panel de Control" subtitle="Vista general de tus operaciones inmobiliarias">
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
         {kpis.map((k) => {
           const Icon = k.icon;
           return (
-            <div key={k.label} className="rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-card)]">
+            <div key={k.label} className="rounded-2xl border border-border bg-card p-3.5 md:p-4 shadow-[var(--shadow-card)]">
               <div className="flex items-center justify-between">
                 <div className={`h-9 w-9 rounded-lg grid place-items-center ${k.tint}`}>
                   <Icon className="h-4 w-4" />
                 </div>
-                <span className={`inline-flex items-center text-xs font-medium ${k.up ? "text-success" : "text-destructive"}`}>
+                <span className={`inline-flex items-center text-[11px] font-medium ${k.up ? "text-success" : "text-destructive"}`}>
                   {k.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                   {k.delta}
                 </span>
               </div>
-              <div className="mt-3 text-2xl font-semibold tracking-tight">{k.value}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{k.label}</div>
+              <div className="mt-3 text-xl md:text-2xl font-semibold tracking-tight">{k.value}</div>
+              <div className="text-[11px] md:text-xs text-muted-foreground mt-0.5 leading-tight">{k.label}</div>
             </div>
           );
         })}
