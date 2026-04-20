@@ -29,23 +29,23 @@ function PropertiesPage() {
   });
 
   return (
-    <AppShell title="Properties" subtitle="Manage your property listings">
+    <AppShell title="Propiedades" subtitle="Administra tu catálogo de propiedades">
       <PageCard
-        title="All Properties"
-        description={`${filtered.length} of ${properties.length} listings`}
+        title="Todas las Propiedades"
+        description={`${filtered.length} de ${properties.length} listados`}
         action={
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 w-56" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar…" className="pl-9 w-56" />
             </div>
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All status</SelectItem>
-                <SelectItem value="Available">Available</SelectItem>
-                <SelectItem value="Reserved">Reserved</SelectItem>
-                <SelectItem value="Sold">Sold</SelectItem>
+                <SelectItem value="all">Todos los estatus</SelectItem>
+                <SelectItem value="Available">Disponible</SelectItem>
+                <SelectItem value="Reserved">Apartado</SelectItem>
+                <SelectItem value="Sold">Vendido</SelectItem>
               </SelectContent>
             </Select>
             <AddPropertyDialog />
@@ -56,13 +56,13 @@ function PropertiesPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
-                <th className="px-5 py-3 font-medium">Property</th>
+                <th className="px-5 py-3 font-medium">Propiedad</th>
                 <th className="px-3 py-3 font-medium">ID</th>
-                <th className="px-3 py-3 font-medium">Price</th>
-                <th className="px-3 py-3 font-medium">Location</th>
-                <th className="px-3 py-3 font-medium">Status</th>
-                <th className="px-3 py-3 font-medium">Agent</th>
-                <th className="px-5 py-3 font-medium text-right">Actions</th>
+                <th className="px-3 py-3 font-medium">Precio</th>
+                <th className="px-3 py-3 font-medium">Ubicación</th>
+                <th className="px-3 py-3 font-medium">Estatus</th>
+                <th className="px-3 py-3 font-medium">Agente</th>
+                <th className="px-5 py-3 font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -81,7 +81,7 @@ function PropertiesPage() {
                         <img src={p.image} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
                         <div>
                           <div className="font-medium">{p.title}</div>
-                          <div className="text-xs text-muted-foreground">{p.bedrooms} bd · {p.bathrooms} ba · {p.area} m²</div>
+                          <div className="text-xs text-muted-foreground">{p.bedrooms} rec · {p.bathrooms} baños · {p.area} m²</div>
                         </div>
                       </div>
                     </td>
@@ -93,7 +93,7 @@ function PropertiesPage() {
                         <StatusBadge status={p.status} />
                         {flashed.has(p.id) && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success">
-                            <RefreshCw className="h-3 w-3 animate-spin" /> synced
+                            <RefreshCw className="h-3 w-3 animate-spin" /> sincronizado
                           </span>
                         )}
                       </span>
@@ -101,9 +101,9 @@ function PropertiesPage() {
                     <td className="px-3 py-3">{agent?.name}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <Button size="icon" variant="ghost" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8"><Pencil className="h-4 w-4" /></Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver"><Eye className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar"><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </td>
                   </tr>
@@ -121,44 +121,44 @@ function AddPropertyDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="gap-1.5"><Plus className="h-4 w-4" /> Add Property</Button>
+        <Button className="gap-1.5"><Plus className="h-4 w-4" /> Agregar Propiedad</Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>Add new property</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Agregar nueva propiedad</DialogTitle></DialogHeader>
         <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 space-y-1.5"><Label>Title</Label><Input placeholder="Sea View Penthouse" /></div>
-          <div className="col-span-2 space-y-1.5"><Label>Description</Label><Textarea placeholder="Describe the property…" rows={3} /></div>
-          <div className="space-y-1.5"><Label>Price (USD)</Label><Input type="number" placeholder="350000" /></div>
-          <div className="space-y-1.5"><Label>Status</Label>
+          <div className="col-span-2 space-y-1.5"><Label>Título</Label><Input placeholder="Penthouse Vista al Mar" /></div>
+          <div className="col-span-2 space-y-1.5"><Label>Descripción</Label><Textarea placeholder="Describe la propiedad…" rows={3} /></div>
+          <div className="space-y-1.5"><Label>Precio (MXN)</Label><Input type="number" placeholder="3500000" /></div>
+          <div className="space-y-1.5"><Label>Estatus</Label>
             <Select defaultValue="Available">
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Available">Available</SelectItem>
-                <SelectItem value="Reserved">Reserved</SelectItem>
-                <SelectItem value="Sold">Sold</SelectItem>
+                <SelectItem value="Available">Disponible</SelectItem>
+                <SelectItem value="Reserved">Apartado</SelectItem>
+                <SelectItem value="Sold">Vendido</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2 space-y-1.5"><Label>Location</Label><Input placeholder="Beirut, Achrafieh" />
+          <div className="col-span-2 space-y-1.5"><Label>Ubicación</Label><Input placeholder="CDMX, Polanco" />
             <div className="mt-2 h-32 rounded-lg border border-dashed border-border bg-muted/40 grid place-items-center text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> Map placeholder</span>
+              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> Mapa (vista previa)</span>
             </div>
           </div>
-          <div className="space-y-1.5"><Label>Assigned Agent</Label>
+          <div className="space-y-1.5"><Label>Agente Asignado</Label>
             <Select>
-              <SelectTrigger><SelectValue placeholder="Select agent" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
               <SelectContent>{agents.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Image</Label>
+          <div className="space-y-1.5"><Label>Imagen</Label>
             <div className="h-10 rounded-md border border-dashed border-border grid place-items-center text-xs text-muted-foreground gap-1.5 cursor-pointer hover:bg-muted/40">
-              <span className="inline-flex items-center gap-1.5"><Upload className="h-3.5 w-3.5" /> Upload image</span>
+              <span className="inline-flex items-center gap-1.5"><Upload className="h-3.5 w-3.5" /> Subir imagen</span>
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline">Cancel</Button>
-          <Button>Create property</Button>
+          <Button variant="outline">Cancelar</Button>
+          <Button>Crear propiedad</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

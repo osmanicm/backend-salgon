@@ -94,21 +94,21 @@ export const appointments: Appointment[] = [
 ];
 
 export const activity: ActivityItem[] = [
-  { id: "act-1", type: "lead", message: "New lead Rami Doumit assigned to Omar Khalil", time: "5 min ago" },
-  { id: "act-2", type: "property", message: "Property P-1027 marked as Sold", time: "1 hour ago" },
-  { id: "act-3", type: "appointment", message: "Appointment scheduled with Maya Tabet", time: "3 hours ago" },
-  { id: "act-4", type: "sale", message: "Sale closed: P-1031 by Omar Khalil", time: "Yesterday" },
-  { id: "act-5", type: "lead", message: "Lead Zeina Rahal moved to Negotiation", time: "Yesterday" },
-  { id: "act-6", type: "property", message: "New property added: Beachfront Chalet Jbeil", time: "2 days ago" },
+  { id: "act-1", type: "lead", message: "Nuevo prospecto Rami Doumit asignado a Omar Khalil", time: "hace 5 min" },
+  { id: "act-2", type: "property", message: "Propiedad P-1027 marcada como Vendida", time: "hace 1 hora" },
+  { id: "act-3", type: "appointment", message: "Cita agendada con Maya Tabet", time: "hace 3 horas" },
+  { id: "act-4", type: "sale", message: "Venta cerrada: P-1031 por Omar Khalil", time: "Ayer" },
+  { id: "act-5", type: "lead", message: "Prospecto Zeina Rahal pasó a Negociación", time: "Ayer" },
+  { id: "act-6", type: "property", message: "Nueva propiedad agregada: Chalet Frente al Mar Jbeil", time: "hace 2 días" },
 ];
 
 export const monthlyStats = [
   { month: "Nov", leads: 42, sales: 6 },
-  { month: "Dec", leads: 38, sales: 5 },
-  { month: "Jan", leads: 51, sales: 8 },
+  { month: "Dic", leads: 38, sales: 5 },
+  { month: "Ene", leads: 51, sales: 8 },
   { month: "Feb", leads: 47, sales: 7 },
   { month: "Mar", leads: 63, sales: 11 },
-  { month: "Apr", leads: 58, sales: 9 },
+  { month: "Abr", leads: 58, sales: 9 },
 ];
 
 export const propertiesByStatus = [
@@ -118,15 +118,19 @@ export const propertiesByStatus = [
 ];
 
 export const whatsappTemplates = [
-  { id: "t1", name: "Welcome", body: "Hi {{name}}, thank you for contacting Salgon Real Estate. How can we help you today?" },
-  { id: "t2", name: "Property Match", body: "Hello {{name}}, we found a property matching your interest: {{property}}. Would you like to schedule a visit?" },
-  { id: "t3", name: "Visit Confirmation", body: "Hi {{name}}, confirming your visit to {{property}} on {{date}}. See you soon!" },
-  { id: "t4", name: "Follow-up", body: "Hi {{name}}, just following up on our last conversation. Do you have any questions?" },
-  { id: "t5", name: "Offer Sent", body: "Dear {{name}}, please find attached our official offer for {{property}}. Looking forward to your feedback." },
+  { id: "t1", name: "Bienvenida", body: "Hola {{name}}, gracias por contactar a Salgon Bienes Raíces. ¿En qué podemos ayudarte hoy?" },
+  { id: "t2", name: "Propiedad Sugerida", body: "Hola {{name}}, encontramos una propiedad que coincide con tu interés: {{property}}. ¿Te gustaría agendar una visita?" },
+  { id: "t3", name: "Confirmación de Visita", body: "Hola {{name}}, confirmamos tu visita a {{property}} el {{date}}. ¡Te esperamos!" },
+  { id: "t4", name: "Seguimiento", body: "Hola {{name}}, queríamos dar seguimiento a nuestra última conversación. ¿Tienes alguna duda?" },
+  { id: "t5", name: "Oferta Enviada", body: "Estimado(a) {{name}}, adjuntamos nuestra oferta oficial para {{property}}. Quedamos atentos a tus comentarios." },
 ];
 
 export function fmtMoney(n: number) {
-  return "$" + n.toLocaleString();
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  }).format(n) + " MXN";
 }
 
 export function fmtMXN(n: number) {
@@ -134,7 +138,7 @@ export function fmtMXN(n: number) {
     style: "currency",
     currency: "MXN",
     maximumFractionDigits: 0,
-  }).format(n);
+  }).format(n) + " MXN";
 }
 
 // ============================================================

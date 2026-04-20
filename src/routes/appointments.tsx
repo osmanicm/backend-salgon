@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Calendar as CalIcon, List, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
@@ -20,23 +21,23 @@ function AppointmentsPage() {
   const [month, setMonth] = useState(new Date(2025, 3, 1));
 
   return (
-    <AppShell title="Appointments" subtitle="Schedule and manage property visits">
+    <AppShell title="Citas" subtitle="Agenda y administra las visitas a propiedades">
       <Tabs defaultValue="calendar">
         <div className="flex items-center justify-between mb-4">
           <TabsList>
-            <TabsTrigger value="calendar"><CalIcon className="h-4 w-4 mr-1.5" />Calendar</TabsTrigger>
-            <TabsTrigger value="list"><List className="h-4 w-4 mr-1.5" />List</TabsTrigger>
+            <TabsTrigger value="calendar"><CalIcon className="h-4 w-4 mr-1.5" />Calendario</TabsTrigger>
+            <TabsTrigger value="list"><List className="h-4 w-4 mr-1.5" />Lista</TabsTrigger>
           </TabsList>
           <NewAppointmentDialog />
         </div>
 
         <TabsContent value="calendar">
           <PageCard
-            title={format(month, "MMMM yyyy")}
+            title={format(month, "MMMM yyyy", { locale: es }).replace(/^./, c => c.toUpperCase())}
             action={
               <div className="flex gap-1">
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(subMonths(month, 1))}><ChevronLeft className="h-4 w-4" /></Button>
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(addMonths(month, 1))}><ChevronRight className="h-4 w-4" /></Button>
+                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(subMonths(month, 1))} aria-label="Mes anterior"><ChevronLeft className="h-4 w-4" /></Button>
+                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(addMonths(month, 1))} aria-label="Mes siguiente"><ChevronRight className="h-4 w-4" /></Button>
               </div>
             }
           >
@@ -45,7 +46,7 @@ function AppointmentsPage() {
         </TabsContent>
 
         <TabsContent value="list">
-          <PageCard title="Upcoming appointments">
+          <PageCard title="Próximas citas">
             <ul className="divide-y divide-border">
               {appointments.map((a) => {
                 const lead = leads.find(l => l.id === a.leadId);
@@ -54,13 +55,13 @@ function AppointmentsPage() {
                   <li key={a.id} className="flex items-center gap-4 py-3">
                     <div className="h-12 w-12 rounded-lg bg-primary/10 text-primary grid place-items-center">
                       <div className="text-center leading-tight">
-                        <div className="text-[10px] uppercase">{format(parseISO(a.date), "MMM")}</div>
+                        <div className="text-[10px] uppercase">{format(parseISO(a.date), "MMM", { locale: es })}</div>
                         <div className="text-base font-semibold">{format(parseISO(a.date), "dd")}</div>
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium">{lead?.name} → {prop?.title}</div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />{format(parseISO(a.date), "p")} · {a.notes}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3" />{format(parseISO(a.date), "p", { locale: es })} · {a.notes}</div>
                     </div>
                     <span className="text-xs text-muted-foreground">{prop?.location}</span>
                   </li>
@@ -82,7 +83,7 @@ function CalendarGrid({ month }: { month: Date }) {
   return (
     <div>
       <div className="grid grid-cols-7 text-xs text-muted-foreground font-medium mb-2">
-        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} className="px-2 py-1">{d}</div>)}
+        {["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"].map(d => <div key={d} className="px-2 py-1">{d}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
         {days.map((d) => {
@@ -113,27 +114,27 @@ function CalendarGrid({ month }: { month: Date }) {
 function NewAppointmentDialog() {
   return (
     <Dialog>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> New Appointment</Button></DialogTrigger>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Nueva Cita</Button></DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Create appointment</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
         <div className="grid gap-4">
-          <div className="space-y-1.5"><Label>Client (Lead)</Label>
-            <Select><SelectTrigger><SelectValue placeholder="Select lead" /></SelectTrigger>
+          <div className="space-y-1.5"><Label>Cliente (Prospecto)</Label>
+            <Select><SelectTrigger><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
               <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5"><Label>Property</Label>
-            <Select><SelectTrigger><SelectValue placeholder="Select property" /></SelectTrigger>
+          <div className="space-y-1.5"><Label>Propiedad</Label>
+            <Select><SelectTrigger><SelectValue placeholder="Selecciona propiedad" /></SelectTrigger>
               <SelectContent>{properties.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label>Date</Label><Input type="date" /></div>
-            <div className="space-y-1.5"><Label>Time</Label><Input type="time" /></div>
+            <div className="space-y-1.5"><Label>Fecha</Label><Input type="date" /></div>
+            <div className="space-y-1.5"><Label>Hora</Label><Input type="time" /></div>
           </div>
-          <div className="space-y-1.5"><Label>Notes</Label><Textarea rows={3} placeholder="Visit details…" /></div>
+          <div className="space-y-1.5"><Label>Notas</Label><Textarea rows={3} placeholder="Detalles de la visita…" /></div>
         </div>
-        <DialogFooter><Button variant="outline">Cancel</Button><Button>Schedule</Button></DialogFooter>
+        <DialogFooter><Button variant="outline">Cancelar</Button><Button>Agendar</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );

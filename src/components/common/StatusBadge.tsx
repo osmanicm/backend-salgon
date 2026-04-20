@@ -13,16 +13,29 @@ const map: Record<string, string> = {
   Agent: "bg-muted text-muted-foreground border-border",
 };
 
+const labelEs: Record<string, string> = {
+  Available: "Disponible",
+  Reserved: "Apartado",
+  Sold: "Vendido",
+  New: "Nuevo",
+  Contacted: "Contactado",
+  Visit: "Visita",
+  Negotiation: "Negociación",
+  Closed: "Cerrado",
+  Admin: "Administrador",
+  Agent: "Agente",
+};
+
 export function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
         "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
-        map[status] ?? "bg-muted text-muted-foreground border-border"
+        map[status] ?? "bg-muted text-muted-foreground border-border",
       )}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-      {status}
+      {labelEs[status] ?? status}
     </span>
   );
 }

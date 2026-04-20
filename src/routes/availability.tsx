@@ -93,12 +93,12 @@ function AvailabilityPage() {
     });
     cancelEdit();
     if (syncedPropertyIds.length > 0) {
-      toast.success("Availability updated", {
-        description: `Status synced to property ${syncedPropertyIds.join(", ")} · pushed to mobile API`,
+      toast.success("Disponibilidad actualizada", {
+        description: `Estatus sincronizado a la propiedad ${syncedPropertyIds.join(", ")} · enviado al API móvil`,
       });
     } else {
-      toast.success("Availability updated", {
-        description: "Synced via REST API · mobile clients will refresh",
+      toast.success("Disponibilidad actualizada", {
+        description: "Sincronizado vía API REST · los clientes móviles se actualizarán",
       });
     }
   }
@@ -119,11 +119,12 @@ function AvailabilityPage() {
   }
   function applyBulk() {
     const { syncedPropertyIds } = bulkUpdateAvailabilityStatus(selected, bulkStatus);
+    const statusEs = bulkStatus === "Available" ? "Disponible" : bulkStatus === "Reserved" ? "Apartado" : "Vendido";
     const propsNote = syncedPropertyIds.length > 0
-      ? ` · ${syncedPropertyIds.length} propert${syncedPropertyIds.length === 1 ? "y" : "ies"} synced (${syncedPropertyIds.join(", ")})`
+      ? ` · ${syncedPropertyIds.length} propiedad${syncedPropertyIds.length === 1 ? "" : "es"} sincronizada${syncedPropertyIds.length === 1 ? "" : "s"} (${syncedPropertyIds.join(", ")})`
       : "";
-    toast.success(`${selected.size} unit(s) marked ${bulkStatus}`, {
-      description: `availability_master · UPDATE WHERE id IN (…) · synced to /api/availability${propsNote}`,
+    toast.success(`${selected.size} unidad(es) marcadas como ${statusEs}`, {
+      description: `availability_master · UPDATE WHERE id IN (…) · sincronizado con /api/availability${propsNote}`,
     });
     setBulkOpen(false);
     setSelected(new Set());
@@ -316,9 +317,9 @@ function ModelGroup({
           <div className="flex items-center gap-3">
             <ChevronDown className="h-3.5 w-3.5 text-primary" />
             <span className="font-semibold text-sm tracking-tight">{model}</span>
-            <span className="text-[11px] text-muted-foreground">{items.length} units</span>
+            <span className="text-[11px] text-muted-foreground">{items.length} unidades</span>
             <span className="ml-auto text-[11px] text-muted-foreground">
-              avg. <span className="font-medium text-foreground">{fmtMXN(avg)}</span>
+              prom. <span className="font-medium text-foreground">{fmtMXN(avg)}</span>
             </span>
           </div>
         </td>
@@ -355,15 +356,15 @@ function ModelGroup({
                   onValueChange={(v) => setDraft({ ...draft, status: v as AvailabilityStatus })}>
                   <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Available">Available</SelectItem>
-                    <SelectItem value="Reserved">Reserved</SelectItem>
-                    <SelectItem value="Sold">Sold</SelectItem>
+                    <SelectItem value="Available">Disponible</SelectItem>
+                    <SelectItem value="Reserved">Apartado</SelectItem>
+                    <SelectItem value="Sold">Vendido</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (
                 <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", STATUS_TINTS[r.status])}>
                   <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[r.status])} />
-                  {r.status}
+                  {r.status === "Available" ? "Disponible" : r.status === "Reserved" ? "Apartado" : "Vendido"}
                 </span>
               )}
             </td>
@@ -376,18 +377,18 @@ function ModelGroup({
             <td className="px-2 py-2.5">
               {r.propertyId
                 ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
-                : <span className="text-[11px] text-muted-foreground italic">unassigned</span>}
+                : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
             </td>
             <td className="px-5 py-2.5 text-right">
               {editing ? (
                 <div className="inline-flex gap-1">
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit}><X className="h-3.5 w-3.5" /></Button>
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
                   <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
-                    <Save className="h-3.5 w-3.5" /> Save
+                    <Save className="h-3.5 w-3.5" /> Guardar
                   </Button>
                 </div>
               ) : (
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)}>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
               )}
@@ -415,19 +416,19 @@ function BulkUpdateDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Bulk update availability</DialogTitle>
+          <DialogTitle>Actualización en lote de disponibilidad</DialogTitle>
         </DialogHeader>
         <p className="text-sm text-muted-foreground">
-          {count} selected unit(s) will be updated and pushed to all linked property records and the Flutter app.
+          {count} unidad(es) seleccionada(s) serán actualizadas y enviadas a todas las propiedades vinculadas y a la app móvil.
         </p>
         <div className="space-y-2">
-          <Label>New status</Label>
+          <Label>Nuevo estatus</Label>
           <Select value={status} onValueChange={(v) => setStatus(v as AvailabilityStatus)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="Available">Available</SelectItem>
-              <SelectItem value="Reserved">Reserved</SelectItem>
-              <SelectItem value="Sold">Sold</SelectItem>
+              <SelectItem value="Available">Disponible</SelectItem>
+              <SelectItem value="Reserved">Apartado</SelectItem>
+              <SelectItem value="Sold">Vendido</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -437,8 +438,8 @@ function BulkUpdateDialog({
  WHERE id IN (${count} ids);`}
         </pre>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={onApply} disabled={count === 0}>Apply &amp; sync</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={onApply} disabled={count === 0}>Aplicar y sincronizar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -14,14 +14,14 @@ import {
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/properties", label: "Properties", icon: Building2 },
-  { to: "/availability", label: "Availability", icon: ClipboardList },
-  { to: "/leads", label: "Leads", icon: Users },
-  { to: "/appointments", label: "Appointments", icon: CalendarDays },
-  { to: "/pipeline", label: "Sales Pipeline", icon: KanbanSquare },
+  { to: "/", label: "Panel de Control", icon: LayoutDashboard },
+  { to: "/properties", label: "Propiedades", icon: Building2 },
+  { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
+  { to: "/leads", label: "Prospectos", icon: Users },
+  { to: "/appointments", label: "Citas", icon: CalendarDays },
+  { to: "/pipeline", label: "Embudo de Ventas", icon: KanbanSquare },
   { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
-  { to: "/users", label: "Users", icon: UserCog },
+  { to: "/users", label: "Usuarios", icon: UserCog },
 ] as const;
 
 export function Sidebar() {
@@ -34,12 +34,12 @@ export function Sidebar() {
         </div>
         <div className="leading-tight">
           <div className="font-semibold tracking-tight">Salgon</div>
-          <div className="text-[11px] text-sidebar-foreground/60">Real Estate Suite</div>
+          <div className="text-[11px] text-sidebar-foreground/60">Suite Inmobiliaria</div>
         </div>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <div className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-sidebar-foreground/50">
-          Main
+          Principal
         </div>
         {nav.map((item) => {
           const active = pathname === item.to;
@@ -64,10 +64,10 @@ export function Sidebar() {
       </nav>
       <div className="border-t border-sidebar-border p-3 space-y-1">
         <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
-          <Settings className="h-4 w-4" /> Settings
+          <Settings className="h-4 w-4" /> Configuración
         </button>
         <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
-          <LogOut className="h-4 w-4" /> Sign out
+          <LogOut className="h-4 w-4" /> Cerrar sesión
         </button>
       </div>
     </aside>
