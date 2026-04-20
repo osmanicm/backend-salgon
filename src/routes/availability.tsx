@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   FileText, Filter, RefreshCw, Smartphone, Database, CheckCircle2,
-  Pencil, Save, X, Printer, Search, ChevronDown,
+  Pencil, Save, X, Printer, Search, ChevronDown, Send,
 } from "lucide-react";
+import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
@@ -463,17 +464,23 @@ function PdfPreviewDialog({
     [open],
   );
   const [downloading, setDownloading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const navigate = useNavigate();
+
+  async function generatePdfBlob() {
+    const [{ pdf }, { AvailabilityPdfDoc }] = await Promise.all([
+      import("@react-pdf/renderer"),
+      import("@/components/availability/AvailabilityPdfDoc"),
+    ]);
+    return pdf(
+      <AvailabilityPdfDoc groups={groups} folio={folio} dateLabel={today} />,
+    ).toBlob();
+  }
 
   async function handleDownload() {
     try {
       setDownloading(true);
-      const [{ pdf }, { AvailabilityPdfDoc }] = await Promise.all([
-        import("@react-pdf/renderer"),
-        import("@/components/availability/AvailabilityPdfDoc"),
-      ]);
-      const blob = await pdf(
-        <AvailabilityPdfDoc groups={groups} folio={folio} dateLabel={today} />,
-      ).toBlob();
+      const blob = await generatePdfBlob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -491,6 +498,37 @@ function PdfPreviewDialog({
       });
     } finally {
       setDownloading(false);
+    }
+  }
+
+  async function handleSendWhatsapp() {
+    try {
+      setSending(true);
+      const blob = await generatePdfBlob();
+      const dataUrl = await blobToDataUrl(blob);
+      const filename = `Salgon_Disponibilidad_${folio}.pdf`;
+      const message =
+        `Hola {{name}}, le compartimos el reporte oficial de disponibilidad de Salgon Bienes Raíces ` +
+        `(folio ${folio}, ${totalUnits} unidades) con fecha ${today}. ` +
+        `Encuentre adjunto el PDF con precios en MXN, fechas de entrega y observaciones de cada unidad. ` +
+        `Quedamos atentos para agendar una visita o resolver cualquier duda.`;
+      setWhatsappHandoff({
+        message,
+        attachment: { filename, dataUrl, sizeBytes: blob.size },
+        meta: { folio, totalUnits },
+      });
+      toast.success("PDF listo para enviar", {
+        description: `Abriendo WhatsApp con ${filename} adjunto`,
+      });
+      onOpenChange(false);
+      navigate({ to: "/whatsapp" });
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo preparar el envío", {
+        description: err instanceof Error ? err.message : "Intenta nuevamente.",
+      });
+    } finally {
+      setSending(false);
     }
   }
 
