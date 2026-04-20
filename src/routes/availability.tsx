@@ -446,6 +446,42 @@ function PdfPreviewDialog({
 }) {
   const totalUnits = groups.reduce((s, [, items]) => s + items.length, 0);
   const today = new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
+  // Stable folio per dialog mount
+  const folio = useMemo(
+    () => `SAL-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 900) + 100)}`,
+    [open],
+  );
+  const [downloading, setDownloading] = useState(false);
+
+  async function handleDownload() {
+    try {
+      setDownloading(true);
+      const [{ pdf }, { AvailabilityPdfDoc }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/components/availability/AvailabilityPdfDoc"),
+      ]);
+      const blob = await pdf(
+        <AvailabilityPdfDoc groups={groups} folio={folio} dateLabel={today} />,
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Salgon_Disponibilidad_${folio}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("PDF descargado", { description: `${a.download}` });
+      onOpenChange(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo generar el PDF", {
+        description: err instanceof Error ? err.message : "Intenta nuevamente.",
+      });
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -455,8 +491,8 @@ function PdfPreviewDialog({
             <DialogTitle className="text-base">PDF preview · Reporte de Disponibilidad</DialogTitle>
             <p className="text-xs text-muted-foreground mt-0.5">Documento oficial para envío a clientes</p>
           </div>
-          <Button size="sm" className="gap-1.5 mr-8" onClick={() => { onOpenChange(false); toast.success("PDF exported", { description: "Salgon_Disponibilidad.pdf" }); }}>
-            <Printer className="h-3.5 w-3.5" /> Download PDF
+          <Button size="sm" className="gap-1.5 mr-8" onClick={handleDownload} disabled={downloading}>
+            <Printer className="h-3.5 w-3.5" /> {downloading ? "Generando…" : "Download PDF"}
           </Button>
         </DialogHeader>
 
