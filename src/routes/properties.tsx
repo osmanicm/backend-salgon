@@ -199,45 +199,51 @@ function AddPropertyDialog() {
       <DialogTrigger asChild>
         <Button className="gap-1.5"><Plus className="h-4 w-4" /> Agregar Propiedad</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader><DialogTitle>Agregar nueva propiedad</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2 space-y-1.5"><Label>Título</Label><Input placeholder="Penthouse Vista al Mar" /></div>
-          <div className="col-span-2 space-y-1.5"><Label>Descripción</Label><Textarea placeholder="Describe la propiedad…" rows={3} /></div>
-          <div className="space-y-1.5"><Label>Precio (MXN)</Label><Input type="number" placeholder="3500000" /></div>
-          <div className="space-y-1.5"><Label>Estatus</Label>
-            <Select defaultValue="Available">
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Available">Disponible</SelectItem>
-                <SelectItem value="Reserved">Apartado</SelectItem>
-                <SelectItem value="Sold">Vendido</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-2 space-y-1.5"><Label>Ubicación</Label><Input placeholder="CDMX, Polanco" />
-            <div className="mt-2 h-32 rounded-lg border border-dashed border-border bg-muted/40 grid place-items-center text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> Mapa (vista previa)</span>
-            </div>
-          </div>
-          <div className="space-y-1.5"><Label>Agente Asignado</Label>
-            <Select>
-              <SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
-              <SelectContent>{agents.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5"><Label>Imagen</Label>
-            <div className="h-10 rounded-md border border-dashed border-border grid place-items-center text-xs text-muted-foreground gap-1.5 cursor-pointer hover:bg-muted/40">
-              <span className="inline-flex items-center gap-1.5"><Upload className="h-3.5 w-3.5" /> Subir imagen</span>
-            </div>
+      <AddPropertyDialogContent />
+    </Dialog>
+  );
+}
+
+function AddPropertyDialogContent() {
+  return (
+    <DialogContent className="max-w-2xl">
+      <DialogHeader><DialogTitle>Agregar nueva propiedad</DialogTitle></DialogHeader>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="sm:col-span-2 space-y-1.5"><Label>Título</Label><Input placeholder="Penthouse Vista al Mar" /></div>
+        <div className="sm:col-span-2 space-y-1.5"><Label>Descripción</Label><Textarea placeholder="Describe la propiedad…" rows={3} /></div>
+        <div className="space-y-1.5"><Label>Precio (MXN)</Label><Input type="number" placeholder="3500000" /></div>
+        <div className="space-y-1.5"><Label>Estatus</Label>
+          <Select defaultValue="Available">
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Available">Disponible</SelectItem>
+              <SelectItem value="Reserved">Apartado</SelectItem>
+              <SelectItem value="Sold">Vendido</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="sm:col-span-2 space-y-1.5"><Label>Ubicación</Label><Input placeholder="CDMX, Polanco" />
+          <div className="mt-2 h-28 rounded-lg border border-dashed border-border bg-muted/40 grid place-items-center text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" /> Mapa (vista previa)</span>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline">Cancelar</Button>
-          <Button>Crear propiedad</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-1.5"><Label>Agente Asignado</Label>
+          <Select>
+            <SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
+            <SelectContent>{agents.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5"><Label>Imagen</Label>
+          <div className="h-10 rounded-md border border-dashed border-border grid place-items-center text-xs text-muted-foreground gap-1.5 cursor-pointer hover:bg-muted/40">
+            <span className="inline-flex items-center gap-1.5"><Upload className="h-3.5 w-3.5" /> Subir imagen</span>
+          </div>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button variant="outline">Cancelar</Button>
+        <Button>Crear propiedad</Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 
