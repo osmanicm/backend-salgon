@@ -142,19 +142,19 @@ function AvailabilityPage() {
             <span className="absolute inset-0 rounded-full bg-success/60 animate-ping" />
             <span className="relative h-2.5 w-2.5 rounded-full bg-success" />
           </span>
-          <span className="text-sm font-medium">Live · synced</span>
+          <span className="text-sm font-medium">En vivo · sincronizado</span>
         </div>
         <div className="text-xs text-muted-foreground flex items-center gap-1.5">
           <Database className="h-3.5 w-3.5" /> <code className="font-mono">availability_master</code> → <code className="font-mono">properties</code>
         </div>
         <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <Smartphone className="h-3.5 w-3.5" /> Flutter app · last push 2 min ago
+          <Smartphone className="h-3.5 w-3.5" /> App Flutter · último envío hace 2 min
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Stat label="Total"     value={counts.total} />
-          <Stat label="Available" value={counts.available} tint="text-emerald-600" />
-          <Stat label="Reserved"  value={counts.reserved}  tint="text-amber-600" />
-          <Stat label="Sold"      value={counts.sold}      tint="text-rose-600" />
+          <Stat label="Total"      value={counts.total} />
+          <Stat label="Disponible" value={counts.available} tint="text-emerald-600" />
+          <Stat label="Apartado"   value={counts.reserved}  tint="text-amber-600" />
+          <Stat label="Vendido"    value={counts.sold}      tint="text-rose-600" />
         </div>
       </div>
 
