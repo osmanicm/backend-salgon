@@ -24,6 +24,7 @@ function WhatsappPage() {
   const [body, setBody] = useState(whatsappTemplates[0].body);
   const [to, setTo] = useState(leads[0].id);
   const [attachment, setAttachment] = useState<WhatsappHandoff["attachment"] | null>(null);
+  const [image, setImage] = useState<WhatsappHandoff["image"] | null>(null);
 
   // Consume handoff from Availability → WhatsApp on mount
   useEffect(() => {
@@ -36,7 +37,14 @@ function WhatsappPage() {
       toast.success("PDF adjunto desde Disponibilidad", {
         description: `${h.attachment.filename} · ${formatBytes(h.attachment.sizeBytes)}`,
       });
-    } else {
+    }
+    if (h.image) {
+      setImage(h.image);
+      toast.success("Imagen adjunta", {
+        description: `${h.image.filename} · ${formatBytes(h.image.sizeBytes)}`,
+      });
+    }
+    if (!h.attachment && !h.image) {
       toast.success("Mensaje pre-cargado", {
         description: "Revisa el contenido antes de enviar.",
       });
@@ -45,12 +53,16 @@ function WhatsappPage() {
 
   function send() {
     const lead = leads.find((l) => l.id === to);
+    const parts: string[] = [];
+    if (attachment) parts.push(`adjunto ${attachment.filename}`);
+    if (image) parts.push(`imagen ${image.filename}`);
     toast.success(`Mensaje enviado a ${lead?.name}`, {
-      description: attachment
-        ? `Envío simulado por WhatsApp API · adjunto ${attachment.filename}`
+      description: parts.length
+        ? `Envío simulado por WhatsApp API · ${parts.join(" · ")}`
         : "Envío simulado por WhatsApp API",
     });
     setAttachment(null);
+    setImage(null);
   }
 
   function downloadAttachment() {
