@@ -19,13 +19,13 @@ function WhatsappPage() {
 
   function send() {
     const lead = leads.find(l => l.id === to);
-    toast.success(`Message sent to ${lead?.name}`, { description: "Simulated WhatsApp delivery via API" });
+    toast.success(`Mensaje enviado a ${lead?.name}`, { description: "Envío simulado por WhatsApp API" });
   }
 
   return (
-    <AppShell title="WhatsApp Integration" subtitle="Send pre-approved templates to your leads">
+    <AppShell title="Integración con WhatsApp" subtitle="Envía plantillas pre-aprobadas a tus prospectos">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PageCard title="Templates" description="Click to load a template" className="lg:col-span-1">
+        <PageCard title="Plantillas" description="Da clic para cargar una plantilla" className="lg:col-span-1">
           <ul className="space-y-2">
             {whatsappTemplates.map(t => (
               <li key={t.id}>
@@ -38,29 +38,29 @@ function WhatsappPage() {
           </ul>
         </PageCard>
 
-        <PageCard title="Compose Message" description="Variables: {{name}}, {{property}}, {{date}}" className="lg:col-span-2">
+        <PageCard title="Redactar Mensaje" description="Variables: {{name}}, {{property}}, {{date}}" className="lg:col-span-2">
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Recipient</Label>
+              <div className="space-y-1.5"><Label>Destinatario</Label>
                 <Select value={to} onValueChange={setTo}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name} — {l.phone}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5"><Label>Phone (override)</Label><Input placeholder="+961 …" /></div>
+              <div className="space-y-1.5"><Label>Teléfono (alterno)</Label><Input placeholder="+52 …" /></div>
             </div>
             <div className="space-y-1.5">
-              <Label>Message</Label>
+              <Label>Mensaje</Label>
               <Textarea rows={6} value={body} onChange={(e) => setBody(e.target.value)} />
             </div>
             <div className="rounded-xl bg-[oklch(0.96_0.04_150)] p-4">
               <div className="ml-auto max-w-sm rounded-2xl rounded-br-sm bg-success text-success-foreground px-3 py-2 text-sm shadow-[var(--shadow-soft)]">
-                {body || "Preview will appear here"}
+                {body || "La vista previa aparecerá aquí"}
                 <div className="text-[10px] opacity-80 flex items-center justify-end gap-1 mt-1">10:24 <CheckCheck className="h-3 w-3" /></div>
               </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={send} className="gap-1.5"><Send className="h-4 w-4" /> Send via WhatsApp API</Button>
+              <Button onClick={send} className="gap-1.5"><Send className="h-4 w-4" /> Enviar por WhatsApp API</Button>
             </div>
           </div>
         </PageCard>

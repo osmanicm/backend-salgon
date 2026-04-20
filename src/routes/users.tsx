@@ -15,11 +15,11 @@ function initials(name: string) {
 
 function UsersPage() {
   return (
-    <AppShell title="Users" subtitle="Admins and agents managing the platform">
+    <AppShell title="Usuarios" subtitle="Administradores y agentes que gestionan la plataforma">
       <PageCard
-        title="Team members"
-        description={`${agents.length} active users`}
-        action={<Button className="gap-1.5"><Plus className="h-4 w-4" /> Invite user</Button>}
+        title="Miembros del equipo"
+        description={`${agents.length} usuarios activos`}
+        action={<Button className="gap-1.5"><Plus className="h-4 w-4" /> Invitar usuario</Button>}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {agents.map(a => (
@@ -43,16 +43,16 @@ function UsersPage() {
               <div className="mt-4 grid grid-cols-2 gap-2 pt-4 border-t border-border">
                 <div>
                   <div className="text-xl font-semibold">{a.propertiesAssigned}</div>
-                  <div className="text-[11px] text-muted-foreground uppercase tracking-wider">Properties</div>
+                  <div className="text-[11px] text-muted-foreground uppercase tracking-wider">Propiedades</div>
                 </div>
                 <div>
                   <div className="text-xl font-semibold">{a.leadsAssigned}</div>
-                  <div className="text-[11px] text-muted-foreground uppercase tracking-wider">Leads</div>
+                  <div className="text-[11px] text-muted-foreground uppercase tracking-wider">Prospectos</div>
                 </div>
               </div>
               <div className="mt-4 flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1">Assign</Button>
-                <Button size="sm" variant="outline" className="flex-1">Edit</Button>
+                <Button size="sm" variant="outline" className="flex-1">Asignar</Button>
+                <Button size="sm" variant="outline" className="flex-1">Editar</Button>
               </div>
             </div>
           ))}

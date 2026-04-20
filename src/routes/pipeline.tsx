@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/pipeline")({ component: PipelinePage });
 
 const columns: { id: LeadStatus; label: string; tint: string }[] = [
-  { id: "New", label: "New Lead", tint: "border-t-info" },
-  { id: "Contacted", label: "Contacted", tint: "border-t-muted-foreground" },
-  { id: "Visit", label: "Visit Scheduled", tint: "border-t-warning" },
-  { id: "Negotiation", label: "Negotiation", tint: "border-t-gold" },
-  { id: "Closed", label: "Closed", tint: "border-t-success" },
+  { id: "New", label: "Nuevo Prospecto", tint: "border-t-info" },
+  { id: "Contacted", label: "Contactado", tint: "border-t-muted-foreground" },
+  { id: "Visit", label: "Visita Agendada", tint: "border-t-warning" },
+  { id: "Negotiation", label: "Negociación", tint: "border-t-gold" },
+  { id: "Closed", label: "Cerrado", tint: "border-t-success" },
 ];
 
 function PipelinePage() {
@@ -37,7 +37,7 @@ function PipelinePage() {
   const active = items.find(i => i.id === activeId);
 
   return (
-    <AppShell title="Sales Pipeline" subtitle="Drag leads across stages to update their status">
+    <AppShell title="Embudo de Ventas" subtitle="Arrastra los prospectos entre etapas para actualizar su estatus">
       <DndContext sensors={sensors} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           {columns.map(col => (
