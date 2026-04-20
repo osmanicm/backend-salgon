@@ -229,7 +229,7 @@ function AvailabilityPage() {
               {grouped.length === 0 && (
                 <tr>
                   <td colSpan={9} className="text-center text-muted-foreground py-12">
-                    No units match the current filters.
+                    Ninguna unidad coincide con los filtros actuales.
                   </td>
                 </tr>
               )}
@@ -240,9 +240,9 @@ function AvailabilityPage() {
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-3">
           <div className="flex items-center gap-1.5">
             <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-            Edits push instantly · <code className="font-mono">PUT /api/availability/&#123;id&#125;</code>
+            Los cambios se envían al instante · <code className="font-mono">PUT /api/availability/&#123;id&#125;</code>
           </div>
-          <div>Updated {new Date().toLocaleString("es-MX")}</div>
+          <div>Actualizado {new Date().toLocaleString("es-MX")}</div>
         </div>
       </PageCard>
 
