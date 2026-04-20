@@ -32,7 +32,7 @@ function PropertiesPage() {
     return matchesQ && matchesS;
   });
 
-  function shareOnWhatsapp(p: Property, lead?: Lead) {
+  async function shareOnWhatsapp(p: Property, lead?: Lead) {
     const greeting = lead ? `¡Hola ${lead.name.split(" ")[0]}!` : `¡Hola!`;
     const message =
       `${greeting} Te comparto esta propiedad que podría interesarte:\n\n` +
@@ -40,12 +40,29 @@ function PropertiesPage() {
       `📍 ${p.location}\n` +
       `💰 ${fmtMoney(p.price)}\n` +
       `🛏️ ${p.bedrooms} recámaras · 🛁 ${p.bathrooms} baños · 📐 ${p.area} m²\n\n` +
-      `🖼️ Foto: ${p.image}\n\n` +
       `Folio: ${p.id}\n` +
       `¿Te gustaría agendar una visita?`;
+
+    let image:
+      | { filename: string; dataUrl: string; sizeBytes: number; mimeType: string }
+      | undefined;
+    try {
+      const res = await fetch(p.image);
+      if (res.ok) {
+        const blob = await res.blob();
+        const mimeType = blob.type || "image/jpeg";
+        const ext = mimeType.split("/")[1]?.split("+")[0] || "jpg";
+        const dataUrl = await blobToDataUrl(blob);
+        image = { filename: `${p.id}.${ext}`, dataUrl, sizeBytes: blob.size, mimeType };
+      }
+    } catch (e) {
+      console.error("No se pudo adjuntar la imagen de la propiedad", e);
+    }
+
     setWhatsappHandoff({
       message,
       toLeadId: lead?.id,
+      image,
       meta: { propertyId: p.id },
     });
     navigate({ to: "/whatsapp" });
