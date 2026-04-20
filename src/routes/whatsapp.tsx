@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Send, MessageCircle, CheckCheck, FileText, X, Download } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Send, MessageCircle, CheckCheck, FileText, X, Download, ImagePlus } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { whatsappTemplates, leads } from "@/data/mock";
-import { consumeWhatsappHandoff, type WhatsappHandoff } from "@/data/whatsappHandoff";
+import { consumeWhatsappHandoff, blobToDataUrl, type WhatsappHandoff } from "@/data/whatsappHandoff";
 import { toast } from "sonner";
+
+interface ExtraPhoto {
+  id: string;
+  filename: string;
+  dataUrl: string;
+  sizeBytes: number;
+  mimeType: string;
+}
+
+const MAX_EXTRA_PHOTOS = 6;
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
 
 export const Route = createFileRoute("/whatsapp")({ component: WhatsappPage });
 
@@ -25,6 +36,49 @@ function WhatsappPage() {
   const [to, setTo] = useState(leads[0].id);
   const [attachment, setAttachment] = useState<WhatsappHandoff["attachment"] | null>(null);
   const [image, setImage] = useState<WhatsappHandoff["image"] | null>(null);
+  const [extraPhotos, setExtraPhotos] = useState<ExtraPhoto[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handlePhotoPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (!files.length) return;
+    const slotsLeft = MAX_EXTRA_PHOTOS - extraPhotos.length;
+    if (slotsLeft <= 0) {
+      toast.error(`Máximo ${MAX_EXTRA_PHOTOS} fotos adicionales`);
+      return;
+    }
+    const accepted = files.filter((f) => f.type.startsWith("image/")).slice(0, slotsLeft);
+    const rejectedType = files.length - files.filter((f) => f.type.startsWith("image/")).length;
+    if (rejectedType > 0) toast.error(`${rejectedType} archivo(s) ignorados (no son imágenes)`);
+    const next: ExtraPhoto[] = [];
+    for (const f of accepted) {
+      if (f.size > MAX_PHOTO_BYTES) {
+        toast.error(`${f.name} supera 5 MB`);
+        continue;
+      }
+      try {
+        const dataUrl = await blobToDataUrl(f);
+        next.push({
+          id: `${f.name}-${f.lastModified}-${f.size}`,
+          filename: f.name,
+          dataUrl,
+          sizeBytes: f.size,
+          mimeType: f.type,
+        });
+      } catch {
+        toast.error(`No se pudo leer ${f.name}`);
+      }
+    }
+    if (next.length) {
+      setExtraPhotos((prev) => [...prev, ...next]);
+      toast.success(`${next.length} foto(s) adjuntada(s)`);
+    }
+  }
+
+  function removeExtraPhoto(id: string) {
+    setExtraPhotos((prev) => prev.filter((p) => p.id !== id));
+  }
 
   // Consume handoff from Availability → WhatsApp on mount
   useEffect(() => {
@@ -56,6 +110,7 @@ function WhatsappPage() {
     const parts: string[] = [];
     if (attachment) parts.push(`adjunto ${attachment.filename}`);
     if (image) parts.push(`imagen ${image.filename}`);
+    if (extraPhotos.length) parts.push(`${extraPhotos.length} foto(s) extra`);
     toast.success(`Mensaje enviado a ${lead?.name}`, {
       description: parts.length
         ? `Envío simulado por WhatsApp API · ${parts.join(" · ")}`
@@ -63,6 +118,7 @@ function WhatsappPage() {
     });
     setAttachment(null);
     setImage(null);
+    setExtraPhotos([]);
   }
 
   function downloadAttachment() {
@@ -192,6 +248,54 @@ function WhatsappPage() {
               </div>
             )}
 
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label>Fotos adicionales</Label>
+                <span className="text-xs text-muted-foreground">
+                  {extraPhotos.length}/{MAX_EXTRA_PHOTOS}
+                </span>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoPick}
+              />
+              <div className="flex flex-wrap gap-2">
+                {extraPhotos.map((p) => (
+                  <div
+                    key={p.id}
+                    className="group relative h-20 w-20 rounded-md overflow-hidden border border-border bg-muted"
+                  >
+                    <img src={p.dataUrl} alt={p.filename} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeExtraPhoto(p.id)}
+                      aria-label={`Quitar ${p.filename}`}
+                      className="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-background/90 text-destructive grid place-items-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {extraPhotos.length < MAX_EXTRA_PHOTOS && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-20 w-20 rounded-md border border-dashed border-border bg-muted/30 hover:bg-muted/60 transition-colors grid place-items-center text-muted-foreground"
+                    aria-label="Agregar fotos"
+                  >
+                    <ImagePlus className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Hasta {MAX_EXTRA_PHOTOS} imágenes · 5 MB c/u
+              </p>
+            </div>
+
             <div className="rounded-xl bg-[oklch(0.96_0.04_150)] p-4">
               <div className="ml-auto max-w-sm rounded-2xl rounded-br-sm bg-success text-success-foreground px-3 py-2 text-sm shadow-[var(--shadow-soft)] space-y-2">
                 {image && (
@@ -200,6 +304,30 @@ function WhatsappPage() {
                     alt={image.filename}
                     className="rounded-lg w-full max-h-56 object-cover border border-success-foreground/10"
                   />
+                )}
+                {extraPhotos.length > 0 && (
+                  <div
+                    className={
+                      extraPhotos.length === 1
+                        ? "grid grid-cols-1 gap-1"
+                        : "grid grid-cols-2 gap-1"
+                    }
+                  >
+                    {extraPhotos.slice(0, 4).map((p, i) => (
+                      <div key={p.id} className="relative">
+                        <img
+                          src={p.dataUrl}
+                          alt={p.filename}
+                          className="rounded-md w-full h-24 object-cover border border-success-foreground/10"
+                        />
+                        {i === 3 && extraPhotos.length > 4 && (
+                          <div className="absolute inset-0 rounded-md bg-black/50 grid place-items-center text-white text-sm font-semibold">
+                            +{extraPhotos.length - 4}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
                 {attachment && (
                   <div className="flex items-center gap-2 rounded-lg bg-success-foreground/10 px-2 py-1.5">
