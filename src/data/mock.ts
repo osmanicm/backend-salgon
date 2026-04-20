@@ -64,33 +64,33 @@ export const agents: Agent[] = [
 ];
 
 export const properties: Property[] = [
-  { id: "P-1024", title: "Sea View Penthouse", price: 685000, location: "Beirut, Ain El Mreisseh", status: "Available", agentId: "U-002", bedrooms: 4, bathrooms: 3, area: 280, image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800", createdAt: "2025-03-12" },
-  { id: "P-1025", title: "Modern Downtown Loft", price: 320000, location: "Beirut, Downtown", status: "Reserved", agentId: "U-003", bedrooms: 2, bathrooms: 2, area: 140, image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800", createdAt: "2025-03-15" },
-  { id: "P-1026", title: "Mountain Villa Faraya", price: 950000, location: "Faraya", status: "Available", agentId: "U-004", bedrooms: 5, bathrooms: 4, area: 420, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800", createdAt: "2025-02-28" },
-  { id: "P-1027", title: "Family Apartment Hazmieh", price: 245000, location: "Hazmieh", status: "Sold", agentId: "U-002", bedrooms: 3, bathrooms: 2, area: 175, image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800", createdAt: "2025-02-14" },
-  { id: "P-1028", title: "Beachfront Chalet Jbeil", price: 410000, location: "Jbeil", status: "Available", agentId: "U-005", bedrooms: 3, bathrooms: 2, area: 160, image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800", createdAt: "2025-04-01" },
-  { id: "P-1029", title: "Cozy Studio Achrafieh", price: 135000, location: "Beirut, Achrafieh", status: "Reserved", agentId: "U-003", bedrooms: 1, bathrooms: 1, area: 65, image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800", createdAt: "2025-03-20" },
-  { id: "P-1030", title: "Garden Townhouse Baabda", price: 525000, location: "Baabda", status: "Available", agentId: "U-004", bedrooms: 4, bathrooms: 3, area: 310, image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800", createdAt: "2025-04-05" },
-  { id: "P-1031", title: "Rooftop Apartment Mar Mikhael", price: 380000, location: "Beirut, Mar Mikhael", status: "Sold", agentId: "U-002", bedrooms: 2, bathrooms: 2, area: 130, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800", createdAt: "2025-01-22" },
+  { id: "P-1024", title: "Penthouse Vista al Mar", price: 12500000, location: "CDMX, Polanco", status: "Available", agentId: "U-002", bedrooms: 4, bathrooms: 3, area: 280, image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800", createdAt: "2025-03-12" },
+  { id: "P-1025", title: "Loft Moderno Centro", price: 5800000, location: "CDMX, Roma Norte", status: "Reserved", agentId: "U-003", bedrooms: 2, bathrooms: 2, area: 140, image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800", createdAt: "2025-03-15" },
+  { id: "P-1026", title: "Villa de Montaña Valle de Bravo", price: 17500000, location: "Valle de Bravo, Edo. Méx.", status: "Available", agentId: "U-004", bedrooms: 5, bathrooms: 4, area: 420, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800", createdAt: "2025-02-28" },
+  { id: "P-1027", title: "Departamento Familiar Coyoacán", price: 4450000, location: "CDMX, Coyoacán", status: "Sold", agentId: "U-002", bedrooms: 3, bathrooms: 2, area: 175, image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800", createdAt: "2025-02-14" },
+  { id: "P-1028", title: "Casa Frente al Mar Playa del Carmen", price: 7400000, location: "Playa del Carmen, Q. Roo", status: "Available", agentId: "U-005", bedrooms: 3, bathrooms: 2, area: 160, image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800", createdAt: "2025-04-01" },
+  { id: "P-1029", title: "Estudio Acogedor Condesa", price: 2450000, location: "CDMX, Condesa", status: "Reserved", agentId: "U-003", bedrooms: 1, bathrooms: 1, area: 65, image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800", createdAt: "2025-03-20" },
+  { id: "P-1030", title: "Townhouse con Jardín Lomas", price: 9500000, location: "CDMX, Lomas de Chapultepec", status: "Available", agentId: "U-004", bedrooms: 4, bathrooms: 3, area: 310, image: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800", createdAt: "2025-04-05" },
+  { id: "P-1031", title: "Penthouse con Terraza Del Valle", price: 6800000, location: "CDMX, Del Valle", status: "Sold", agentId: "U-002", bedrooms: 2, bathrooms: 2, area: 130, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800", createdAt: "2025-01-22" },
 ];
 
 export const leads: Lead[] = [
-  { id: "L-2001", name: "Rami Doumit", phone: "+961 70 123 456", email: "rami@example.com", interest: "Apartment in Achrafieh", budget: 200000, source: "Website", status: "New", agentId: "U-002", createdAt: "2025-04-10" },
-  { id: "L-2002", name: "Maya Tabet", phone: "+961 71 234 567", email: "maya@example.com", interest: "Villa in Faraya", budget: 900000, source: "WhatsApp", status: "Contacted", agentId: "U-004", createdAt: "2025-04-08" },
-  { id: "L-2003", name: "Elias Khoury", phone: "+961 76 345 678", email: "elias@example.com", interest: "Loft Downtown", budget: 350000, source: "Referral", status: "Visit", agentId: "U-003", createdAt: "2025-04-05" },
-  { id: "L-2004", name: "Zeina Rahal", phone: "+961 78 456 789", email: "zeina@example.com", interest: "Penthouse Beirut", budget: 700000, source: "Facebook", status: "Negotiation", agentId: "U-002", createdAt: "2025-04-02" },
-  { id: "L-2005", name: "Hadi Nasr", phone: "+961 79 567 890", email: "hadi@example.com", interest: "Chalet Jbeil", budget: 420000, source: "Walk-in", status: "Closed", agentId: "U-005", createdAt: "2025-03-28" },
-  { id: "L-2006", name: "Lara Habib", phone: "+961 70 678 901", email: "lara@example.com", interest: "Studio Achrafieh", budget: 140000, source: "Website", status: "New", agentId: "U-003", createdAt: "2025-04-12" },
-  { id: "L-2007", name: "Tony Abi Saad", phone: "+961 71 789 012", email: "tony@example.com", interest: "Townhouse Baabda", budget: 540000, source: "WhatsApp", status: "Contacted", agentId: "U-004", createdAt: "2025-04-11" },
-  { id: "L-2008", name: "Nadia Sleiman", phone: "+961 76 890 123", email: "nadia@example.com", interest: "Family apt Hazmieh", budget: 260000, source: "Referral", status: "Visit", agentId: "U-002", createdAt: "2025-04-09" },
+  { id: "L-2001", name: "Ramiro Domínguez", phone: "+52 55 1234 5678", email: "ramiro@ejemplo.com", interest: "Departamento en Condesa", budget: 3500000, source: "Website", status: "New", agentId: "U-002", createdAt: "2025-04-10" },
+  { id: "L-2002", name: "Mariana Tovar", phone: "+52 55 2345 6789", email: "mariana@ejemplo.com", interest: "Villa en Valle de Bravo", budget: 16000000, source: "WhatsApp", status: "Contacted", agentId: "U-004", createdAt: "2025-04-08" },
+  { id: "L-2003", name: "Elías Carvajal", phone: "+52 55 3456 7890", email: "elias@ejemplo.com", interest: "Loft en Roma Norte", budget: 6200000, source: "Referral", status: "Visit", agentId: "U-003", createdAt: "2025-04-05" },
+  { id: "L-2004", name: "Zaira Rivera", phone: "+52 55 4567 8901", email: "zaira@ejemplo.com", interest: "Penthouse en Polanco", budget: 12500000, source: "Facebook", status: "Negotiation", agentId: "U-002", createdAt: "2025-04-02" },
+  { id: "L-2005", name: "Hugo Navarro", phone: "+52 55 5678 9012", email: "hugo@ejemplo.com", interest: "Casa en Playa del Carmen", budget: 7500000, source: "Walk-in", status: "Closed", agentId: "U-005", createdAt: "2025-03-28" },
+  { id: "L-2006", name: "Lorena Hernández", phone: "+52 55 6789 0123", email: "lorena@ejemplo.com", interest: "Estudio en Condesa", budget: 2500000, source: "Website", status: "New", agentId: "U-003", createdAt: "2025-04-12" },
+  { id: "L-2007", name: "Toño Aburto", phone: "+52 55 7890 1234", email: "tono@ejemplo.com", interest: "Townhouse en Lomas", budget: 9700000, source: "WhatsApp", status: "Contacted", agentId: "U-004", createdAt: "2025-04-11" },
+  { id: "L-2008", name: "Nadia Solís", phone: "+52 55 8901 2345", email: "nadia@ejemplo.com", interest: "Departamento familiar Coyoacán", budget: 4600000, source: "Referral", status: "Visit", agentId: "U-002", createdAt: "2025-04-09" },
 ];
 
 export const appointments: Appointment[] = [
-  { id: "A-3001", leadId: "L-2003", propertyId: "P-1025", date: "2025-04-22T10:00:00", notes: "First visit, bring brochure" },
-  { id: "A-3002", leadId: "L-2002", propertyId: "P-1026", date: "2025-04-22T14:30:00", notes: "Discuss financing" },
-  { id: "A-3003", leadId: "L-2004", propertyId: "P-1024", date: "2025-04-23T11:00:00", notes: "Negotiation meeting" },
-  { id: "A-3004", leadId: "L-2008", propertyId: "P-1027", date: "2025-04-24T16:00:00", notes: "Family viewing" },
-  { id: "A-3005", leadId: "L-2007", propertyId: "P-1030", date: "2025-04-25T09:30:00", notes: "Initial walkthrough" },
+  { id: "A-3001", leadId: "L-2003", propertyId: "P-1025", date: "2025-04-22T10:00:00", notes: "Primera visita, llevar folleto" },
+  { id: "A-3002", leadId: "L-2002", propertyId: "P-1026", date: "2025-04-22T14:30:00", notes: "Revisar opciones de financiamiento" },
+  { id: "A-3003", leadId: "L-2004", propertyId: "P-1024", date: "2025-04-23T11:00:00", notes: "Reunión de negociación" },
+  { id: "A-3004", leadId: "L-2008", propertyId: "P-1027", date: "2025-04-24T16:00:00", notes: "Visita familiar" },
+  { id: "A-3005", leadId: "L-2007", propertyId: "P-1030", date: "2025-04-25T09:30:00", notes: "Recorrido inicial" },
 ];
 
 export const activity: ActivityItem[] = [
