@@ -67,7 +67,7 @@ function PipelinePage() {
 function Column({ id, label, tint, count, children }: { id: LeadStatus; label: string; tint: string; count: number; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
-    <div ref={setNodeRef} className={cn("rounded-xl border border-border bg-card border-t-4 flex flex-col min-h-[60vh]", tint, isOver && "ring-2 ring-primary/30")}>
+    <div ref={setNodeRef} className={cn("rounded-2xl border border-border bg-card border-t-4 flex flex-col min-h-[40vh] md:min-h-[60vh] h-full", tint, isOver && "ring-2 ring-primary/30")}>
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="text-sm font-semibold">{label}</div>
         <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{count}</span>
