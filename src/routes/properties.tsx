@@ -31,9 +31,10 @@ function PropertiesPage() {
     return matchesQ && matchesS;
   });
 
-  function shareOnWhatsapp(p: Property) {
+  function shareOnWhatsapp(p: Property, lead?: Lead) {
+    const greeting = lead ? `¡Hola ${lead.name.split(" ")[0]}!` : `¡Hola!`;
     const message =
-      `¡Hola! Te comparto esta propiedad que podría interesarte:\n\n` +
+      `${greeting} Te comparto esta propiedad que podría interesarte:\n\n` +
       `🏠 *${p.title}*\n` +
       `📍 ${p.location}\n` +
       `💰 ${fmtMoney(p.price)}\n` +
@@ -41,7 +42,11 @@ function PropertiesPage() {
       `🖼️ Foto: ${p.image}\n\n` +
       `Folio: ${p.id}\n` +
       `¿Te gustaría agendar una visita?`;
-    setWhatsappHandoff({ message, meta: { propertyId: p.id } });
+    setWhatsappHandoff({
+      message,
+      toLeadId: lead?.id,
+      meta: { propertyId: p.id },
+    });
     navigate({ to: "/whatsapp" });
   }
 
