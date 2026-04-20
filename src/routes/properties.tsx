@@ -35,7 +35,7 @@ function PropertiesPage() {
       `¡Hola! Te comparto esta propiedad que podría interesarte:\n\n` +
       `🏠 *${p.title}*\n` +
       `📍 ${p.location}\n` +
-      `💰 ${fmtMoney(p.price)} MXN\n` +
+      `💰 ${fmtMoney(p.price)}\n` +
       `🛏️ ${p.bedrooms} recámaras · 🛁 ${p.bathrooms} baños · 📐 ${p.area} m²\n\n` +
       `🖼️ Foto: ${p.image}\n\n` +
       `Folio: ${p.id}\n` +
