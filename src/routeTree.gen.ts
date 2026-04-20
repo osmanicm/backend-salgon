@@ -14,6 +14,7 @@ import { Route as UsersRouteImport } from './routes/users'
 import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -42,6 +43,11 @@ const LeadsRoute = LeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AvailabilityRoute = AvailabilityRouteImport.update({
+  id: '/availability',
+  path: '/availability',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppointmentsRoute = AppointmentsRouteImport.update({
   id: '/appointments',
   path: '/appointments',
@@ -56,6 +62,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/availability': typeof AvailabilityRoute
   '/leads': typeof LeadsRoute
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/availability': typeof AvailabilityRoute
   '/leads': typeof LeadsRoute
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/appointments': typeof AppointmentsRoute
+  '/availability': typeof AvailabilityRoute
   '/leads': typeof LeadsRoute
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/appointments'
+    | '/availability'
     | '/leads'
     | '/pipeline'
     | '/properties'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/appointments'
+    | '/availability'
     | '/leads'
     | '/pipeline'
     | '/properties'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/appointments'
+    | '/availability'
     | '/leads'
     | '/pipeline'
     | '/properties'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppointmentsRoute: typeof AppointmentsRoute
+  AvailabilityRoute: typeof AvailabilityRoute
   LeadsRoute: typeof LeadsRoute
   PipelineRoute: typeof PipelineRoute
   PropertiesRoute: typeof PropertiesRoute
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/availability': {
+      id: '/availability'
+      path: '/availability'
+      fullPath: '/availability'
+      preLoaderRoute: typeof AvailabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/appointments': {
       id: '/appointments'
       path: '/appointments'
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppointmentsRoute: AppointmentsRoute,
+  AvailabilityRoute: AvailabilityRoute,
   LeadsRoute: LeadsRoute,
   PipelineRoute: PipelineRoute,
   PropertiesRoute: PropertiesRoute,
