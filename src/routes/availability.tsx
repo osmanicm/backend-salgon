@@ -160,18 +160,18 @@ function AvailabilityPage() {
 
       {/* Toolbar */}
       <PageCard
-        title="Inventory matrix"
-        description={`${filtered.length} of ${rows.length} units · grouped by model`}
+        title="Matriz de inventario"
+        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo`}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5"
               disabled={selected.size === 0}
               onClick={() => setBulkOpen(true)}>
               <RefreshCw className="h-3.5 w-3.5" />
-              Bulk update {selected.size > 0 && `(${selected.size})`}
+              Actualizar en lote {selected.size > 0 && `(${selected.size})`}
             </Button>
             <Button size="sm" className="gap-1.5" onClick={() => setPdfOpen(true)}>
-              <FileText className="h-3.5 w-3.5" /> Generate Availability PDF
+              <FileText className="h-3.5 w-3.5" /> Generar PDF de Disponibilidad
             </Button>
           </div>
         }
@@ -180,14 +180,14 @@ function AvailabilityPage() {
           <div className="relative md:col-span-1">
             <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input value={q} onChange={(e) => setQ(e.target.value)}
-              placeholder="Search lot, model, notes…" className="pl-9" />
+              placeholder="Buscar lote, modelo, notas…" className="pl-9" />
           </div>
-          <FilterSelect icon={<Filter className="h-3.5 w-3.5" />} label="Model"
-            value={model} onChange={setModel} options={[["all", "All models"], ...models.map(m => [m, m] as [string, string])]} />
+          <FilterSelect icon={<Filter className="h-3.5 w-3.5" />} label="Modelo"
+            value={model} onChange={setModel} options={[["all", "Todos los modelos"], ...models.map(m => [m, m] as [string, string])]} />
           <FilterSelect label="Cluster" value={cluster} onChange={setCluster}
-            options={[["all", "All clusters"], ...clusters.map(c => [c, c] as [string, string])]} />
-          <FilterSelect label="Status" value={status} onChange={setStatus}
-            options={[["all","All status"],["Available","Available"],["Reserved","Reserved"],["Sold","Sold"]]} />
+            options={[["all", "Todos los clusters"], ...clusters.map(c => [c, c] as [string, string])]} />
+          <FilterSelect label="Estatus" value={status} onChange={setStatus}
+            options={[["all","Todos los estatus"],["Available","Disponible"],["Reserved","Apartado"],["Sold","Vendido"]]} />
         </div>
 
         <div className="overflow-x-auto -mx-5 border-y border-border">
@@ -200,14 +200,14 @@ function AvailabilityPage() {
                     onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
                   />
                 </th>
-                <th className="px-2 py-2.5 font-medium">Lot</th>
+                <th className="px-2 py-2.5 font-medium">Lote</th>
                 <th className="px-2 py-2.5 font-medium">Cluster</th>
-                <th className="px-2 py-2.5 font-medium text-right">Price (MXN)</th>
-                <th className="px-2 py-2.5 font-medium">Delivery</th>
-                <th className="px-2 py-2.5 font-medium">Status</th>
-                <th className="px-2 py-2.5 font-medium">Notes</th>
-                <th className="px-2 py-2.5 font-medium">Property</th>
-                <th className="px-5 py-2.5 font-medium text-right">Actions</th>
+                <th className="px-2 py-2.5 font-medium text-right">Precio (MXN)</th>
+                <th className="px-2 py-2.5 font-medium">Entrega</th>
+                <th className="px-2 py-2.5 font-medium">Estatus</th>
+                <th className="px-2 py-2.5 font-medium">Notas</th>
+                <th className="px-2 py-2.5 font-medium">Propiedad</th>
+                <th className="px-5 py-2.5 font-medium text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
