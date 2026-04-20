@@ -28,11 +28,17 @@ function WhatsappPage() {
   // Consume handoff from Availability → WhatsApp on mount
   useEffect(() => {
     const h = consumeWhatsappHandoff();
-    if (h) {
-      setBody(h.message);
+    if (!h) return;
+    setBody(h.message);
+    if (h.toLeadId && leads.some((l) => l.id === h.toLeadId)) setTo(h.toLeadId);
+    if (h.attachment) {
       setAttachment(h.attachment);
       toast.success("PDF adjunto desde Disponibilidad", {
         description: `${h.attachment.filename} · ${formatBytes(h.attachment.sizeBytes)}`,
+      });
+    } else {
+      toast.success("Mensaje pre-cargado", {
+        description: "Revisa el contenido antes de enviar.",
       });
     }
   }, []);

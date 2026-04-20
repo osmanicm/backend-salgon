@@ -6,15 +6,19 @@ const KEY = "salgon:whatsapp-handoff";
 
 export interface WhatsappHandoff {
   message: string;
-  attachment: {
+  /** Optional document attachment (e.g. availability PDF) */
+  attachment?: {
     filename: string;
     /** data: URL so we can preview / "send" without a real backend */
     dataUrl: string;
     sizeBytes: number;
   };
+  /** Optional pre-selected lead id */
+  toLeadId?: string;
   meta?: {
     folio?: string;
     totalUnits?: number;
+    propertyId?: string;
   };
 }
 

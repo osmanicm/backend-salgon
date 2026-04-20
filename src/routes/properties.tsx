@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, RefreshCw } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, RefreshCw, Share2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -12,12 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { agents, fmtMoney, type Property } from "@/data/mock";
 import { useProperties } from "@/data/store";
+import { setWhatsappHandoff } from "@/data/whatsappHandoff";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/properties")({ component: PropertiesPage });
 
 function PropertiesPage() {
   const properties = useProperties();
+  const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
   const flashed = useFlashedProperties(properties);
@@ -27,6 +29,20 @@ function PropertiesPage() {
     const matchesS = status === "all" || p.status === status;
     return matchesQ && matchesS;
   });
+
+  function shareOnWhatsapp(p: Property) {
+    const message =
+      `¡Hola! Te comparto esta propiedad que podría interesarte:\n\n` +
+      `🏠 *${p.title}*\n` +
+      `📍 ${p.location}\n` +
+      `💰 ${fmtMoney(p.price)} MXN\n` +
+      `🛏️ ${p.bedrooms} recámaras · 🛁 ${p.bathrooms} baños · 📐 ${p.area} m²\n\n` +
+      `🖼️ Foto: ${p.image}\n\n` +
+      `Folio: ${p.id}\n` +
+      `¿Te gustaría agendar una visita?`;
+    setWhatsappHandoff({ message, meta: { propertyId: p.id } });
+    navigate({ to: "/whatsapp" });
+  }
 
   return (
     <AppShell title="Propiedades" subtitle="Administra tu catálogo de propiedades">
@@ -93,7 +109,14 @@ function PropertiesPage() {
                   </div>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline" className="flex-1 gap-1.5"><Eye className="h-3.5 w-3.5" /> Ver</Button>
-                    <Button size="sm" variant="outline" className="flex-1 gap-1.5"><Pencil className="h-3.5 w-3.5" /> Editar</Button>
+                    <Button
+                      size="sm"
+                      className="flex-1 gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+                      onClick={() => shareOnWhatsapp(p)}
+                      aria-label="Compartir por WhatsApp"
+                    >
+                      <Share2 className="h-3.5 w-3.5" /> WhatsApp
+                    </Button>
                     <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar">
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -161,6 +184,16 @@ function PropertiesPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver"><Eye className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 text-success"
+                          aria-label="Compartir por WhatsApp"
+                          title="Compartir por WhatsApp"
+                          onClick={() => shareOnWhatsapp(p)}
+                        >
+                          <Share2 className="h-4 w-4" />
+                        </Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar"><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </td>
