@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, RefreshCw, Share2 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -10,7 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { agents, fmtMoney, type Property } from "@/data/mock";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { agents, fmtMoney, leads, type Lead, type Property } from "@/data/mock";
 import { useProperties } from "@/data/store";
 import { setWhatsappHandoff } from "@/data/whatsappHandoff";
 import { cn } from "@/lib/utils";
@@ -30,9 +32,10 @@ function PropertiesPage() {
     return matchesQ && matchesS;
   });
 
-  function shareOnWhatsapp(p: Property) {
+  function shareOnWhatsapp(p: Property, lead?: Lead) {
+    const greeting = lead ? `¡Hola ${lead.name.split(" ")[0]}!` : `¡Hola!`;
     const message =
-      `¡Hola! Te comparto esta propiedad que podría interesarte:\n\n` +
+      `${greeting} Te comparto esta propiedad que podría interesarte:\n\n` +
       `🏠 *${p.title}*\n` +
       `📍 ${p.location}\n` +
       `💰 ${fmtMoney(p.price)}\n` +
@@ -40,7 +43,11 @@ function PropertiesPage() {
       `🖼️ Foto: ${p.image}\n\n` +
       `Folio: ${p.id}\n` +
       `¿Te gustaría agendar una visita?`;
-    setWhatsappHandoff({ message, meta: { propertyId: p.id } });
+    setWhatsappHandoff({
+      message,
+      toLeadId: lead?.id,
+      meta: { propertyId: p.id },
+    });
     navigate({ to: "/whatsapp" });
   }
 
@@ -109,14 +116,18 @@ function PropertiesPage() {
                   </div>
                   <div className="mt-3 flex gap-2">
                     <Button size="sm" variant="outline" className="flex-1 gap-1.5"><Eye className="h-3.5 w-3.5" /> Ver</Button>
-                    <Button
-                      size="sm"
-                      className="flex-1 gap-1.5 bg-success text-success-foreground hover:bg-success/90"
-                      onClick={() => shareOnWhatsapp(p)}
-                      aria-label="Compartir por WhatsApp"
-                    >
-                      <Share2 className="h-3.5 w-3.5" /> WhatsApp
-                    </Button>
+                    <LeadPickerPopover
+                      onPick={(lead) => shareOnWhatsapp(p, lead)}
+                      trigger={
+                        <Button
+                          size="sm"
+                          className="flex-1 gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+                          aria-label="Compartir por WhatsApp"
+                        >
+                          <Share2 className="h-3.5 w-3.5" /> WhatsApp
+                        </Button>
+                      }
+                    />
                     <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar">
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -184,16 +195,20 @@ function PropertiesPage() {
                       <div className="flex items-center justify-end gap-1">
                         <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver"><Eye className="h-4 w-4" /></Button>
                         <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar"><Pencil className="h-4 w-4" /></Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 text-success"
-                          aria-label="Compartir por WhatsApp"
-                          title="Compartir por WhatsApp"
-                          onClick={() => shareOnWhatsapp(p)}
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
+                        <LeadPickerPopover
+                          onPick={(lead) => shareOnWhatsapp(p, lead)}
+                          trigger={
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 text-success"
+                              aria-label="Compartir por WhatsApp"
+                              title="Compartir por WhatsApp"
+                            >
+                              <Share2 className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
                         <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar"><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </td>
@@ -277,6 +292,78 @@ function AddPropertyDialogContent() {
         <Button>Crear propiedad</Button>
       </DialogFooter>
     </DialogContent>
+  );
+}
+
+function LeadPickerPopover({
+  trigger,
+  onPick,
+}: {
+  trigger: React.ReactNode;
+  onPick: (lead?: Lead) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const filtered = leads.filter((l) =>
+    (l.name + " " + l.phone).toLowerCase().includes(q.toLowerCase()),
+  );
+
+  function handlePick(lead?: Lead) {
+    setOpen(false);
+    setQ("");
+    onPick(lead);
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      <PopoverContent align="end" className="w-72 p-0">
+        <div className="p-3 border-b border-border">
+          <div className="text-sm font-medium">Elige destinatario</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Selecciona un prospecto o continúa sin asignar.
+          </div>
+          <div className="relative mt-2">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar prospecto…"
+              className="h-8 pl-8 text-xs"
+            />
+          </div>
+        </div>
+        <ul className="max-h-60 overflow-y-auto py-1">
+          {filtered.map((l) => (
+            <li key={l.id}>
+              <button
+                type="button"
+                onClick={() => handlePick(l)}
+                className="w-full text-left px-3 py-2 hover:bg-muted/60 transition-colors"
+              >
+                <div className="text-sm font-medium truncate">{l.name}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{l.phone}</div>
+              </button>
+            </li>
+          ))}
+          {filtered.length === 0 && (
+            <li className="px-3 py-4 text-center text-xs text-muted-foreground">
+              Sin resultados
+            </li>
+          )}
+        </ul>
+        <div className="p-2 border-t border-border">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => handlePick(undefined)}
+          >
+            Continuar sin destinatario
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
