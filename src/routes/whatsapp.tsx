@@ -24,6 +24,7 @@ function WhatsappPage() {
   const [body, setBody] = useState(whatsappTemplates[0].body);
   const [to, setTo] = useState(leads[0].id);
   const [attachment, setAttachment] = useState<WhatsappHandoff["attachment"] | null>(null);
+  const [image, setImage] = useState<WhatsappHandoff["image"] | null>(null);
 
   // Consume handoff from Availability → WhatsApp on mount
   useEffect(() => {
@@ -36,7 +37,14 @@ function WhatsappPage() {
       toast.success("PDF adjunto desde Disponibilidad", {
         description: `${h.attachment.filename} · ${formatBytes(h.attachment.sizeBytes)}`,
       });
-    } else {
+    }
+    if (h.image) {
+      setImage(h.image);
+      toast.success("Imagen adjunta", {
+        description: `${h.image.filename} · ${formatBytes(h.image.sizeBytes)}`,
+      });
+    }
+    if (!h.attachment && !h.image) {
       toast.success("Mensaje pre-cargado", {
         description: "Revisa el contenido antes de enviar.",
       });
@@ -45,12 +53,16 @@ function WhatsappPage() {
 
   function send() {
     const lead = leads.find((l) => l.id === to);
+    const parts: string[] = [];
+    if (attachment) parts.push(`adjunto ${attachment.filename}`);
+    if (image) parts.push(`imagen ${image.filename}`);
     toast.success(`Mensaje enviado a ${lead?.name}`, {
-      description: attachment
-        ? `Envío simulado por WhatsApp API · adjunto ${attachment.filename}`
+      description: parts.length
+        ? `Envío simulado por WhatsApp API · ${parts.join(" · ")}`
         : "Envío simulado por WhatsApp API",
     });
     setAttachment(null);
+    setImage(null);
   }
 
   function downloadAttachment() {
@@ -152,8 +164,43 @@ function WhatsappPage() {
               </div>
             )}
 
+            {image && (
+              <div className="space-y-1.5">
+                <Label>Imagen adjunta</Label>
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+                  <img
+                    src={image.dataUrl}
+                    alt={image.filename}
+                    className="h-12 w-16 rounded-md object-cover border border-border"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">{image.filename}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {image.mimeType} · {formatBytes(image.sizeBytes)}
+                    </div>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-destructive"
+                    aria-label="Quitar imagen"
+                    onClick={() => setImage(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="rounded-xl bg-[oklch(0.96_0.04_150)] p-4">
               <div className="ml-auto max-w-sm rounded-2xl rounded-br-sm bg-success text-success-foreground px-3 py-2 text-sm shadow-[var(--shadow-soft)] space-y-2">
+                {image && (
+                  <img
+                    src={image.dataUrl}
+                    alt={image.filename}
+                    className="rounded-lg w-full max-h-56 object-cover border border-success-foreground/10"
+                  />
+                )}
                 {attachment && (
                   <div className="flex items-center gap-2 rounded-lg bg-success-foreground/10 px-2 py-1.5">
                     <FileText className="h-4 w-4 shrink-0" />
