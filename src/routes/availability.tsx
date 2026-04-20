@@ -582,7 +582,7 @@ function PdfPreviewDialog({
               <p><span className="font-semibold text-neutral-700">Notas:</span> "Entrega inmediata" no aplica a unidades en proceso de escrituración. "X meses firma" indica el plazo estimado de entrega a partir de la firma del contrato.</p>
               <p>Esta cotización tiene una vigencia de 15 días naturales. Reservaciones sujetas a disponibilidad y aprobación crediticia. Precios no incluyen gastos de escrituración, avalúo ni notariales.</p>
               <div className="flex items-center justify-between pt-2 mt-2 border-t border-neutral-200 text-[9px] text-neutral-400">
-                <span>Salgon Real Estate · Centralized Inventory · {totalUnits} unidades</span>
+                <span>Salgon Real Estate · Inventario Centralizado · {totalUnits} unidades</span>
                 <span>Documento generado por sistema · página 1 de 1</span>
               </div>
             </div>
