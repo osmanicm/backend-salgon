@@ -164,3 +164,34 @@ function AddPropertyDialog() {
     </Dialog>
   );
 }
+
+/**
+ * Detect properties whose status changed since last render and flash them
+ * for ~2.5s with a "synced" indicator. Mirrors the visual feedback the
+ * Flutter app would show when receiving a /api/properties push.
+ */
+function useFlashedProperties(properties: Property[]) {
+  const prev = useRef<Map<string, string>>(new Map());
+  const [flashed, setFlashed] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const changed = new Set<string>();
+    properties.forEach((p) => {
+      const last = prev.current.get(p.id);
+      if (last !== undefined && last !== p.status) changed.add(p.id);
+      prev.current.set(p.id, p.status);
+    });
+    if (changed.size === 0) return;
+    setFlashed((s) => new Set([...s, ...changed]));
+    const t = setTimeout(() => {
+      setFlashed((s) => {
+        const next = new Set(s);
+        changed.forEach((id) => next.delete(id));
+        return next;
+      });
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [properties]);
+
+  return flashed;
+}
