@@ -294,6 +294,78 @@ function AddPropertyDialogContent() {
   );
 }
 
+function LeadPickerPopover({
+  trigger,
+  onPick,
+}: {
+  trigger: React.ReactNode;
+  onPick: (lead?: Lead) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const filtered = leads.filter((l) =>
+    (l.name + " " + l.phone).toLowerCase().includes(q.toLowerCase()),
+  );
+
+  function handlePick(lead?: Lead) {
+    setOpen(false);
+    setQ("");
+    onPick(lead);
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      <PopoverContent align="end" className="w-72 p-0">
+        <div className="p-3 border-b border-border">
+          <div className="text-sm font-medium">Elige destinatario</div>
+          <div className="text-xs text-muted-foreground mt-0.5">
+            Selecciona un prospecto o continúa sin asignar.
+          </div>
+          <div className="relative mt-2">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar prospecto…"
+              className="h-8 pl-8 text-xs"
+            />
+          </div>
+        </div>
+        <ul className="max-h-60 overflow-y-auto py-1">
+          {filtered.map((l) => (
+            <li key={l.id}>
+              <button
+                type="button"
+                onClick={() => handlePick(l)}
+                className="w-full text-left px-3 py-2 hover:bg-muted/60 transition-colors"
+              >
+                <div className="text-sm font-medium truncate">{l.name}</div>
+                <div className="text-[11px] text-muted-foreground truncate">{l.phone}</div>
+              </button>
+            </li>
+          ))}
+          {filtered.length === 0 && (
+            <li className="px-3 py-4 text-center text-xs text-muted-foreground">
+              Sin resultados
+            </li>
+          )}
+        </ul>
+        <div className="p-2 border-t border-border">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={() => handlePick(undefined)}
+          >
+            Continuar sin destinatario
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 /**
  * Detect properties whose status changed since last render and flash them
  * for ~2.5s with a "synced" indicator. Mirrors the visual feedback the
