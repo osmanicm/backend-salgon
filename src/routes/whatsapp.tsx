@@ -248,6 +248,54 @@ function WhatsappPage() {
               </div>
             )}
 
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label>Fotos adicionales</Label>
+                <span className="text-xs text-muted-foreground">
+                  {extraPhotos.length}/{MAX_EXTRA_PHOTOS}
+                </span>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoPick}
+              />
+              <div className="flex flex-wrap gap-2">
+                {extraPhotos.map((p) => (
+                  <div
+                    key={p.id}
+                    className="group relative h-20 w-20 rounded-md overflow-hidden border border-border bg-muted"
+                  >
+                    <img src={p.dataUrl} alt={p.filename} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeExtraPhoto(p.id)}
+                      aria-label={`Quitar ${p.filename}`}
+                      className="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-background/90 text-destructive grid place-items-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                {extraPhotos.length < MAX_EXTRA_PHOTOS && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-20 w-20 rounded-md border border-dashed border-border bg-muted/30 hover:bg-muted/60 transition-colors grid place-items-center text-muted-foreground"
+                    aria-label="Agregar fotos"
+                  >
+                    <ImagePlus className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Hasta {MAX_EXTRA_PHOTOS} imágenes · 5 MB c/u
+              </p>
+            </div>
+
             <div className="rounded-xl bg-[oklch(0.96_0.04_150)] p-4">
               <div className="ml-auto max-w-sm rounded-2xl rounded-br-sm bg-success text-success-foreground px-3 py-2 text-sm shadow-[var(--shadow-soft)] space-y-2">
                 {image && (
