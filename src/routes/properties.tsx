@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { agents, fmtMoney, leads, type Lead, type Property } from "@/data/mock";
 import { useProperties } from "@/data/store";
-import { setWhatsappHandoff } from "@/data/whatsappHandoff";
+import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/properties")({ component: PropertiesPage });
