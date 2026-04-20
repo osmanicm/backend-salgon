@@ -512,7 +512,7 @@ function PdfPreviewDialog({
                 <div className="text-[10px] uppercase tracking-wider text-neutral-500">Fecha de emisión</div>
                 <div className="text-sm font-medium">{today}</div>
                 <div className="text-[10px] uppercase tracking-wider text-neutral-500 mt-2">Folio</div>
-                <div className="text-sm font-mono">SAL-{new Date().getFullYear()}-{String(Math.floor(Math.random()*900)+100)}</div>
+                <div className="text-sm font-mono">{folio}</div>
               </div>
             </div>
 
