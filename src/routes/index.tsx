@@ -47,8 +47,8 @@ function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PageCard className="lg:col-span-2" title="Leads vs Sales" description="Last 6 months performance">
-          <div className="h-72">
+        <PageCard className="lg:col-span-2 min-w-0" title="Leads vs Sales" description="Last 6 months performance">
+          <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyStats} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.005 150)" />
