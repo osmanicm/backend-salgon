@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -10,13 +10,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { agents, properties, fmtMoney } from "@/data/mock";
+import { agents, fmtMoney, type Property } from "@/data/mock";
+import { useProperties } from "@/data/store";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/properties")({ component: PropertiesPage });
 
 function PropertiesPage() {
+  const properties = useProperties();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const flashed = useFlashedProperties(properties);
+
   const filtered = properties.filter((p) => {
     const matchesQ = (p.title + p.location + p.id).toLowerCase().includes(q.toLowerCase());
     const matchesS = status === "all" || p.status === status;
@@ -64,7 +69,13 @@ function PropertiesPage() {
               {filtered.map((p) => {
                 const agent = agents.find((a) => a.id === p.agentId);
                 return (
-                  <tr key={p.id} className="border-b border-border/60 hover:bg-muted/40">
+                  <tr
+                    key={p.id}
+                    className={cn(
+                      "border-b border-border/60 hover:bg-muted/40 transition-colors",
+                      flashed.has(p.id) && "bg-success/10 ring-1 ring-success/40",
+                    )}
+                  >
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <img src={p.image} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
@@ -77,7 +88,16 @@ function PropertiesPage() {
                     <td className="px-3 py-3 font-mono text-xs text-muted-foreground">{p.id}</td>
                     <td className="px-3 py-3 font-medium">{fmtMoney(p.price)}</td>
                     <td className="px-3 py-3"><span className="inline-flex items-center gap-1 text-muted-foreground"><MapPin className="h-3 w-3" />{p.location}</span></td>
-                    <td className="px-3 py-3"><StatusBadge status={p.status} /></td>
+                    <td className="px-3 py-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <StatusBadge status={p.status} />
+                        {flashed.has(p.id) && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-success">
+                            <RefreshCw className="h-3 w-3 animate-spin" /> synced
+                          </span>
+                        )}
+                      </span>
+                    </td>
                     <td className="px-3 py-3">{agent?.name}</td>
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -143,4 +163,35 @@ function AddPropertyDialog() {
       </DialogContent>
     </Dialog>
   );
+}
+
+/**
+ * Detect properties whose status changed since last render and flash them
+ * for ~2.5s with a "synced" indicator. Mirrors the visual feedback the
+ * Flutter app would show when receiving a /api/properties push.
+ */
+function useFlashedProperties(properties: Property[]) {
+  const prev = useRef<Map<string, string>>(new Map());
+  const [flashed, setFlashed] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const changed = new Set<string>();
+    properties.forEach((p) => {
+      const last = prev.current.get(p.id);
+      if (last !== undefined && last !== p.status) changed.add(p.id);
+      prev.current.set(p.id, p.status);
+    });
+    if (changed.size === 0) return;
+    setFlashed((s) => new Set([...s, ...changed]));
+    const t = setTimeout(() => {
+      setFlashed((s) => {
+        const next = new Set(s);
+        changed.forEach((id) => next.delete(id));
+        return next;
+      });
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [properties]);
+
+  return flashed;
 }
