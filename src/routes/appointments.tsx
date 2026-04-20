@@ -140,27 +140,33 @@ function NewAppointmentDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Nueva Cita</Button></DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
-        <div className="grid gap-4">
-          <div className="space-y-1.5"><Label>Cliente (Prospecto)</Label>
-            <Select><SelectTrigger><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
-              <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5"><Label>Propiedad</Label>
-            <Select><SelectTrigger><SelectValue placeholder="Selecciona propiedad" /></SelectTrigger>
-              <SelectContent>{properties.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5"><Label>Fecha</Label><Input type="date" /></div>
-            <div className="space-y-1.5"><Label>Hora</Label><Input type="time" /></div>
-          </div>
-          <div className="space-y-1.5"><Label>Notas</Label><Textarea rows={3} placeholder="Detalles de la visita…" /></div>
-        </div>
-        <DialogFooter><Button variant="outline">Cancelar</Button><Button>Agendar</Button></DialogFooter>
-      </DialogContent>
+      <NewAppointmentDialogContent />
     </Dialog>
+  );
+}
+
+function NewAppointmentDialogContent() {
+  return (
+    <DialogContent>
+      <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
+      <div className="grid gap-4">
+        <div className="space-y-1.5"><Label>Cliente (Prospecto)</Label>
+          <Select><SelectTrigger><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
+            <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5"><Label>Propiedad</Label>
+          <Select><SelectTrigger><SelectValue placeholder="Selecciona propiedad" /></SelectTrigger>
+            <SelectContent>{properties.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5"><Label>Fecha</Label><Input type="date" /></div>
+          <div className="space-y-1.5"><Label>Hora</Label><Input type="time" /></div>
+        </div>
+        <div className="space-y-1.5"><Label>Notas</Label><Textarea rows={3} placeholder="Detalles de la visita…" /></div>
+      </div>
+      <DialogFooter><Button variant="outline">Cancelar</Button><Button>Agendar</Button></DialogFooter>
+    </DialogContent>
   );
 }
