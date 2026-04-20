@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   Building2, CheckCircle2, BadgeDollarSign, Users as UsersIcon,
   TrendingUp, Receipt, ArrowUpRight, ArrowDownRight, Activity,
@@ -23,6 +24,8 @@ const kpis = [
 ];
 
 function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   return (
     <AppShell title="Dashboard" subtitle="Overview of your real estate operations">
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -47,33 +50,37 @@ function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PageCard className="lg:col-span-2" title="Leads vs Sales" description="Last 6 months performance">
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyStats} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.005 150)" />
-                <XAxis dataKey="month" stroke="oklch(0.5 0.015 160)" fontSize={12} />
-                <YAxis stroke="oklch(0.5 0.015 160)" fontSize={12} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.92 0.005 150)" }} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line type="monotone" dataKey="leads" stroke="oklch(0.32 0.06 162)" strokeWidth={2.5} dot={{ r: 3 }} />
-                <Line type="monotone" dataKey="sales" stroke="oklch(0.78 0.13 85)" strokeWidth={2.5} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
+        <PageCard className="lg:col-span-2 min-w-0" title="Leads vs Sales" description="Last 6 months performance">
+          <div style={{ width: "100%", height: 288 }}>
+            {mounted && (
+              <ResponsiveContainer>
+                <LineChart data={monthlyStats} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="month" stroke="#6b7280" fontSize={12} />
+                  <YAxis stroke="#6b7280" fontSize={12} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb" }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Line type="monotone" dataKey="leads" stroke="#1f4d3a" strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="sales" stroke="#d4a437" strokeWidth={2.5} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </PageCard>
 
-        <PageCard title="Properties by Status" description="Current inventory split">
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={propertiesByStatus} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.005 150)" />
-                <XAxis dataKey="status" stroke="oklch(0.5 0.015 160)" fontSize={12} />
-                <YAxis stroke="oklch(0.5 0.015 160)" fontSize={12} />
-                <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.92 0.005 150)" }} />
-                <Bar dataKey="count" fill="oklch(0.32 0.06 162)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+        <PageCard className="min-w-0" title="Properties by Status" description="Current inventory split">
+          <div style={{ width: "100%", height: 288 }}>
+            {mounted && (
+              <ResponsiveContainer>
+                <BarChart data={propertiesByStatus} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="status" stroke="#6b7280" fontSize={12} />
+                  <YAxis stroke="#6b7280" fontSize={12} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb" }} />
+                  <Bar dataKey="count" fill="#1f4d3a" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </PageCard>
       </div>
