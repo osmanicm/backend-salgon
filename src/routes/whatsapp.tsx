@@ -305,6 +305,30 @@ function WhatsappPage() {
                     className="rounded-lg w-full max-h-56 object-cover border border-success-foreground/10"
                   />
                 )}
+                {extraPhotos.length > 0 && (
+                  <div
+                    className={
+                      extraPhotos.length === 1
+                        ? "grid grid-cols-1 gap-1"
+                        : "grid grid-cols-2 gap-1"
+                    }
+                  >
+                    {extraPhotos.slice(0, 4).map((p, i) => (
+                      <div key={p.id} className="relative">
+                        <img
+                          src={p.dataUrl}
+                          alt={p.filename}
+                          className="rounded-md w-full h-24 object-cover border border-success-foreground/10"
+                        />
+                        {i === 3 && extraPhotos.length > 4 && (
+                          <div className="absolute inset-0 rounded-md bg-black/50 grid place-items-center text-white text-sm font-semibold">
+                            +{extraPhotos.length - 4}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {attachment && (
                   <div className="flex items-center gap-2 rounded-lg bg-success-foreground/10 px-2 py-1.5">
                     <FileText className="h-4 w-4 shrink-0" />
