@@ -245,6 +245,17 @@ $ grep -n "fieldset" src/routes/properties.tsx
             />
             <Button
               type="button"
+              variant={caseSensitive ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCaseSensitive((v) => !v)}
+              aria-pressed={caseSensitive}
+              title={caseSensitive ? "Distinguiendo mayúsculas/minúsculas" : "Sin distinguir mayúsculas/minúsculas"}
+              className="h-7 px-2 text-xs font-mono"
+            >
+              Aa
+            </Button>
+            <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={() => setHistoryQuery("")}
