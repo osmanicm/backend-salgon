@@ -39,6 +39,12 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyDetailSkeleton } from "@/components/properties/PropertyDetailSkeleton";
+import {
+  FichaPdfTabSkeleton,
+  GalleryTabSkeleton,
+  VideosTabSkeleton,
+  FilesTabSkeleton,
+} from "@/components/properties/PropertyTabSkeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useProperty,
