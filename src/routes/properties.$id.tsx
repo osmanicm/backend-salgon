@@ -623,6 +623,39 @@ function FichaPdfTab({
         )}
       </div>
 
+      {error && !generating && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-3 py-2.5 text-sm space-y-2">
+          <div className="flex items-start gap-2">
+            <span className="text-destructive font-medium">Error al generar la Ficha PDF</span>
+            {attempt > 0 && (
+              <span className="text-[11px] text-muted-foreground ml-auto shrink-0">
+                Intento {attempt}/{maxRetries}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">{error}</p>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onRetry}
+              disabled={generating}
+              className="gap-1.5"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              {reachedMax
+                ? "Empezar de nuevo"
+                : `Reintentar generación${remaining ? ` (${remaining} restantes)` : ""}`}
+            </Button>
+            {reachedMax && (
+              <span className="text-[11px] text-muted-foreground">
+                Se alcanzó el máximo de reintentos. Esto reiniciará el contador.
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {ficha ? (
         <div className="rounded-lg border border-border overflow-hidden bg-muted">
           <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-background">
