@@ -966,6 +966,35 @@ export function BulkUploadDialog({
                     Columnas del CSV ignoradas: {testResult.unmappedHeaders.join(", ")}
                   </div>
                 )}
+                {testResult.aliasMatches.length > 0 && (
+                  <div className="rounded-md border border-primary/30 bg-primary/5 p-2 space-y-1">
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+                      <AlertTriangle className="h-3.5 w-3.5 text-primary" />
+                      Coincidencias por alias ({testResult.aliasMatches.length})
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Estos encabezados no son exactos pero se aceptaron por similitud. Renómbralos en el CSV para evitar advertencias.
+                    </div>
+                    <ul className="space-y-0.5 text-xs">
+                      {testResult.aliasMatches.map((a) => (
+                        <li key={a.fieldKey} className="flex flex-wrap items-center gap-1">
+                          <span className="font-medium">{a.field}</span>
+                          <span className="text-muted-foreground">→</span>
+                          <code className="font-mono bg-muted px-1 py-0.5 rounded">
+                            {a.header}
+                          </code>
+                          <span className="text-muted-foreground">
+                            (esperado{" "}
+                            <code className="font-mono">{a.expectedHeader}</code>)
+                          </span>
+                          <span className="text-[10px] uppercase text-primary ml-0.5">
+                            {a.kind === "alias" ? "alias" : "aprox."}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {testResult.sampleErrors.length > 0 && (
                   <div className="text-xs space-y-1">
                     <div className="font-medium text-destructive">
