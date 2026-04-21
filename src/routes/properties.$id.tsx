@@ -160,9 +160,19 @@ function PropertyDetailPage() {
     navigate({ to: "/whatsapp" });
   }
 
-  function handleGeneratePdf() {
-    if (!property) return;
-    generatePropertyPdf(property);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  async function handleGeneratePdf() {
+    if (!property || generatingPdf) return;
+    setGeneratingPdf(true);
+    const t = toast.loading("Generando Ficha PDF…");
+    try {
+      await generatePropertyPdf(property);
+      toast.success("Ficha PDF lista. Usa el cuadro de impresión para guardarla.", { id: t });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo generar el PDF", { id: t });
+    } finally {
+      setGeneratingPdf(false);
+    }
   }
 
   return (
