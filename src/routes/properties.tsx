@@ -188,9 +188,11 @@ function PropertiesPage() {
                       <Button size="sm" variant="outline" className="flex-1 gap-1.5" onClick={() => setViewing(p)}>
                         <Eye className="h-3.5 w-3.5" /> Ver
                       </Button>
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setEditing(p)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
+                      {canManage(p) && (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setEditing(p)} aria-label="Editar">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <LeadPickerPopover
                         onPick={(lead) => shareOnWhatsapp(p, lead)}
                         trigger={
@@ -199,9 +201,11 @@ function PropertiesPage() {
                           </Button>
                         }
                       />
-                      <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar" onClick={() => setDeleting(p)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canManage(p) && (
+                        <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar" onClick={() => setDeleting(p)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </li>
