@@ -102,6 +102,11 @@ function PropertiesPage() {
 
   async function confirmDelete() {
     if (!deleting) return;
+    if (!canManage(deleting)) {
+      toast.error("No tienes permisos para eliminar esta propiedad");
+      setDeleting(null);
+      return;
+    }
     try {
       await softDelete.mutateAsync(deleting.id);
       toast.success(`"${deleting.title}" enviada a la papelera`);
@@ -293,6 +298,7 @@ function PropertiesPage() {
         open={creating}
         onOpenChange={setCreating}
         existing={properties}
+        canManageInitial={true}
       />
 
       {/* Edit dialog */}
@@ -301,6 +307,7 @@ function PropertiesPage() {
         onOpenChange={(o) => !o && setEditing(null)}
         existing={properties}
         initial={editing ?? undefined}
+        canManageInitial={editing ? canManage(editing) : false}
       />
 
       {/* View dialog */}
@@ -332,13 +339,16 @@ function PropertyFormDialog({
   onOpenChange,
   initial,
   existing,
+  canManageInitial,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   initial?: PropertyRow;
   existing: PropertyRow[];
+  canManageInitial: boolean;
 }) {
   const isEdit = !!initial;
+  const locked = isEdit && !canManageInitial;
   const create = useCreateProperty();
   const update = useUpdateProperty();
   const agentsQuery = useAgentsList();
@@ -389,6 +399,10 @@ function PropertyFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (locked) {
+      toast.error("No tienes permisos para editar esta propiedad");
+      return;
+    }
     const parsed = propertySchema.safeParse({
       title: form.title,
       code: form.code,
@@ -434,7 +448,13 @@ function PropertyFormDialog({
             {isEdit ? "Modifica los datos y guarda los cambios." : "Completa los campos para registrar una nueva propiedad."}
           </DialogDescription>
         </DialogHeader>
+        {locked && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            Solo el agente asignado o un admin pueden editar esta propiedad.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <fieldset disabled={locked} className="contents">
           <div className="sm:col-span-2 space-y-1.5">
             <Label>Título *</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Penthouse Vista al Mar" required maxLength={120} />
@@ -490,9 +510,10 @@ function PropertyFormDialog({
             <Label>URL de imagen</Label>
             <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" maxLength={500} />
           </div>
+          </fieldset>
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>Cancelar</Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || locked}>
               {pending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               {isEdit ? "Guardar cambios" : "Crear propiedad"}
             </Button>
