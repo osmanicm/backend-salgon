@@ -93,9 +93,9 @@ function AuthPage() {
 
         <div
           role="status"
-          className="mb-4 flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
+          className="mb-4 flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-foreground"
         >
-          <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+          <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
           <span>
             Build OK: el diálogo de Propiedades compila y parsea correctamente (sin errores de JSX).
           </span>
