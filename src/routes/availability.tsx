@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   FileText, Filter, RefreshCw, Smartphone, Database, CheckCircle2,
-  Pencil, Save, X, Printer, Search, ChevronDown, Send,
+  Pencil, Save, X, Printer, Search, ChevronDown, Send, CircleDollarSign,
 } from "lucide-react";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { AppShell } from "@/components/layout/AppShell";
