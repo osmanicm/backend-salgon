@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { z } from "zod";
+import { toast } from "sonner";
 import { Plus, Calendar as CalIcon, List, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -88,14 +90,15 @@ function AppointmentsPage() {
 }
 
 function NewAppointmentFab() {
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="icon" className="h-14 w-14 rounded-full shadow-[var(--shadow-elevated)] bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition" aria-label="Nueva cita">
           <Plus className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <NewAppointmentDialogContent />
+      <NewAppointmentDialogContent onClose={() => setOpen(false)} />
     </Dialog>
   );
 }
@@ -137,36 +140,107 @@ function CalendarGrid({ month }: { month: Date }) {
 }
 
 function NewAppointmentDialog() {
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Nueva Cita</Button></DialogTrigger>
-      <NewAppointmentDialogContent />
+      <NewAppointmentDialogContent onClose={() => setOpen(false)} />
     </Dialog>
   );
 }
 
-function NewAppointmentDialogContent() {
+const appointmentSchema = z
+  .object({
+    leadId: z.string().min(1, "Selecciona un prospecto"),
+    propertyId: z.string().min(1, "Selecciona una propiedad"),
+    date: z.string().min(1, "Fecha requerida").regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+    time: z.string().min(1, "Hora requerida").regex(/^\d{2}:\d{2}$/, "Hora inválida"),
+    notes: z.string().trim().max(500, "Máx. 500 caracteres").optional().default(""),
+  })
+  .superRefine((val, ctx) => {
+    const dt = new Date(`${val.date}T${val.time}:00`);
+    if (Number.isNaN(dt.getTime())) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["date"], message: "Fecha/hora inválida" });
+      return;
+    }
+    if (dt.getTime() < Date.now() - 60_000) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["date"], message: "La cita debe ser en el futuro" });
+    }
+  });
+
+type ApptForm = { leadId: string; propertyId: string; date: string; time: string; notes: string };
+const emptyAppt: ApptForm = { leadId: "", propertyId: "", date: "", time: "", notes: "" };
+
+function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
+  const [form, setForm] = useState<ApptForm>(emptyAppt);
+  const [errors, setErrors] = useState<Partial<Record<keyof ApptForm, string>>>({});
+
+  function update<K extends keyof ApptForm>(key: K, value: ApptForm[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = appointmentSchema.safeParse(form);
+    if (!parsed.success) {
+      const fieldErrors: Partial<Record<keyof ApptForm, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof ApptForm;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    toast.success("Cita agendada");
+    setForm(emptyAppt);
+    setErrors({});
+    onClose?.();
+  }
+
   return (
     <DialogContent>
       <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
-      <div className="grid gap-4">
-        <div className="space-y-1.5"><Label>Cliente (Prospecto)</Label>
-          <Select><SelectTrigger><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
+      <form onSubmit={handleSubmit} noValidate className="grid gap-4">
+        <ApptField label="Cliente (Prospecto) *" error={errors.leadId}>
+          <Select value={form.leadId} onValueChange={(v) => update("leadId", v)}>
+            <SelectTrigger aria-invalid={!!errors.leadId}><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
             <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
           </Select>
-        </div>
-        <div className="space-y-1.5"><Label>Propiedad</Label>
-          <Select><SelectTrigger><SelectValue placeholder="Selecciona propiedad" /></SelectTrigger>
+        </ApptField>
+        <ApptField label="Propiedad *" error={errors.propertyId}>
+          <Select value={form.propertyId} onValueChange={(v) => update("propertyId", v)}>
+            <SelectTrigger aria-invalid={!!errors.propertyId}><SelectValue placeholder="Selecciona propiedad" /></SelectTrigger>
             <SelectContent>{properties.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
           </Select>
-        </div>
+        </ApptField>
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5"><Label>Fecha</Label><Input type="date" /></div>
-          <div className="space-y-1.5"><Label>Hora</Label><Input type="time" /></div>
+          <ApptField label="Fecha *" error={errors.date}>
+            <Input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} aria-invalid={!!errors.date} />
+          </ApptField>
+          <ApptField label="Hora *" error={errors.time}>
+            <Input type="time" value={form.time} onChange={(e) => update("time", e.target.value)} aria-invalid={!!errors.time} />
+          </ApptField>
         </div>
-        <div className="space-y-1.5"><Label>Notas</Label><Textarea rows={3} placeholder="Detalles de la visita…" /></div>
-      </div>
-      <DialogFooter><Button variant="outline">Cancelar</Button><Button>Agendar</Button></DialogFooter>
+        <ApptField label="Notas" error={errors.notes}>
+          <Textarea rows={3} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Detalles de la visita…" maxLength={500} aria-invalid={!!errors.notes} />
+        </ApptField>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => onClose?.()}>Cancelar</Button>
+          <Button type="submit">Agendar</Button>
+        </DialogFooter>
+      </form>
     </DialogContent>
+  );
+}
+
+function ApptField({ label, error, className, children }: { label: string; error?: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label>{label}</Label>
+      {children}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
   );
 }
