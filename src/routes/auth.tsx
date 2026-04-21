@@ -91,7 +91,18 @@ function AuthPage() {
   ];
   const [openLog, setOpenLog] = React.useState<CompileRun | null>(null);
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "OK" | "ERROR">("all");
-  const filteredRuns = compileRuns.filter((r) => historyFilter === "all" || r.result === historyFilter);
+  const [historyQuery, setHistoryQuery] = React.useState("");
+  const filteredRuns = compileRuns.filter((r) => {
+    if (historyFilter !== "all" && r.result !== historyFilter) return false;
+    const q = historyQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      r.note.toLowerCase().includes(q) ||
+      r.result.toLowerCase().includes(q) ||
+      r.time.toLowerCase().includes(q) ||
+      r.log.toLowerCase().includes(q)
+    );
+  });
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -215,6 +226,17 @@ $ grep -n "fieldset" src/routes/properties.tsx
               ))}
             </div>
           </div>
+          <Input
+            value={historyQuery}
+            onChange={(e) => setHistoryQuery(e.target.value)}
+            placeholder='Buscar (p. ej. "tsc" o "ERROR")'
+            className="h-7 mb-2 text-xs"
+          />
+          {historyQuery && (
+            <div className="text-[10px] text-muted-foreground mb-1">
+              {filteredRuns.length} de {compileRuns.length} resultados
+            </div>
+          )}
           <ul className="divide-y divide-border text-xs">
             {filteredRuns.length === 0 && (
               <li className="py-2 text-xs text-muted-foreground text-center">Sin resultados para este filtro.</li>
