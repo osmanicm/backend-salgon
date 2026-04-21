@@ -994,6 +994,66 @@ export function BulkUploadDialog({
               </div>
             )}
 
+            {/* Live mapping preview */}
+            {(() => {
+              const requiredFields = FIELDS.filter((f) => f.required);
+              const matchedCount = requiredFields.filter((f) => !!mapping[f.key]).length;
+              const allMatched = matchedCount === requiredFields.length;
+              return (
+                <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="text-xs font-medium">Vista previa de mapeo en vivo</div>
+                    <div
+                      className={`text-[11px] font-medium ${
+                        allMatched ? "text-success" : "text-destructive"
+                      }`}
+                    >
+                      {matchedCount}/{requiredFields.length} requeridos asignados
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {requiredFields.map((f) => {
+                      const sel = mapping[f.key];
+                      const kind = matchKinds[f.key];
+                      const matched = !!sel;
+                      return (
+                        <div
+                          key={f.key}
+                          className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] ${
+                            matched
+                              ? kind === "exact"
+                                ? "border-success/40 bg-success/5 text-foreground"
+                                : "border-primary/40 bg-primary/5 text-foreground"
+                              : "border-destructive/40 bg-destructive/5 text-foreground"
+                          }`}
+                        >
+                          {matched ? (
+                            <CheckCircle2
+                              className={`h-3 w-3 ${
+                                kind === "exact" ? "text-success" : "text-primary"
+                              }`}
+                            />
+                          ) : (
+                            <AlertCircle className="h-3 w-3 text-destructive" />
+                          )}
+                          <span className="font-medium">{f.label}</span>
+                          <span className="text-muted-foreground">→</span>
+                          <span className="font-mono">
+                            {matched ? sel : "— sin asignar —"}
+                          </span>
+                          {matched && kind && kind !== "exact" && (
+                            <span className="text-[10px] uppercase text-primary ml-0.5">
+                              {kind === "alias" ? "alias" : "aprox."}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* Mapping table */}
             <div className="rounded-lg border border-border overflow-hidden">
               <table className="w-full text-sm">
