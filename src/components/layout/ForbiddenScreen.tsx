@@ -1,12 +1,21 @@
-import { Link } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { recordBlockedAttempt } from "@/lib/blockedAttempt";
 
 export function ForbiddenScreen({
   message = "No tienes permisos para acceder a esta sección. Solo los administradores pueden verla.",
 }: {
   message?: string;
 }) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  function handleReturn() {
+    recordBlockedAttempt(pathname);
+    navigate({ to: "/agent" });
+  }
+
   return (
     <div className="min-h-screen grid place-items-center bg-background px-4">
       <div className="w-full max-w-md text-center space-y-5">
@@ -21,11 +30,9 @@ export function ForbiddenScreen({
           <p className="text-sm text-muted-foreground leading-relaxed">{message}</p>
         </div>
         <div className="flex items-center justify-center gap-2 pt-2">
-          <Button asChild>
-            <Link to="/agent">
-              <ArrowLeft className="h-4 w-4" />
-              Volver a mi panel
-            </Link>
+          <Button onClick={handleReturn}>
+            <ArrowLeft className="h-4 w-4" />
+            Volver a mi panel
           </Button>
         </div>
       </div>
