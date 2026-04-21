@@ -339,9 +339,13 @@ function PropertyDetailPage() {
             <TabsContent value="ficha" className="mt-4">
               <FichaPdfTab
                 files={files}
-                onGenerate={handleGeneratePdf}
+                onGenerate={() => handleGeneratePdf()}
+                onRetry={handleRetryPdf}
                 generating={generatingPdf}
                 canManage={canManage}
+                error={pdfError}
+                attempt={pdfAttempt}
+                maxRetries={MAX_PDF_RETRIES}
               />
             </TabsContent>
 
