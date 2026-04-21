@@ -853,6 +853,107 @@ export function BulkUploadDialog({
               )}
             </div>
 
+            {/* Test result panel */}
+            {testResult && (
+              <div
+                className={`rounded-lg border p-3 space-y-2 text-sm ${
+                  testResult.ok
+                    ? "border-success/40 bg-success/5"
+                    : "border-destructive/40 bg-destructive/5"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {testResult.ok ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      <span className="font-medium text-success">Prueba exitosa</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                      <span className="font-medium text-destructive">Prueba con problemas</span>
+                    </>
+                  )}
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {testResult.sampleValid}/{testResult.sampleChecked} filas de muestra válidas
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Asignados</div>
+                    <div className="font-semibold tabular-nums text-success">
+                      {testResult.matched.length}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Requeridos faltantes</div>
+                    <div
+                      className={`font-semibold tabular-nums ${
+                        testResult.missingRequired.length > 0 ? "text-destructive" : ""
+                      }`}
+                    >
+                      {testResult.missingRequired.length}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Duplicados</div>
+                    <div
+                      className={`font-semibold tabular-nums ${
+                        testResult.duplicates.length > 0 ? "text-destructive" : ""
+                      }`}
+                    >
+                      {testResult.duplicates.length}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Sin asignar (CSV)</div>
+                    <div className="font-semibold tabular-nums">
+                      {testResult.unmappedHeaders.length}
+                    </div>
+                  </div>
+                </div>
+
+                {testResult.missingRequired.length > 0 && (
+                  <div className="text-xs">
+                    <span className="font-medium text-destructive">Faltan:</span>{" "}
+                    {testResult.missingRequired.join(", ")}
+                  </div>
+                )}
+                {testResult.duplicates.length > 0 && (
+                  <div className="text-xs">
+                    <span className="font-medium text-destructive">Columnas duplicadas:</span>{" "}
+                    {testResult.duplicates.join(", ")}
+                  </div>
+                )}
+                {testResult.missingOptional.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    Opcionales sin asignar: {testResult.missingOptional.join(", ")}
+                  </div>
+                )}
+                {testResult.unmappedHeaders.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    Columnas del CSV ignoradas: {testResult.unmappedHeaders.join(", ")}
+                  </div>
+                )}
+                {testResult.sampleErrors.length > 0 && (
+                  <div className="text-xs space-y-1">
+                    <div className="font-medium text-destructive">
+                      Ejemplos de filas inválidas:
+                    </div>
+                    <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
+                      {testResult.sampleErrors.map((e) => (
+                        <li key={e.rowNumber}>
+                          <span className="font-mono">Fila {e.rowNumber}:</span>{" "}
+                          {e.messages.join(" · ")}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Warnings panel */}
             {(mappingIssues.warnings.length > 0 || mappingIssues.missingRequired.length > 0) && (
               <div className="space-y-2">
