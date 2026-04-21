@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw, History } from "lucide-react";
+import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw, History, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { checkAdminExists } from "@/utils/admin-presence.functions";
 
 export const Route = createFileRoute("/auth")({
   beforeLoad: async () => {
@@ -37,6 +38,28 @@ function AuthPage() {
   const [password, setPassword] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+
+  // Superadmin presence check
+  const [adminCheck, setAdminCheck] = React.useState<
+    { status: "loading" } | { status: "ready"; hasAdmin: boolean } | { status: "error" }
+  >({ status: "loading" });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await checkAdminExists();
+        if (cancelled) return;
+        if (res.error) setAdminCheck({ status: "error" });
+        else setAdminCheck({ status: "ready", hasAdmin: res.hasAdmin });
+      } catch {
+        if (!cancelled) setAdminCheck({ status: "error" });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   type CompileRun = { time: string; result: "OK" | "ERROR"; note: string; log: string };
   const compileRuns: CompileRun[] = [
@@ -169,6 +192,64 @@ function AuthPage() {
             <div className="text-xs text-muted-foreground -mt-0.5">Suite Inmobiliaria</div>
           </div>
         </Link>
+
+        {/* Superadmin presence banner */}
+        {adminCheck.status === "loading" && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+          >
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Verificando si ya existe un administrador…
+          </div>
+        )}
+        {adminCheck.status === "ready" && !adminCheck.hasAdmin && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 rounded-lg border px-3 py-2.5 text-sm"
+            style={{
+              borderColor: "color-mix(in oklab, var(--primary) 40%, transparent)",
+              background: "color-mix(in oklab, var(--primary) 10%, transparent)",
+            }}
+          >
+            <div className="flex items-start gap-2">
+              <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+              <div className="flex-1 space-y-1">
+                <div className="font-semibold text-foreground">
+                  Aún no existe ningún administrador
+                </div>
+                <div className="text-xs text-muted-foreground leading-relaxed">
+                  El <strong className="text-foreground">primer registro</strong> en este sistema se convertirá automáticamente en el{" "}
+                  <strong className="text-foreground">Superadmin global</strong>. Crea la cuenta principal ahora.
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="mt-1.5 h-7 text-xs"
+                  onClick={() => setTab("signup")}
+                >
+                  Crear superadmin
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        {adminCheck.status === "ready" && adminCheck.hasAdmin && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0 text-success" />
+            <span>
+              Ya existe un administrador. Las cuentas nuevas se crean como{" "}
+              <strong className="text-foreground">agentes</strong>.
+            </span>
+          </div>
+        )}
+
 
         <div
           role="status"
