@@ -390,6 +390,7 @@ export function BulkUploadDialog({
     setTemplateName("");
     setLoadedTemplateFile(null);
     setTestResult(null);
+    setRenamedHeaders(new Set());
     toast.success("Plantilla eliminada de esta sesión");
   }
 
@@ -1204,6 +1205,7 @@ export function BulkUploadDialog({
                                 [f.key]: newVal ? "exact" : "none",
                               }));
                               setTestResult(null);
+                              setRenamedHeaders(new Set());
                             }}
                           >
                             <SelectTrigger className="h-8 text-xs">
