@@ -649,12 +649,13 @@ function DownloadGroup({
 }
 
 // --- Simple client-side PDF generator (HTML → print) ---
-function generatePropertyPdf(property: PropertyRow) {
-  const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
-  if (!w) {
-    toast.error("Tu navegador bloqueó la ventana del PDF. Permite popups e intenta de nuevo.");
-    return;
-  }
+function generatePropertyPdf(property: PropertyRow): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
+    if (!w) {
+      reject(new Error("Tu navegador bloqueó la ventana del PDF. Permite popups e intenta de nuevo."));
+      return;
+    }
   const fmt = (v: number) =>
     new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(v);
   const html = `<!doctype html>
@@ -699,9 +700,18 @@ function generatePropertyPdf(property: PropertyRow) {
   </div>
   <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300))</script>
 </body></html>`;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    const done = () => resolve();
+    if (w.document.readyState === "complete") {
+      setTimeout(done, 400);
+    } else {
+      w.addEventListener("load", () => setTimeout(done, 400), { once: true });
+      // Safety timeout in case 'load' never fires
+      setTimeout(done, 3000);
+    }
+  });
 }
 
 function escapeHtml(s: string) {
