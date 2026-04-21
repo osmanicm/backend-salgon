@@ -639,24 +639,100 @@ function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
   );
 }
 
+type PdfStatusValue = "idle" | "queued" | "generating" | "ready" | "error" | "cancelled";
+
+function PdfStatusIndicator({
+  status,
+  elapsedMs,
+  durationMs,
+  attempt,
+  maxRetries,
+}: {
+  status: PdfStatusValue;
+  elapsedMs: number;
+  durationMs: number | null;
+  attempt: number;
+  maxRetries: number;
+}) {
+  if (status === "idle") return null;
+  const meta: Record<PdfStatusValue, { label: string; cls: string; dot: string }> = {
+    idle: { label: "Inactivo", cls: "", dot: "" },
+    queued: {
+      label: "En cola",
+      cls: "border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400",
+      dot: "bg-amber-500",
+    },
+    generating: {
+      label: "Generando",
+      cls: "border-primary/40 bg-primary/5 text-primary",
+      dot: "bg-primary",
+    },
+    ready: {
+      label: "Listo",
+      cls: "border-emerald-500/40 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400",
+      dot: "bg-emerald-500",
+    },
+    error: {
+      label: "Error",
+      cls: "border-destructive/50 bg-destructive/5 text-destructive",
+      dot: "bg-destructive",
+    },
+    cancelled: {
+      label: "Cancelado",
+      cls: "border-border bg-muted text-muted-foreground",
+      dot: "bg-muted-foreground",
+    },
+  };
+  const m = meta[status];
+  const live = status === "queued" || status === "generating";
+  const seconds = ((live ? elapsedMs : durationMs ?? elapsedMs) / 1000).toFixed(1);
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${m.cls}`}
+      role="status"
+      aria-live="polite"
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        {live && (
+          <span className={`absolute inline-flex h-full w-full rounded-full ${m.dot} opacity-60 animate-ping`} />
+        )}
+        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${m.dot}`} />
+      </span>
+      <span>{m.label}</span>
+      <span className="tabular-nums opacity-80">· {seconds}s</span>
+      {attempt > 0 && (status === "generating" || status === "error" || status === "queued") && (
+        <span className="opacity-70">· {attempt}/{maxRetries}</span>
+      )}
+    </span>
+  );
+}
+
 function FichaPdfTab({
   files,
   onGenerate,
   onRetry,
+  onCancel,
   generating,
   canManage,
   error,
   attempt,
   maxRetries,
+  status,
+  elapsedMs,
+  durationMs,
 }: {
   files: PropertyFileRow[];
   onGenerate: () => void;
   onRetry: () => void;
+  onCancel: () => void;
   generating: boolean;
   canManage: boolean;
   error: string | null;
   attempt: number;
   maxRetries: number;
+  status: PdfStatusValue;
+  elapsedMs: number;
+  durationMs: number | null;
 }) {
   const pdfs = files.filter(
     (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
@@ -664,6 +740,7 @@ function FichaPdfTab({
   const ficha = pdfs.find((f) => /ficha/i.test(f.label)) ?? pdfs[0] ?? null;
   const reachedMax = attempt >= maxRetries;
   const remaining = Math.max(0, maxRetries - attempt);
+  const live = status === "queued" || status === "generating";
 
   return (
     <div className="space-y-3">
@@ -672,6 +749,18 @@ function FichaPdfTab({
           {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
           {generating ? "Generando Ficha…" : "Generar Ficha (PDF)"}
         </Button>
+        {live && (
+          <Button size="sm" variant="outline" onClick={onCancel} className="gap-1.5">
+            <X className="h-3.5 w-3.5" /> Cancelar
+          </Button>
+        )}
+        <PdfStatusIndicator
+          status={status}
+          elapsedMs={elapsedMs}
+          durationMs={durationMs}
+          attempt={attempt}
+          maxRetries={maxRetries}
+        />
         {ficha && (
           <a
             href={ficha.url}
