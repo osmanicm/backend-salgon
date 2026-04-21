@@ -407,7 +407,6 @@ function PropertyFormDialog({
       title: form.title,
       code: form.code,
       price: Number(form.price),
-      price: Number(form.price),
       location: form.location,
       status: form.status,
       bedrooms: Number(form.bedrooms),
