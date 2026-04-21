@@ -25,6 +25,56 @@ export function useProperties() {
   return useQuery({ queryKey: KEY, queryFn: fetchProperties });
 }
 
+const TRASH_KEY = ["properties", "trash"] as const;
+
+export function useDeletedProperties() {
+  return useQuery({
+    queryKey: TRASH_KEY,
+    queryFn: async (): Promise<PropertyRow[]> => {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*, agent:profiles!properties_agent_id_fkey(id, full_name, email)")
+        .not("deleted_at", "is", null)
+        .order("deleted_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as PropertyRow[];
+    },
+  });
+}
+
+export function useRestoreProperty() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("properties")
+        .update({ deleted_at: null })
+        .eq("id", id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: TRASH_KEY });
+    },
+  });
+}
+
+export function useHardDeleteProperty() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("properties").delete().eq("id", id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: KEY });
+      qc.invalidateQueries({ queryKey: TRASH_KEY });
+    },
+  });
+}
+
 export type PropertyMediaRow = Tables<"property_media">;
 export type PropertyFileRow = Tables<"property_files">;
 
