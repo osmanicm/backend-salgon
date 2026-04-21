@@ -271,6 +271,8 @@ function AvailabilityPage() {
                   selected={selected}
                   toggleRow={toggleRow}
                   quickMarkSold={quickMarkSold}
+                  expanded={expanded}
+                  toggleExpand={toggleExpand}
                 />
               ))}
               {grouped.length === 0 && (
