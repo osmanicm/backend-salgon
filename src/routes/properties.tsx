@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import * as React from "react";
 import { useState } from "react";
 import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, Share2, Loader2, FileSpreadsheet, RotateCcw, Archive } from "lucide-react";
@@ -33,7 +33,45 @@ import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export const Route = createFileRoute("/properties")({ component: PropertiesPage });
+export const Route = createFileRoute("/properties")({
+  component: PropertiesPage,
+  errorComponent: PropertiesErrorBoundary,
+});
+
+function PropertiesErrorBoundary({ error, reset }: { error: Error; reset: () => void }) {
+  const router = useRouter();
+  return (
+    <AppShell title="Propiedades" subtitle="Error">
+      <PageCard
+        title="No pudimos cargar esta sección"
+        description="Ocurrió un error al renderizar la página de propiedades."
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Esto suele pasar tras una actualización si el navegador conserva una versión vieja del código.
+            Intenta recargar; si persiste, vuelve al listado.
+          </p>
+          <pre className="text-xs bg-muted/50 border border-border rounded-md p-3 overflow-auto max-h-40">
+            {error.message}
+          </pre>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                router.invalidate();
+                reset();
+              }}
+            >
+              Reintentar
+            </Button>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Recargar página
+            </Button>
+          </div>
+        </div>
+      </PageCard>
+    </AppShell>
+  );
+}
 
 const propertySchema = z.object({
   title: z.string().trim().min(2, "Título demasiado corto").max(120),
