@@ -193,6 +193,64 @@ function AuthPage() {
           </div>
         </Link>
 
+        {/* Superadmin presence banner */}
+        {adminCheck.status === "loading" && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+          >
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Verificando si ya existe un administrador…
+          </div>
+        )}
+        {adminCheck.status === "ready" && !adminCheck.hasAdmin && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 rounded-lg border px-3 py-2.5 text-sm"
+            style={{
+              borderColor: "color-mix(in oklab, var(--primary) 40%, transparent)",
+              background: "color-mix(in oklab, var(--primary) 10%, transparent)",
+            }}
+          >
+            <div className="flex items-start gap-2">
+              <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+              <div className="flex-1 space-y-1">
+                <div className="font-semibold text-foreground">
+                  Aún no existe ningún administrador
+                </div>
+                <div className="text-xs text-muted-foreground leading-relaxed">
+                  El <strong className="text-foreground">primer registro</strong> en este sistema se convertirá automáticamente en el{" "}
+                  <strong className="text-foreground">Superadmin global</strong>. Crea la cuenta principal ahora.
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="mt-1.5 h-7 text-xs"
+                  onClick={() => setTab("signup")}
+                >
+                  Crear superadmin
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        {adminCheck.status === "ready" && adminCheck.hasAdmin && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0 text-success" />
+            <span>
+              Ya existe un administrador. Las cuentas nuevas se crean como{" "}
+              <strong className="text-foreground">agentes</strong>.
+            </span>
+          </div>
+        )}
+
+
         <div
           role="status"
           className="mb-4 flex items-start gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-foreground"
