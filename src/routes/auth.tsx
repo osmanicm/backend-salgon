@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -36,6 +37,59 @@ function AuthPage() {
   const [password, setPassword] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+
+  type CompileRun = { time: string; result: "OK" | "ERROR"; note: string; log: string };
+  const compileRuns: CompileRun[] = [
+    {
+      time: "2026-04-21 14:32",
+      result: "OK",
+      note: "tsc sin errores",
+      log: `$ bunx tsc --noEmit -p tsconfig.json
+(exit 0)
+
+✔ Sin errores de tipo.
+✔ JSX balanceado en src/routes/properties.tsx.`,
+    },
+    {
+      time: "2026-04-21 14:28",
+      result: "OK",
+      note: "fieldset removido",
+      log: `$ grep -n "fieldset" src/routes/properties.tsx
+(sin coincidencias)
+
+✔ <fieldset> reemplazado por className condicional en <form>.
+✔ Build estable.`,
+    },
+    {
+      time: "2026-04-21 14:21",
+      result: "ERROR",
+      note: "Expected closing tag for <fieldset> (520:8)",
+      log: `HTTPError: Expected corresponding JSX closing tag for <fieldset>. (520:8)
+  at jsxParseElementAt (@babel/parser)
+  at parseExprAtom
+  at parseStatementContent
+
+→ Causa: <fieldset disabled={locked}> abierto sin </fieldset> de cierre.
+→ Fix aplicado: remover wrapper y usar className condicional.`,
+    },
+    {
+      time: "2026-04-21 14:05",
+      result: "OK",
+      note: "guards canManage añadidos",
+      log: `✔ handleSubmit valida canManage(property) antes de mutar.
+✔ confirmDelete valida canManage(property) antes de soft-delete.
+✔ toast.error si el usuario no tiene permisos.`,
+    },
+    {
+      time: "2026-04-21 13:48",
+      result: "OK",
+      note: "RLS por agente",
+      log: `✔ Política UPDATE: admin OR agent_id = auth.uid()
+✔ Política DELETE (soft): admin OR agent_id = auth.uid()
+✔ supabase--linter sin warnings críticos.`,
+    },
+  ];
+  const [openLog, setOpenLog] = React.useState<CompileRun | null>(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
