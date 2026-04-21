@@ -1,9 +1,21 @@
-import { Bell, Search, Plus } from "lucide-react";
+import { Bell, Search, Plus, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
+  const { profile, user, roles, signOut } = useAuth();
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const initials = displayName.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
+  const roleLabel = roles.includes("admin") ? "Administrador" : roles.includes("agent") ? "Agente" : "Sin rol";
+
+  async function handleSignOut() {
+    await signOut();
+    toast.success("Sesión cerrada");
+  }
+
   return (
     <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b border-border">
       <div className="flex items-center gap-4 px-6 h-16">
@@ -25,12 +37,20 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
           </button>
           <div className="flex items-center gap-2 pl-2 border-l border-border">
             <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">LH</AvatarFallback>
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
             </Avatar>
             <div className="hidden sm:block leading-tight">
-              <div className="text-sm font-medium">Layla Haddad</div>
-              <div className="text-[11px] text-muted-foreground">Administrador</div>
+              <div className="text-sm font-medium">{displayName}</div>
+              <div className="text-[11px] text-muted-foreground">{roleLabel}</div>
             </div>
+            <button
+              onClick={handleSignOut}
+              className="ml-1 h-9 w-9 grid place-items-center rounded-full hover:bg-muted text-muted-foreground"
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>

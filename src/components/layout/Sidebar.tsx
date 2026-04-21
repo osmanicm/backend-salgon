@@ -12,6 +12,8 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const nav = [
   { to: "/", label: "Panel de Control", icon: LayoutDashboard },
@@ -26,6 +28,11 @@ const nav = [
 
 export function Sidebar() {
   const { pathname } = useLocation();
+  const { signOut } = useAuth();
+  async function handleSignOut() {
+    await signOut();
+    toast.success("Sesión cerrada");
+  }
   return (
     <aside className="hidden md:flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground sticky top-0">
       <div className="flex items-center gap-2 px-6 h-16 border-b border-sidebar-border">
@@ -66,7 +73,7 @@ export function Sidebar() {
         <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
           <Settings className="h-4 w-4" /> Configuración
         </button>
-        <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
+        <button onClick={handleSignOut} className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
           <LogOut className="h-4 w-4" /> Cerrar sesión
         </button>
       </div>
