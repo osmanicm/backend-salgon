@@ -79,16 +79,18 @@ const FIELDS: {
   label: string;
   required: boolean;
   aliases: string[];
+  expectedHeader: string;
+  example: string;
 }[] = [
-  { key: "title", label: "Título", required: true, aliases: ["title", "titulo", "título", "nombre", "name"] },
-  { key: "code", label: "Folio", required: false, aliases: ["code", "folio", "codigo", "código", "sku"] },
-  { key: "price", label: "Precio", required: true, aliases: ["price", "precio", "monto", "valor"] },
-  { key: "location", label: "Ubicación", required: true, aliases: ["location", "ubicacion", "ubicación", "direccion", "dirección", "city", "ciudad"] },
-  { key: "status", label: "Estatus", required: true, aliases: ["status", "estatus", "estado"] },
-  { key: "bedrooms", label: "Recámaras", required: true, aliases: ["bedrooms", "recamaras", "recámaras", "habitaciones", "rooms", "beds"] },
-  { key: "bathrooms", label: "Baños", required: true, aliases: ["bathrooms", "banos", "baños", "baths"] },
-  { key: "area", label: "Área (m²)", required: true, aliases: ["area", "área", "m2", "metros", "superficie", "size"] },
-  { key: "image_url", label: "URL de imagen", required: false, aliases: ["image_url", "image", "imagen", "foto", "photo", "url"] },
+  { key: "title", label: "Título", required: true, aliases: ["title", "titulo", "título", "nombre", "name"], expectedHeader: "title", example: "Casa Modelo Aurora" },
+  { key: "code", label: "Folio", required: false, aliases: ["code", "folio", "codigo", "código", "sku"], expectedHeader: "code", example: "SKU-001" },
+  { key: "price", label: "Precio", required: true, aliases: ["price", "precio", "monto", "valor"], expectedHeader: "price", example: "2500000" },
+  { key: "location", label: "Ubicación", required: true, aliases: ["location", "ubicacion", "ubicación", "direccion", "dirección", "city", "ciudad"], expectedHeader: "location", example: "Querétaro" },
+  { key: "status", label: "Estatus", required: true, aliases: ["status", "estatus", "estado"], expectedHeader: "status", example: "Available" },
+  { key: "bedrooms", label: "Recámaras", required: true, aliases: ["bedrooms", "recamaras", "recámaras", "habitaciones", "rooms", "beds"], expectedHeader: "bedrooms", example: "3" },
+  { key: "bathrooms", label: "Baños", required: true, aliases: ["bathrooms", "banos", "baños", "baths"], expectedHeader: "bathrooms", example: "2" },
+  { key: "area", label: "Área (m²)", required: true, aliases: ["area", "área", "m2", "metros", "superficie", "size"], expectedHeader: "area", example: "150" },
+  { key: "image_url", label: "URL de imagen", required: false, aliases: ["image_url", "image", "imagen", "foto", "photo", "url"], expectedHeader: "image_url", example: "https://..." },
 ];
 
 const TEMPLATE_CSV =
@@ -1000,11 +1002,22 @@ export function BulkUploadDialog({
                     const kind = matchKinds[f.key];
                     return (
                       <tr key={f.key} className="border-t border-border">
-                        <td className="px-3 py-2">
-                          <div className="font-medium">{f.label}</div>
+                        <td className="px-3 py-2 align-top">
+                          <div className="font-medium">
+                            {f.label}
+                            {f.required && <span className="text-destructive ml-1">*</span>}
+                          </div>
                           <div className="text-[10px] text-muted-foreground font-mono">
                             {f.key}
-                            {f.required && <span className="text-destructive ml-1">*</span>}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-1 leading-tight">
+                            Encabezado esperado:{" "}
+                            <code className="font-mono text-foreground bg-muted px-1 py-0.5 rounded">
+                              {f.expectedHeader}
+                            </code>
+                            <div className="mt-0.5">
+                              Ej.: <span className="font-mono">{f.example}</span>
+                            </div>
                           </div>
                         </td>
                         <td className="px-3 py-2">
