@@ -237,6 +237,7 @@ export function BulkUploadDialog({
   const [parsed, setParsed] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [templateName, setTemplateName] = useState("");
 
   const validRows = useMemo(() => parsed.filter((r) => r.errors.length === 0), [parsed]);
   const invalidRows = useMemo(() => parsed.filter((r) => r.errors.length > 0), [parsed]);
@@ -250,6 +251,7 @@ export function BulkUploadDialog({
     setMatchKinds({} as Record<FieldKey, MatchKind>);
     setParsed([]);
     setProgress(0);
+    setTemplateName("");
   }
 
   function downloadTemplate() {
@@ -263,11 +265,17 @@ export function BulkUploadDialog({
   }
 
   function exportMappingTemplate() {
+    const trimmed = templateName.trim();
+    if (!trimmed) {
+      toast.error("Escribe un nombre para la plantilla");
+      return;
+    }
     const fields: Record<string, string | null> = {};
     FIELDS.forEach((f) => (fields[f.key] = mapping[f.key] ?? null));
     const template = {
       version: 1,
       kind: "salgon.property-csv-mapping",
+      name: trimmed,
       exportedAt: new Date().toISOString(),
       sourceFile: fileName ?? null,
       fields,
@@ -278,10 +286,17 @@ export function BulkUploadDialog({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "mapeo-propiedades.json";
+    const safe = trimmed
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "mapeo";
+    a.download = `mapeo-${safe}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Plantilla de mapeo exportada");
+    toast.success(`Plantilla "${trimmed}" exportada`);
   }
 
   async function importMappingTemplate(file: File) {
