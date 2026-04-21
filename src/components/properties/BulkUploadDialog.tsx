@@ -14,6 +14,7 @@ import {
   FileJson,
   Trash2,
   PlayCircle,
+  Info,
 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -35,6 +36,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PropertyInsert, PropertyRow } from "@/data/propertiesApi";
@@ -81,16 +88,17 @@ const FIELDS: {
   aliases: string[];
   expectedHeader: string;
   example: string;
+  examples: string[];
 }[] = [
-  { key: "title", label: "Título", required: true, aliases: ["title", "titulo", "título", "nombre", "name"], expectedHeader: "title", example: "Casa Modelo Aurora" },
-  { key: "code", label: "Folio", required: false, aliases: ["code", "folio", "codigo", "código", "sku"], expectedHeader: "code", example: "SKU-001" },
-  { key: "price", label: "Precio", required: true, aliases: ["price", "precio", "monto", "valor"], expectedHeader: "price", example: "2500000" },
-  { key: "location", label: "Ubicación", required: true, aliases: ["location", "ubicacion", "ubicación", "direccion", "dirección", "city", "ciudad"], expectedHeader: "location", example: "Querétaro" },
-  { key: "status", label: "Estatus", required: true, aliases: ["status", "estatus", "estado"], expectedHeader: "status", example: "Available" },
-  { key: "bedrooms", label: "Recámaras", required: true, aliases: ["bedrooms", "recamaras", "recámaras", "habitaciones", "rooms", "beds"], expectedHeader: "bedrooms", example: "3" },
-  { key: "bathrooms", label: "Baños", required: true, aliases: ["bathrooms", "banos", "baños", "baths"], expectedHeader: "bathrooms", example: "2" },
-  { key: "area", label: "Área (m²)", required: true, aliases: ["area", "área", "m2", "metros", "superficie", "size"], expectedHeader: "area", example: "150" },
-  { key: "image_url", label: "URL de imagen", required: false, aliases: ["image_url", "image", "imagen", "foto", "photo", "url"], expectedHeader: "image_url", example: "https://..." },
+  { key: "title", label: "Título", required: true, aliases: ["title", "titulo", "título", "nombre", "name"], expectedHeader: "title", example: "Casa Modelo Aurora", examples: ["Casa Modelo Aurora", "Departamento Vista"] },
+  { key: "code", label: "Folio", required: false, aliases: ["code", "folio", "codigo", "código", "sku"], expectedHeader: "code", example: "SKU-001", examples: ["SKU-001", "AUR-2024-03"] },
+  { key: "price", label: "Precio", required: true, aliases: ["price", "precio", "monto", "valor"], expectedHeader: "price", example: "2500000", examples: ["2500000", "1850000"] },
+  { key: "location", label: "Ubicación", required: true, aliases: ["location", "ubicacion", "ubicación", "direccion", "dirección", "city", "ciudad"], expectedHeader: "location", example: "Querétaro", examples: ["Querétaro", "CDMX"] },
+  { key: "status", label: "Estatus", required: true, aliases: ["status", "estatus", "estado"], expectedHeader: "status", example: "Available", examples: ["Available", "Reserved"] },
+  { key: "bedrooms", label: "Recámaras", required: true, aliases: ["bedrooms", "recamaras", "recámaras", "habitaciones", "rooms", "beds"], expectedHeader: "bedrooms", example: "3", examples: ["3", "2"] },
+  { key: "bathrooms", label: "Baños", required: true, aliases: ["bathrooms", "banos", "baños", "baths"], expectedHeader: "bathrooms", example: "2", examples: ["2", "1.5"] },
+  { key: "area", label: "Área (m²)", required: true, aliases: ["area", "área", "m2", "metros", "superficie", "size"], expectedHeader: "area", example: "150", examples: ["150", "85"] },
+  { key: "image_url", label: "URL de imagen", required: false, aliases: ["image_url", "image", "imagen", "foto", "photo", "url"], expectedHeader: "image_url", example: "https://...", examples: ["https://example.com/casa.jpg"] },
 ];
 
 const TEMPLATE_CSV =
@@ -1003,9 +1011,47 @@ export function BulkUploadDialog({
                     return (
                       <tr key={f.key} className="border-t border-border">
                         <td className="px-3 py-2 align-top">
-                          <div className="font-medium">
-                            {f.label}
-                            {f.required && <span className="text-destructive ml-1">*</span>}
+                          <div className="font-medium inline-flex items-center gap-1">
+                            <span>{f.label}</span>
+                            {f.required && (
+                              <>
+                                <span className="text-destructive">*</span>
+                                <TooltipProvider delayDuration={150}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <button
+                                        type="button"
+                                        className="text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                                        aria-label={`Ayuda para ${f.label}`}
+                                      >
+                                        <Info className="h-3.5 w-3.5" />
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="right" className="max-w-xs">
+                                      <div className="space-y-1 text-xs">
+                                        <div>
+                                          <span className="text-muted-foreground">Encabezado esperado:</span>{" "}
+                                          <code className="font-mono">{f.expectedHeader}</code>
+                                        </div>
+                                        <div>
+                                          <span className="text-muted-foreground">
+                                            {f.examples.length > 1 ? "Ejemplos:" : "Ejemplo:"}
+                                          </span>{" "}
+                                          <span className="font-mono">
+                                            {f.examples.join(", ")}
+                                          </span>
+                                        </div>
+                                        {f.aliases.length > 0 && (
+                                          <div className="text-muted-foreground">
+                                            Alias aceptados: {f.aliases.slice(0, 4).join(", ")}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </>
+                            )}
                           </div>
                           <div className="text-[10px] text-muted-foreground font-mono">
                             {f.key}
