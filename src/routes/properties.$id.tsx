@@ -160,9 +160,19 @@ function PropertyDetailPage() {
     navigate({ to: "/whatsapp" });
   }
 
-  function handleGeneratePdf() {
-    if (!property) return;
-    generatePropertyPdf(property);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  async function handleGeneratePdf() {
+    if (!property || generatingPdf) return;
+    setGeneratingPdf(true);
+    const t = toast.loading("Generando Ficha PDF…");
+    try {
+      await generatePropertyPdf(property);
+      toast.success("Ficha PDF lista. Usa el cuadro de impresión para guardarla.", { id: t });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo generar el PDF", { id: t });
+    } finally {
+      setGeneratingPdf(false);
+    }
   }
 
   return (
@@ -195,8 +205,9 @@ function PropertyDetailPage() {
           <Button onClick={handleWhatsapp} className="gap-1.5">
             <MessageCircle className="h-4 w-4" /> WhatsApp
           </Button>
-          <Button variant="outline" onClick={handleGeneratePdf} className="gap-1.5">
-            <FileDown className="h-4 w-4" /> Generar PDF
+          <Button variant="outline" onClick={handleGeneratePdf} disabled={generatingPdf} className="gap-1.5">
+            {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+            {generatingPdf ? "Generando…" : "Generar PDF"}
           </Button>
           <Button
             variant="outline"
@@ -276,6 +287,7 @@ function PropertyDetailPage() {
               <FichaPdfTab
                 files={files}
                 onGenerate={handleGeneratePdf}
+                generating={generatingPdf}
                 canManage={canManage}
               />
             </TabsContent>
@@ -501,10 +513,12 @@ function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
 function FichaPdfTab({
   files,
   onGenerate,
+  generating,
   canManage,
 }: {
   files: PropertyFileRow[];
   onGenerate: () => void;
+  generating: boolean;
   canManage: boolean;
 }) {
   const pdfs = files.filter(
@@ -515,8 +529,9 @@ function FichaPdfTab({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={onGenerate} className="gap-1.5">
-          <FileDown className="h-4 w-4" /> Generar Ficha (PDF)
+        <Button onClick={onGenerate} disabled={generating} className="gap-1.5">
+          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+          {generating ? "Generando Ficha…" : "Generar Ficha (PDF)"}
         </Button>
         {ficha && (
           <a
@@ -634,12 +649,13 @@ function DownloadGroup({
 }
 
 // --- Simple client-side PDF generator (HTML → print) ---
-function generatePropertyPdf(property: PropertyRow) {
-  const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
-  if (!w) {
-    toast.error("Tu navegador bloqueó la ventana del PDF. Permite popups e intenta de nuevo.");
-    return;
-  }
+function generatePropertyPdf(property: PropertyRow): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
+    if (!w) {
+      reject(new Error("Tu navegador bloqueó la ventana del PDF. Permite popups e intenta de nuevo."));
+      return;
+    }
   const fmt = (v: number) =>
     new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(v);
   const html = `<!doctype html>
@@ -684,9 +700,18 @@ function generatePropertyPdf(property: PropertyRow) {
   </div>
   <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300))</script>
 </body></html>`;
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    const done = () => resolve();
+    if (w.document.readyState === "complete") {
+      setTimeout(done, 400);
+    } else {
+      w.addEventListener("load", () => setTimeout(done, 400), { once: true });
+      // Safety timeout in case 'load' never fires
+      setTimeout(done, 3000);
+    }
+  });
 }
 
 function escapeHtml(s: string) {
