@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw, History } from "lucide-react";
+import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw, History, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { checkAdminExists } from "@/utils/admin-presence.functions";
 
 export const Route = createFileRoute("/auth")({
   beforeLoad: async () => {
@@ -37,6 +38,28 @@ function AuthPage() {
   const [password, setPassword] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+
+  // Superadmin presence check
+  const [adminCheck, setAdminCheck] = React.useState<
+    { status: "loading" } | { status: "ready"; hasAdmin: boolean } | { status: "error" }
+  >({ status: "loading" });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await checkAdminExists();
+        if (cancelled) return;
+        if (res.error) setAdminCheck({ status: "error" });
+        else setAdminCheck({ status: "ready", hasAdmin: res.hasAdmin });
+      } catch {
+        if (!cancelled) setAdminCheck({ status: "error" });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   type CompileRun = { time: string; result: "OK" | "ERROR"; note: string; log: string };
   const compileRuns: CompileRun[] = [
