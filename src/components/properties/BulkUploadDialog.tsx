@@ -242,6 +242,17 @@ export function BulkUploadDialog({
   const [progress, setProgress] = useState(0);
   const [templateName, setTemplateName] = useState("");
   const [loadedTemplateFile, setLoadedTemplateFile] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{
+    ok: boolean;
+    matched: { field: string; header: string }[];
+    missingRequired: string[];
+    missingOptional: string[];
+    duplicates: string[];
+    unmappedHeaders: string[];
+    sampleErrors: { rowNumber: number; messages: string[] }[];
+    sampleChecked: number;
+    sampleValid: number;
+  } | null>(null);
 
   const validRows = useMemo(() => parsed.filter((r) => r.errors.length === 0), [parsed]);
   const invalidRows = useMemo(() => parsed.filter((r) => r.errors.length > 0), [parsed]);
