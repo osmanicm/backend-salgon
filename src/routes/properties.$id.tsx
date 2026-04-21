@@ -25,12 +25,14 @@ import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useProperty,
   usePropertyMedia,
   usePropertyFiles,
   type PropertyRow,
   type PropertyMediaRow,
+  type PropertyFileRow,
 } from "@/data/propertiesApi";
 import { fmtMoney } from "@/data/mock";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
@@ -232,7 +234,7 @@ function PropertyDetailPage() {
           </div>
         )}
 
-        {/* Hero: Galería + Descargas (visible y arriba) */}
+        {/* Hero: Galería + Descargas con tabs */}
         <PageCard
           title="Galería y archivos descargables"
           description="Ficha PDF, fotos, renders y videos de la propiedad"
@@ -247,67 +249,81 @@ function PropertyDetailPage() {
             ) : null
           }
         >
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Descargas */}
-            <div className="space-y-2 lg:order-2">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Descargas</div>
-              <Button onClick={handleGeneratePdf} className="w-full justify-start gap-2" variant="default">
-                <FileDown className="h-4 w-4" /> Generar Ficha (PDF)
-              </Button>
-              <DownloadGroup
-                label="Descargar Fotos"
-                icon={<ImageIcon className="h-4 w-4 text-primary" />}
-                items={photos}
+          <Tabs defaultValue="ficha" className="w-full">
+            <TabsList className="w-full justify-start flex-wrap h-auto">
+              <TabsTrigger value="ficha" className="gap-1.5">
+                <FileDown className="h-3.5 w-3.5" /> Ficha PDF
+              </TabsTrigger>
+              <TabsTrigger value="photos" className="gap-1.5">
+                <ImageIcon className="h-3.5 w-3.5" /> Fotos
+                <span className="text-[10px] text-muted-foreground">({photos.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="renders" className="gap-1.5">
+                <Sparkles className="h-3.5 w-3.5" /> Renders
+                <span className="text-[10px] text-muted-foreground">({renders.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="videos" className="gap-1.5">
+                <VideoIcon className="h-3.5 w-3.5" /> Videos
+                <span className="text-[10px] text-muted-foreground">({videos.length})</span>
+              </TabsTrigger>
+              <TabsTrigger value="files" className="gap-1.5">
+                <Download className="h-3.5 w-3.5" /> Archivos
+                <span className="text-[10px] text-muted-foreground">({files.length})</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="ficha" className="mt-4">
+              <FichaPdfTab
+                files={files}
+                onGenerate={handleGeneratePdf}
+                canManage={canManage}
               />
-              <DownloadGroup
-                label="Descargar Renders"
-                icon={<Sparkles className="h-4 w-4 text-primary" />}
-                items={renders}
-              />
-              <DownloadGroup
-                label="Ver Videos"
-                icon={<VideoIcon className="h-4 w-4 text-primary" />}
-                items={videos}
-                preferOpen
-              />
-              {files.length > 0 ? (
-                <div className="pt-2 border-t border-border space-y-1.5">
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Archivos cargados</div>
-                  {files.map((f) => (
-                    <a
-                      key={f.id}
-                      href={f.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between gap-2 rounded-md border border-border px-2.5 py-2 text-sm hover:bg-muted transition-colors"
-                    >
-                      <span className="truncate flex items-center gap-1.5">
-                        <Download className="h-3.5 w-3.5 text-primary" /> {f.label}
-                      </span>
-                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    </a>
-                  ))}
+            </TabsContent>
+
+            <TabsContent value="photos" className="mt-4">
+              <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} />
+            </TabsContent>
+
+            <TabsContent value="renders" className="mt-4">
+              <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} />
+            </TabsContent>
+
+            <TabsContent value="videos" className="mt-4">
+              <VideoGallery items={videos} />
+            </TabsContent>
+
+            <TabsContent value="files" className="mt-4 space-y-2">
+              {files.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+                  No hay archivos cargados.
+                  {canManage && (
+                    <>
+                      {" "}
+                      <Link to="/properties" className="text-primary hover:underline">
+                        Súbelos desde Editar propiedad
+                      </Link>
+                      .
+                    </>
+                  )}
                 </div>
               ) : (
-                canManage && (
-                  <div className="rounded-md border border-dashed border-border px-3 py-3 text-[11px] text-muted-foreground">
-                    Aún no hay archivos cargados (Ficha PDF, brochure, etc.). Súbelos desde
-                    <Link to="/properties" className="text-primary hover:underline mx-1">
-                      Editar propiedad
-                    </Link>
-                    .
-                  </div>
-                )
+                files.map((f) => (
+                  <a
+                    key={f.id}
+                    href={f.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted transition-colors"
+                  >
+                    <span className="truncate flex items-center gap-1.5">
+                      <Download className="h-3.5 w-3.5 text-primary" /> {f.label}
+                    </span>
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  </a>
+                ))
               )}
-            </div>
-
-            {/* Galería visual */}
-            <div className="lg:col-span-2 space-y-4 lg:order-1">
-              <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} />
-              <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} />
-              <VideoGallery items={videos} />
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </PageCard>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -476,6 +492,96 @@ function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
               <span className="truncate max-w-[10rem] px-2">{m.title || "Video"}</span>
             </a>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FichaPdfTab({
+  files,
+  onGenerate,
+  canManage,
+}: {
+  files: PropertyFileRow[];
+  onGenerate: () => void;
+  canManage: boolean;
+}) {
+  const pdfs = files.filter(
+    (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
+  );
+  const ficha = pdfs.find((f) => /ficha/i.test(f.label)) ?? pdfs[0] ?? null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={onGenerate} className="gap-1.5">
+          <FileDown className="h-4 w-4" /> Generar Ficha (PDF)
+        </Button>
+        {ficha && (
+          <a
+            href={ficha.url}
+            target="_blank"
+            rel="noreferrer"
+            download
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+          >
+            <Download className="h-4 w-4 text-primary" /> Descargar PDF cargado
+          </a>
+        )}
+        {ficha && (
+          <a
+            href={ficha.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <ExternalLink className="h-3.5 w-3.5" /> Abrir en pestaña nueva
+          </a>
+        )}
+      </div>
+
+      {ficha ? (
+        <div className="rounded-lg border border-border overflow-hidden bg-muted">
+          <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-background">
+            <div className="text-xs font-medium truncate flex items-center gap-1.5">
+              <FileDown className="h-3.5 w-3.5 text-primary" /> {ficha.label}
+            </div>
+            <div className="text-[10px] text-muted-foreground">PDF</div>
+          </div>
+          <object
+            data={ficha.url}
+            type="application/pdf"
+            className="w-full h-[60vh] bg-background"
+            aria-label={`Vista previa de ${ficha.label}`}
+          >
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              Tu navegador no puede mostrar el PDF.{" "}
+              <a href={ficha.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                Descárgalo aquí
+              </a>
+              .
+            </div>
+          </object>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-dashed border-border px-4 py-10 text-center space-y-2">
+          <FileDown className="h-8 w-8 mx-auto text-muted-foreground" />
+          <div className="text-sm font-medium">No hay Ficha PDF cargada</div>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Genera una ficha automática con los datos de la propiedad o sube tu propio PDF
+            {canManage ? (
+              <>
+                {" "}desde{" "}
+                <Link to="/properties" className="text-primary hover:underline">
+                  Editar propiedad
+                </Link>
+                .
+              </>
+            ) : (
+              "."
+            )}
+          </p>
         </div>
       )}
     </div>
