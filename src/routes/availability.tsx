@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   FileText, Filter, RefreshCw, Smartphone, Database, CheckCircle2,
-  Pencil, Save, X, Printer, Search, ChevronDown, Send,
+  Pencil, Save, X, Printer, Search, ChevronDown, Send, CircleDollarSign,
 } from "lucide-react";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { AppShell } from "@/components/layout/AppShell";
@@ -102,6 +102,17 @@ function AvailabilityPage() {
         description: "Sincronizado vía API REST · los clientes móviles se actualizarán",
       });
     }
+  }
+
+  function quickMarkSold(r: AvailabilityRow) {
+    if (r.status === "Sold") return;
+    const { syncedPropertyIds } = updateAvailabilityRow(r.id, { status: "Sold" });
+    const propsNote = syncedPropertyIds.length > 0
+      ? ` · propiedad ${syncedPropertyIds.join(", ")} sincronizada`
+      : "";
+    toast.success(`Lote ${r.lot} marcado como Vendido`, {
+      description: `availability_master · UPDATE status='Sold'${propsNote}`,
+    });
   }
 
   function toggleRow(id: string, on: boolean) {
@@ -249,6 +260,7 @@ function AvailabilityPage() {
                   saveEdit={saveEdit}
                   selected={selected}
                   toggleRow={toggleRow}
+                  quickMarkSold={quickMarkSold}
                 />
               ))}
               {grouped.length === 0 && (
@@ -333,7 +345,7 @@ function FilterSelect({
 
 function ModelGroup({
   model, items, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
-  selected, toggleRow,
+  selected, toggleRow, quickMarkSold,
 }: {
   model: string;
   items: AvailabilityRow[];
@@ -345,6 +357,7 @@ function ModelGroup({
   saveEdit: (id: string) => void;
   selected: Set<string>;
   toggleRow: (id: string, on: boolean) => void;
+  quickMarkSold: (r: AvailabilityRow) => void;
 }) {
   const avg = items.reduce((s, r) => s + r.price, 0) / items.length;
   return (
@@ -425,9 +438,23 @@ function ModelGroup({
                   </Button>
                 </div>
               ) : (
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
+                <div className="inline-flex items-center gap-1">
+                  {r.status !== "Sold" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                      onClick={() => quickMarkSold(r)}
+                      aria-label={`Marcar lote ${r.lot} como vendido`}
+                    >
+                      <CircleDollarSign className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">Marcar Vendido</span>
+                    </Button>
+                  )}
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               )}
             </td>
           </tr>
