@@ -294,15 +294,15 @@ $ grep -n "fieldset" src/routes/properties.tsx
                   }`}
                 />
                 <span className="font-mono text-muted-foreground shrink-0">
-                  <HighlightMatch text={r.time} query={historyQuery} />
+                  <HighlightMatch text={r.time} query={historyQuery} caseSensitive={caseSensitive} />
                 </span>
                 <span
                   className={`font-medium shrink-0 ${r.result === "OK" ? "text-primary" : "text-destructive"}`}
                 >
-                  <HighlightMatch text={r.result} query={historyQuery} />
+                  <HighlightMatch text={r.result} query={historyQuery} caseSensitive={caseSensitive} />
                 </span>
                 <span className="text-muted-foreground truncate flex-1 min-w-0" title={r.note}>
-                  <HighlightMatch text={r.note} query={historyQuery} />
+                  <HighlightMatch text={r.note} query={historyQuery} caseSensitive={caseSensitive} />
                 </span>
                 <button
                   type="button"
@@ -332,7 +332,7 @@ $ grep -n "fieldset" src/routes/properties.tsx
               </DialogDescription>
             </DialogHeader>
             <pre className="max-h-80 overflow-auto rounded-md border border-border bg-muted/40 p-3 text-[11px] leading-relaxed font-mono text-foreground whitespace-pre-wrap">
-              {openLog ? <HighlightMatch text={openLog.log} query={historyQuery} /> : null}
+              {openLog ? <HighlightMatch text={openLog.log} query={historyQuery} caseSensitive={caseSensitive} /> : null}
             </pre>
           </DialogContent>
         </Dialog>
