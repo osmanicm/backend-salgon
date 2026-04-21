@@ -223,40 +223,6 @@ function PropertyDetailPage() {
     navigate({ to: "/whatsapp" });
   }
 
-  const MAX_PDF_RETRIES = 3;
-  type PdfStatus = "idle" | "queued" | "generating" | "ready" | "error" | "cancelled";
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [pdfAttempt, setPdfAttempt] = useState(0);
-  const [pdfError, setPdfError] = useState<string | null>(null);
-  const [pdfStatus, setPdfStatus] = useState<PdfStatus>("idle");
-  const [pdfStartedAt, setPdfStartedAt] = useState<number | null>(null);
-  const [pdfElapsedMs, setPdfElapsedMs] = useState(0);
-  const [pdfDurationMs, setPdfDurationMs] = useState<number | null>(null);
-  const pdfCancelRef = React.useRef<{ cancelled: boolean } | null>(null);
-
-  // Tick elapsed time while generating/queued
-  useEffect(() => {
-    if (pdfStatus !== "generating" && pdfStatus !== "queued") return;
-    const start = pdfStartedAt ?? Date.now();
-    const interval = setInterval(() => setPdfElapsedMs(Date.now() - start), 100);
-    return () => clearInterval(interval);
-  }, [pdfStatus, pdfStartedAt]);
-
-  // Cancel if user closes/hides the tab while generating
-  useEffect(() => {
-    function onVisibility() {
-      if (document.visibilityState === "hidden" && pdfCancelRef.current && !pdfCancelRef.current.cancelled) {
-        pdfCancelRef.current.cancelled = true;
-      }
-    }
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
-      // unmount cancels in-flight
-      if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
-    };
-  }, []);
-
   function cancelPdf() {
     if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
     setPdfStatus("cancelled");
