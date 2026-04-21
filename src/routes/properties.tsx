@@ -448,7 +448,13 @@ function PropertyFormDialog({
             {isEdit ? "Modifica los datos y guarda los cambios." : "Completa los campos para registrar una nueva propiedad."}
           </DialogDescription>
         </DialogHeader>
+        {locked && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            Solo el agente asignado o un admin pueden editar esta propiedad.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <fieldset disabled={locked} className="contents">
           <div className="sm:col-span-2 space-y-1.5">
             <Label>Título *</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Penthouse Vista al Mar" required maxLength={120} />
