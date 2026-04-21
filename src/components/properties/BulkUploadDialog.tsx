@@ -13,6 +13,7 @@ import {
   Save,
   FileJson,
   Trash2,
+  PlayCircle,
 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -242,6 +243,17 @@ export function BulkUploadDialog({
   const [progress, setProgress] = useState(0);
   const [templateName, setTemplateName] = useState("");
   const [loadedTemplateFile, setLoadedTemplateFile] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{
+    ok: boolean;
+    matched: { field: string; header: string }[];
+    missingRequired: string[];
+    missingOptional: string[];
+    duplicates: string[];
+    unmappedHeaders: string[];
+    sampleErrors: { rowNumber: number; messages: string[] }[];
+    sampleChecked: number;
+    sampleValid: number;
+  } | null>(null);
 
   const validRows = useMemo(() => parsed.filter((r) => r.errors.length === 0), [parsed]);
   const invalidRows = useMemo(() => parsed.filter((r) => r.errors.length > 0), [parsed]);
@@ -257,6 +269,7 @@ export function BulkUploadDialog({
     setProgress(0);
     setTemplateName("");
     setLoadedTemplateFile(null);
+    setTestResult(null);
   }
 
   function downloadTemplate() {
@@ -363,7 +376,100 @@ export function BulkUploadDialog({
     setMatchKinds(clearedKinds);
     setTemplateName("");
     setLoadedTemplateFile(null);
+    setTestResult(null);
     toast.success("Plantilla eliminada de esta sesión");
+  }
+
+  function testMapping() {
+    const matched: { field: string; header: string }[] = [];
+    const missingRequired: string[] = [];
+    const missingOptional: string[] = [];
+    for (const f of FIELDS) {
+      const sel = mapping[f.key];
+      if (sel) matched.push({ field: f.label, header: sel });
+      else if (f.required) missingRequired.push(f.label);
+      else missingOptional.push(f.label);
+    }
+
+    const headerCount = new Map<string, number>();
+    Object.values(mapping).forEach((h) => {
+      if (h) headerCount.set(h, (headerCount.get(h) ?? 0) + 1);
+    });
+    const duplicates = [...headerCount.entries()]
+      .filter(([, n]) => n > 1)
+      .map(([h]) => h);
+
+    const mappedHeaders = new Set(
+      Object.values(mapping).filter((v): v is string => !!v)
+    );
+    const unmappedHeaders = headers.filter((h) => !mappedHeaders.has(h));
+
+    // Sample-validate up to 50 rows using current mapping
+    const idx: Record<FieldKey, number> = {} as Record<FieldKey, number>;
+    FIELDS.forEach((f) => {
+      const h = mapping[f.key];
+      idx[f.key] = h ? headers.indexOf(h) : -1;
+    });
+
+    const sampleSize = Math.min(50, dataRows.length);
+    const sampleErrors: { rowNumber: number; messages: string[] }[] = [];
+    let sampleValid = 0;
+
+    for (let i = 0; i < sampleSize; i++) {
+      const cells = dataRows[i];
+      const raw: Record<string, string> = {};
+      FIELDS.forEach((f) => {
+        raw[f.key] = idx[f.key] >= 0 ? (cells[idx[f.key]] ?? "").trim() : "";
+      });
+      const errors: string[] = [];
+      const priceNum = Number(raw.price);
+      const bedroomsNum = Number(raw.bedrooms);
+      const bathroomsNum = Number(raw.bathrooms);
+      const areaNum = Number(raw.area);
+      const status = STATUS_MAP[raw.status?.toLowerCase()];
+      if (!status) errors.push(`status: valor "${raw.status}" no permitido`);
+
+      const result = rowSchema.safeParse({
+        title: raw.title,
+        code: raw.code,
+        price: Number.isFinite(priceNum) ? priceNum : NaN,
+        location: raw.location,
+        status: status ?? "Available",
+        bedrooms: Number.isFinite(bedroomsNum) ? bedroomsNum : NaN,
+        bathrooms: Number.isFinite(bathroomsNum) ? bathroomsNum : NaN,
+        area: Number.isFinite(areaNum) ? areaNum : NaN,
+        image_url: raw.image_url ?? "",
+      });
+      if (!result.success) {
+        result.error.issues.forEach((iss) =>
+          errors.push(`${iss.path.join(".") || "campo"}: ${iss.message}`)
+        );
+      }
+      if (errors.length === 0) sampleValid++;
+      else if (sampleErrors.length < 5)
+        sampleErrors.push({ rowNumber: i + 2, messages: errors });
+    }
+
+    const ok =
+      missingRequired.length === 0 &&
+      duplicates.length === 0 &&
+      sampleValid > 0 &&
+      sampleErrors.length === 0;
+
+    setTestResult({
+      ok,
+      matched,
+      missingRequired,
+      missingOptional,
+      duplicates,
+      unmappedHeaders,
+      sampleErrors,
+      sampleChecked: sampleSize,
+      sampleValid,
+    });
+
+    if (ok) toast.success("Prueba completada — el mapeo es válido");
+    else toast.error("La prueba detectó problemas en el mapeo");
   }
 
 
@@ -715,6 +821,14 @@ export function BulkUploadDialog({
                     <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar
                   </label>
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={testMapping}
+                  disabled={dataRows.length === 0}
+                >
+                  <PlayCircle className="h-3.5 w-3.5 mr-1.5" /> Probar mapeo
+                </Button>
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Asigna un nombre para reconocer esta plantilla al reutilizarla.
@@ -738,6 +852,107 @@ export function BulkUploadDialog({
                 </div>
               )}
             </div>
+
+            {/* Test result panel */}
+            {testResult && (
+              <div
+                className={`rounded-lg border p-3 space-y-2 text-sm ${
+                  testResult.ok
+                    ? "border-success/40 bg-success/5"
+                    : "border-destructive/40 bg-destructive/5"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {testResult.ok ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                      <span className="font-medium text-success">Prueba exitosa</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                      <span className="font-medium text-destructive">Prueba con problemas</span>
+                    </>
+                  )}
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {testResult.sampleValid}/{testResult.sampleChecked} filas de muestra válidas
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Asignados</div>
+                    <div className="font-semibold tabular-nums text-success">
+                      {testResult.matched.length}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Requeridos faltantes</div>
+                    <div
+                      className={`font-semibold tabular-nums ${
+                        testResult.missingRequired.length > 0 ? "text-destructive" : ""
+                      }`}
+                    >
+                      {testResult.missingRequired.length}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Duplicados</div>
+                    <div
+                      className={`font-semibold tabular-nums ${
+                        testResult.duplicates.length > 0 ? "text-destructive" : ""
+                      }`}
+                    >
+                      {testResult.duplicates.length}
+                    </div>
+                  </div>
+                  <div className="rounded-md bg-background border border-border px-2 py-1.5">
+                    <div className="text-muted-foreground">Sin asignar (CSV)</div>
+                    <div className="font-semibold tabular-nums">
+                      {testResult.unmappedHeaders.length}
+                    </div>
+                  </div>
+                </div>
+
+                {testResult.missingRequired.length > 0 && (
+                  <div className="text-xs">
+                    <span className="font-medium text-destructive">Faltan:</span>{" "}
+                    {testResult.missingRequired.join(", ")}
+                  </div>
+                )}
+                {testResult.duplicates.length > 0 && (
+                  <div className="text-xs">
+                    <span className="font-medium text-destructive">Columnas duplicadas:</span>{" "}
+                    {testResult.duplicates.join(", ")}
+                  </div>
+                )}
+                {testResult.missingOptional.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    Opcionales sin asignar: {testResult.missingOptional.join(", ")}
+                  </div>
+                )}
+                {testResult.unmappedHeaders.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    Columnas del CSV ignoradas: {testResult.unmappedHeaders.join(", ")}
+                  </div>
+                )}
+                {testResult.sampleErrors.length > 0 && (
+                  <div className="text-xs space-y-1">
+                    <div className="font-medium text-destructive">
+                      Ejemplos de filas inválidas:
+                    </div>
+                    <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
+                      {testResult.sampleErrors.map((e) => (
+                        <li key={e.rowNumber}>
+                          <span className="font-mono">Fila {e.rowNumber}:</span>{" "}
+                          {e.messages.join(" · ")}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Warnings panel */}
             {(mappingIssues.warnings.length > 0 || mappingIssues.missingRequired.length > 0) && (
@@ -802,6 +1017,7 @@ export function BulkUploadDialog({
                                 ...prev,
                                 [f.key]: newVal ? "exact" : "none",
                               }));
+                              setTestResult(null);
                             }}
                           >
                             <SelectTrigger className="h-8 text-xs">
