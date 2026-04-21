@@ -93,18 +93,27 @@ function AuthPage() {
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "OK" | "ERROR">("all");
   const [historyQuery, setHistoryQuery] = React.useState("");
   const [caseSensitive, setCaseSensitive] = React.useState(false);
+  const queryRegex = React.useMemo(() => {
+    const raw = historyQuery.trim();
+    if (!raw) return null;
+    // Escape regex specials, then convert wildcard '*' (encoded as \*) into '.*'
+    const pattern = raw.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    if (!pattern || pattern === ".*") return null;
+    try {
+      return new RegExp(pattern, caseSensitive ? "g" : "gi");
+    } catch {
+      return null;
+    }
+  }, [historyQuery, caseSensitive]);
+
   const filteredRuns = compileRuns.filter((r) => {
     if (historyFilter !== "all" && r.result !== historyFilter) return false;
-    const raw = historyQuery.trim();
-    if (!raw) return true;
-    const q = caseSensitive ? raw : raw.toLowerCase();
-    const norm = (s: string) => (caseSensitive ? s : s.toLowerCase());
-    return (
-      norm(r.note).includes(q) ||
-      norm(r.result).includes(q) ||
-      norm(r.time).includes(q) ||
-      norm(r.log).includes(q)
-    );
+    if (!queryRegex) return true;
+    const test = (s: string) => {
+      queryRegex.lastIndex = 0;
+      return queryRegex.test(s);
+    };
+    return test(r.note) || test(r.result) || test(r.time) || test(r.log);
   });
 
   async function handleLogin(e: React.FormEvent) {
