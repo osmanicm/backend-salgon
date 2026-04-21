@@ -25,6 +25,58 @@ export function useProperties() {
   return useQuery({ queryKey: KEY, queryFn: fetchProperties });
 }
 
+export type PropertyMediaRow = Tables<"property_media">;
+export type PropertyFileRow = Tables<"property_files">;
+
+export function useProperty(id: string | undefined) {
+  return useQuery({
+    enabled: !!id,
+    queryKey: ["property", id],
+    queryFn: async (): Promise<PropertyRow | null> => {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*, agent:profiles!properties_agent_id_fkey(id, full_name, email)")
+        .eq("id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as PropertyRow | null) ?? null;
+    },
+  });
+}
+
+export function usePropertyMedia(propertyId: string | undefined) {
+  return useQuery({
+    enabled: !!propertyId,
+    queryKey: ["property-media", propertyId],
+    queryFn: async (): Promise<PropertyMediaRow[]> => {
+      const { data, error } = await supabase
+        .from("property_media")
+        .select("*")
+        .eq("property_id", propertyId!)
+        .order("kind", { ascending: true })
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function usePropertyFiles(propertyId: string | undefined) {
+  return useQuery({
+    enabled: !!propertyId,
+    queryKey: ["property-files", propertyId],
+    queryFn: async (): Promise<PropertyFileRow[]> => {
+      const { data, error } = await supabase
+        .from("property_files")
+        .select("*")
+        .eq("property_id", propertyId!)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export function useCreateProperty() {
   const qc = useQueryClient();
   return useMutation({

@@ -53,9 +53,13 @@ export type Database = {
           code: string
           created_at: string
           deleted_at: string | null
+          delivery_date: string | null
           id: string
           image_url: string | null
           location: string
+          lot: string | null
+          model: string | null
+          notes: string | null
           price: number
           status: Database["public"]["Enums"]["property_status"]
           title: string
@@ -69,9 +73,13 @@ export type Database = {
           code: string
           created_at?: string
           deleted_at?: string | null
+          delivery_date?: string | null
           id?: string
           image_url?: string | null
           location: string
+          lot?: string | null
+          model?: string | null
+          notes?: string | null
           price: number
           status?: Database["public"]["Enums"]["property_status"]
           title: string
@@ -85,9 +93,13 @@ export type Database = {
           code?: string
           created_at?: string
           deleted_at?: string | null
+          delivery_date?: string | null
           id?: string
           image_url?: string | null
           location?: string
+          lot?: string | null
+          model?: string | null
+          notes?: string | null
           price?: number
           status?: Database["public"]["Enums"]["property_status"]
           title?: string
@@ -99,6 +111,85 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_files: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          mime_type: string | null
+          property_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          mime_type?: string | null
+          property_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          mime_type?: string | null
+          property_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_files_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_media: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["media_kind"]
+          property_id: string
+          sort_order: number
+          title: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["media_kind"]
+          property_id: string
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["media_kind"]
+          property_id?: string
+          sort_order?: number
+          title?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_media_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -139,6 +230,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent"
+      media_kind: "photo" | "render" | "video"
       property_status: "Available" | "Reserved" | "Sold"
     }
     CompositeTypes: {
@@ -268,6 +360,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent"],
+      media_kind: ["photo", "render", "video"],
       property_status: ["Available", "Reserved", "Sold"],
     },
   },
