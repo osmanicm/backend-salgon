@@ -821,6 +821,14 @@ export function BulkUploadDialog({
                     <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar
                   </label>
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={testMapping}
+                  disabled={dataRows.length === 0}
+                >
+                  <PlayCircle className="h-3.5 w-3.5 mr-1.5" /> Probar mapeo
+                </Button>
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Asigna un nombre para reconocer esta plantilla al reutilizarla.
