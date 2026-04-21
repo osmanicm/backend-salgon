@@ -158,6 +158,13 @@ export function fmtMXN(n: number) {
 
 export type AvailabilityStatus = "Available" | "Reserved" | "Sold";
 
+export interface AvailabilityHistoryEntry {
+  at: string;                  // ISO datetime
+  from: AvailabilityStatus;
+  to: AvailabilityStatus;
+  agentId: string;             // FK to agents.id
+}
+
 export interface AvailabilityRow {
   id: string;          // PK in availability_master
   model: string;       // FK group → property model
@@ -169,6 +176,7 @@ export interface AvailabilityRow {
   notes: string;
   propertyId?: string; // FK to properties.id (sync target)
   updatedAt: string;
+  history?: AvailabilityHistoryEntry[];
 }
 
 const today = new Date();
