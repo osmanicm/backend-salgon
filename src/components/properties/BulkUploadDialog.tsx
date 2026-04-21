@@ -376,7 +376,100 @@ export function BulkUploadDialog({
     setMatchKinds(clearedKinds);
     setTemplateName("");
     setLoadedTemplateFile(null);
+    setTestResult(null);
     toast.success("Plantilla eliminada de esta sesión");
+  }
+
+  function testMapping() {
+    const matched: { field: string; header: string }[] = [];
+    const missingRequired: string[] = [];
+    const missingOptional: string[] = [];
+    for (const f of FIELDS) {
+      const sel = mapping[f.key];
+      if (sel) matched.push({ field: f.label, header: sel });
+      else if (f.required) missingRequired.push(f.label);
+      else missingOptional.push(f.label);
+    }
+
+    const headerCount = new Map<string, number>();
+    Object.values(mapping).forEach((h) => {
+      if (h) headerCount.set(h, (headerCount.get(h) ?? 0) + 1);
+    });
+    const duplicates = [...headerCount.entries()]
+      .filter(([, n]) => n > 1)
+      .map(([h]) => h);
+
+    const mappedHeaders = new Set(
+      Object.values(mapping).filter((v): v is string => !!v)
+    );
+    const unmappedHeaders = headers.filter((h) => !mappedHeaders.has(h));
+
+    // Sample-validate up to 50 rows using current mapping
+    const idx: Record<FieldKey, number> = {} as Record<FieldKey, number>;
+    FIELDS.forEach((f) => {
+      const h = mapping[f.key];
+      idx[f.key] = h ? headers.indexOf(h) : -1;
+    });
+
+    const sampleSize = Math.min(50, dataRows.length);
+    const sampleErrors: { rowNumber: number; messages: string[] }[] = [];
+    let sampleValid = 0;
+
+    for (let i = 0; i < sampleSize; i++) {
+      const cells = dataRows[i];
+      const raw: Record<string, string> = {};
+      FIELDS.forEach((f) => {
+        raw[f.key] = idx[f.key] >= 0 ? (cells[idx[f.key]] ?? "").trim() : "";
+      });
+      const errors: string[] = [];
+      const priceNum = Number(raw.price);
+      const bedroomsNum = Number(raw.bedrooms);
+      const bathroomsNum = Number(raw.bathrooms);
+      const areaNum = Number(raw.area);
+      const status = STATUS_MAP[raw.status?.toLowerCase()];
+      if (!status) errors.push(`status: valor "${raw.status}" no permitido`);
+
+      const result = rowSchema.safeParse({
+        title: raw.title,
+        code: raw.code,
+        price: Number.isFinite(priceNum) ? priceNum : NaN,
+        location: raw.location,
+        status: status ?? "Available",
+        bedrooms: Number.isFinite(bedroomsNum) ? bedroomsNum : NaN,
+        bathrooms: Number.isFinite(bathroomsNum) ? bathroomsNum : NaN,
+        area: Number.isFinite(areaNum) ? areaNum : NaN,
+        image_url: raw.image_url ?? "",
+      });
+      if (!result.success) {
+        result.error.issues.forEach((iss) =>
+          errors.push(`${iss.path.join(".") || "campo"}: ${iss.message}`)
+        );
+      }
+      if (errors.length === 0) sampleValid++;
+      else if (sampleErrors.length < 5)
+        sampleErrors.push({ rowNumber: i + 2, messages: errors });
+    }
+
+    const ok =
+      missingRequired.length === 0 &&
+      duplicates.length === 0 &&
+      sampleValid > 0 &&
+      sampleErrors.length === 0;
+
+    setTestResult({
+      ok,
+      matched,
+      missingRequired,
+      missingOptional,
+      duplicates,
+      unmappedHeaders,
+      sampleErrors,
+      sampleChecked: sampleSize,
+      sampleValid,
+    });
+
+    if (ok) toast.success("Prueba completada — el mapeo es válido");
+    else toast.error("La prueba detectó problemas en el mapeo");
   }
 
 
