@@ -337,13 +337,16 @@ function PropertyFormDialog({
   onOpenChange,
   initial,
   existing,
+  canManageInitial,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   initial?: PropertyRow;
   existing: PropertyRow[];
+  canManageInitial: boolean;
 }) {
   const isEdit = !!initial;
+  const locked = isEdit && !canManageInitial;
   const create = useCreateProperty();
   const update = useUpdateProperty();
   const agentsQuery = useAgentsList();
