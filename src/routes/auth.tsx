@@ -12,10 +12,22 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { checkAdminExists } from "@/utils/admin-presence.functions";
 
+async function resolveLandingForUser(userId: string): Promise<"/" | "/agent"> {
+  const { data } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId);
+  const isAdmin = (data ?? []).some((r) => r.role === "admin");
+  return isAdmin ? "/" : "/agent";
+}
+
 export const Route = createFileRoute("/auth")({
   beforeLoad: async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) throw redirect({ to: "/" });
+    if (session) {
+      const to = await resolveLandingForUser(session.user.id);
+      throw redirect({ to });
+    }
   },
   component: AuthPage,
 });
@@ -147,14 +159,15 @@ function AuthPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword(parsed.data);
+    const { data: signInData, error } = await supabase.auth.signInWithPassword(parsed.data);
     setLoading(false);
     if (error) {
       toast.error(error.message === "Invalid login credentials" ? "Credenciales inválidas" : error.message);
       return;
     }
     toast.success("¡Bienvenido!");
-    navigate({ to: "/" });
+    const to = signInData.user ? await resolveLandingForUser(signInData.user.id) : "/";
+    navigate({ to });
   }
 
   async function handleSignup(e: React.FormEvent) {
@@ -165,7 +178,7 @@ function AuthPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
@@ -179,7 +192,15 @@ function AuthPage() {
       return;
     }
     toast.success("Cuenta creada. Iniciando sesión…");
-    navigate({ to: "/" });
+    // Wait briefly for the role trigger to populate user_roles, then route by role.
+    const userId = signUpData.user?.id;
+    let to: "/" | "/agent" = "/agent";
+    if (userId) {
+      // Small delay to let DB trigger insert into user_roles
+      await new Promise((r) => setTimeout(r, 400));
+      to = await resolveLandingForUser(userId);
+    }
+    navigate({ to });
   }
 
   return (
