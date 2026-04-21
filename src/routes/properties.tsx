@@ -390,6 +390,9 @@ function PropertiesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Trash dialog */}
+      <TrashDialog open={trashOpen} onOpenChange={setTrashOpen} isAdmin={isAdmin} currentUserId={user?.id ?? null} />
     </AppShell>
   );
 }
