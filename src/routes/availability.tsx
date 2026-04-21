@@ -502,6 +502,62 @@ function ModelGroup({
   );
 }
 
+/* ───────────── History log ───────────── */
+
+function HistoryLog({
+  entries,
+  lot,
+}: {
+  entries: { at: string; from: AvailabilityStatus; to: AvailabilityStatus; agentId: string }[];
+  lot: string;
+}) {
+  const statusEs = (s: AvailabilityStatus) =>
+    s === "Available" ? "Disponible" : s === "Reserved" ? "Apartado" : "Vendido";
+  const agentName = (id: string) => agents.find((a) => a.id === id)?.name ?? id;
+
+  return (
+    <div className="rounded-lg border border-border bg-background/60 p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <History className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-medium">Historial de cambios — Lote {lot}</span>
+        <span className="text-[11px] text-muted-foreground">últimos {entries.length} de máx. 5</span>
+      </div>
+      {entries.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic px-1 py-2">
+          Sin cambios de estatus registrados todavía.
+        </p>
+      ) : (
+        <ol className="relative border-l border-border/70 ml-1.5 space-y-2.5 pl-4">
+          {entries.map((e, i) => (
+            <li key={i} className="relative">
+              <span className={cn("absolute -left-[21px] top-1 h-2 w-2 rounded-full ring-2 ring-background", STATUS_DOT[e.to])} />
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.from])}>
+                  {statusEs(e.from)}
+                </span>
+                <span className="text-muted-foreground">→</span>
+                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.to])}>
+                  {statusEs(e.to)}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <UserIcon className="h-3 w-3" />
+                  {agentName(e.agentId)}
+                </span>
+                <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">
+                  {new Date(e.at).toLocaleString("es-MX", {
+                    day: "2-digit", month: "short", year: "numeric",
+                    hour: "2-digit", minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
+}
+
 /* ───────────── Bulk update ───────────── */
 
 function BulkUpdateDialog({
