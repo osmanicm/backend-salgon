@@ -198,10 +198,28 @@ $ grep -n "fieldset" src/routes/properties.tsx
           <div className="flex items-center gap-2 mb-1.5">
             <History className="h-4 w-4 text-primary" />
             <div className="font-medium">Historial de verificaciones</div>
-            <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">Últimas 5</span>
+            <div className="ml-auto inline-flex rounded-md border border-border overflow-hidden text-[10px] uppercase tracking-wide">
+              {(["all", "OK", "ERROR"] as const).map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setHistoryFilter(f)}
+                  className={`px-2 py-0.5 transition-colors ${
+                    historyFilter === f
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-transparent text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {f === "all" ? "Todos" : f}
+                </button>
+              ))}
+            </div>
           </div>
           <ul className="divide-y divide-border text-xs">
-            {compileRuns.map((r) => (
+            {filteredRuns.length === 0 && (
+              <li className="py-2 text-xs text-muted-foreground text-center">Sin resultados para este filtro.</li>
+            )}
+            {filteredRuns.map((r) => (
               <li key={r.time} className="flex items-center gap-2 py-1.5">
                 <span
                   className={`inline-flex h-1.5 w-1.5 rounded-full shrink-0 ${
