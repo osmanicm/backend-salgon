@@ -92,15 +92,18 @@ function AuthPage() {
   const [openLog, setOpenLog] = React.useState<CompileRun | null>(null);
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "OK" | "ERROR">("all");
   const [historyQuery, setHistoryQuery] = React.useState("");
+  const [caseSensitive, setCaseSensitive] = React.useState(false);
   const filteredRuns = compileRuns.filter((r) => {
     if (historyFilter !== "all" && r.result !== historyFilter) return false;
-    const q = historyQuery.trim().toLowerCase();
-    if (!q) return true;
+    const raw = historyQuery.trim();
+    if (!raw) return true;
+    const q = caseSensitive ? raw : raw.toLowerCase();
+    const norm = (s: string) => (caseSensitive ? s : s.toLowerCase());
     return (
-      r.note.toLowerCase().includes(q) ||
-      r.result.toLowerCase().includes(q) ||
-      r.time.toLowerCase().includes(q) ||
-      r.log.toLowerCase().includes(q)
+      norm(r.note).includes(q) ||
+      norm(r.result).includes(q) ||
+      norm(r.time).includes(q) ||
+      norm(r.log).includes(q)
     );
   });
 
@@ -242,6 +245,17 @@ $ grep -n "fieldset" src/routes/properties.tsx
             />
             <Button
               type="button"
+              variant={caseSensitive ? "default" : "outline"}
+              size="sm"
+              onClick={() => setCaseSensitive((v) => !v)}
+              aria-pressed={caseSensitive}
+              title={caseSensitive ? "Distinguiendo mayúsculas/minúsculas" : "Sin distinguir mayúsculas/minúsculas"}
+              className="h-7 px-2 text-xs font-mono"
+            >
+              Aa
+            </Button>
+            <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={() => setHistoryQuery("")}
@@ -280,15 +294,15 @@ $ grep -n "fieldset" src/routes/properties.tsx
                   }`}
                 />
                 <span className="font-mono text-muted-foreground shrink-0">
-                  <HighlightMatch text={r.time} query={historyQuery} />
+                  <HighlightMatch text={r.time} query={historyQuery} caseSensitive={caseSensitive} />
                 </span>
                 <span
                   className={`font-medium shrink-0 ${r.result === "OK" ? "text-primary" : "text-destructive"}`}
                 >
-                  <HighlightMatch text={r.result} query={historyQuery} />
+                  <HighlightMatch text={r.result} query={historyQuery} caseSensitive={caseSensitive} />
                 </span>
                 <span className="text-muted-foreground truncate flex-1 min-w-0" title={r.note}>
-                  <HighlightMatch text={r.note} query={historyQuery} />
+                  <HighlightMatch text={r.note} query={historyQuery} caseSensitive={caseSensitive} />
                 </span>
                 <button
                   type="button"
@@ -318,7 +332,7 @@ $ grep -n "fieldset" src/routes/properties.tsx
               </DialogDescription>
             </DialogHeader>
             <pre className="max-h-80 overflow-auto rounded-md border border-border bg-muted/40 p-3 text-[11px] leading-relaxed font-mono text-foreground whitespace-pre-wrap">
-              {openLog ? <HighlightMatch text={openLog.log} query={historyQuery} /> : null}
+              {openLog ? <HighlightMatch text={openLog.log} query={historyQuery} caseSensitive={caseSensitive} /> : null}
             </pre>
           </DialogContent>
         </Dialog>
@@ -370,15 +384,17 @@ $ grep -n "fieldset" src/routes/properties.tsx
   );
 }
 
-function HighlightMatch({ text, query }: { text: string; query: string }) {
+function HighlightMatch({ text, query, caseSensitive = false }: { text: string; query: string; caseSensitive?: boolean }) {
   const q = query.trim();
   if (!q) return <>{text}</>;
   const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  const flags = caseSensitive ? "g" : "gi";
+  const parts = text.split(new RegExp(`(${escaped})`, flags));
+  const matches = (part: string) => (caseSensitive ? part === q : part.toLowerCase() === q.toLowerCase());
   return (
     <>
       {parts.map((part, i) =>
-        part.toLowerCase() === q.toLowerCase() ? (
+        matches(part) ? (
           <mark key={i} className="rounded-sm bg-primary/25 text-foreground px-0.5">
             {part}
           </mark>
