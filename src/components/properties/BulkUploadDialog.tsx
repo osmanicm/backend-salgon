@@ -908,6 +908,7 @@ export function BulkUploadDialog({
                                 ...prev,
                                 [f.key]: newVal ? "exact" : "none",
                               }));
+                              setTestResult(null);
                             }}
                           >
                             <SelectTrigger className="h-8 text-xs">
