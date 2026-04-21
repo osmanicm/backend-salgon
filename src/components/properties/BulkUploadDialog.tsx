@@ -13,6 +13,7 @@ import {
   Save,
   FileJson,
   Trash2,
+  PlayCircle,
 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -268,6 +269,7 @@ export function BulkUploadDialog({
     setProgress(0);
     setTemplateName("");
     setLoadedTemplateFile(null);
+    setTestResult(null);
   }
 
   function downloadTemplate() {
