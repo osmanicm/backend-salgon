@@ -595,6 +595,36 @@ function PropertyDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit dialog (reuses the form from the list page) */}
+      <PropertyFormDialog
+        open={editing}
+        onOpenChange={setEditing}
+        existing={allPropertiesQuery.data ?? []}
+        initial={property}
+        canManageInitial={canManage}
+      />
+
+      {/* Delete confirm */}
+      <AlertDialog open={deleting} onOpenChange={setDeleting}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Enviar a la papelera?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{property.title}" se ocultará del catálogo. Un admin puede restaurarla más tarde.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {softDelete.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />} Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
