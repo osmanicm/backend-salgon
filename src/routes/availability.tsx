@@ -159,10 +159,34 @@ function AvailabilityPage() {
         </div>
       </div>
 
+      {/* Status legend */}
+      <PageCard title="Leyenda de estatus" description="Cómo interpretar cada color en la matriz">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <LegendItem
+            tint={STATUS_TINTS.Available}
+            dot={STATUS_DOT.Available}
+            label="Disponible"
+            help="Unidad lista para venta. Visible para todos los agentes y la app móvil."
+          />
+          <LegendItem
+            tint={STATUS_TINTS.Reserved}
+            dot={STATUS_DOT.Reserved}
+            label="Apartado"
+            help="Cliente con anticipo o compromiso. Bloqueada por 7 días."
+          />
+          <LegendItem
+            tint={STATUS_TINTS.Sold}
+            dot={STATUS_DOT.Sold}
+            label="Vendido"
+            help="Operación cerrada. Se retira del inventario disponible."
+          />
+        </div>
+      </PageCard>
+
       {/* Toolbar */}
       <PageCard
         title="Matriz de inventario"
-        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo`}
+        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo · clic en ✏️ para editar`}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5"
