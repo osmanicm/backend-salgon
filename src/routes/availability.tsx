@@ -260,6 +260,7 @@ function AvailabilityPage() {
                   saveEdit={saveEdit}
                   selected={selected}
                   toggleRow={toggleRow}
+                  quickMarkSold={quickMarkSold}
                 />
               ))}
               {grouped.length === 0 && (
