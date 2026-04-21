@@ -244,7 +244,7 @@ function PropertyDetailPage() {
           <Button onClick={handleWhatsapp} className="gap-1.5">
             <MessageCircle className="h-4 w-4" /> WhatsApp
           </Button>
-          <Button variant="outline" onClick={handleGeneratePdf} disabled={generatingPdf} className="gap-1.5">
+          <Button variant="outline" onClick={() => handleGeneratePdf()} disabled={generatingPdf} className="gap-1.5">
             {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
             {generatingPdf ? "Generando…" : "Generar PDF"}
           </Button>
