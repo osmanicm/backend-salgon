@@ -47,6 +47,12 @@ function PropertiesPage() {
   const propsQuery = useProperties();
   const properties = propsQuery.data ?? [];
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = useHasRole("admin");
+  const canManage = React.useCallback(
+    (p: PropertyRow) => isAdmin || (!!user && p.agent_id === user.id),
+    [isAdmin, user]
+  );
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [editing, setEditing] = useState<PropertyRow | null>(null);
