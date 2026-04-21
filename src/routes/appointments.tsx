@@ -17,7 +17,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { appointments, leads, properties } from "@/data/mock";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/appointments")({ component: AppointmentsPage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/appointments")({
+  component: AppointmentsPage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Citas" error={error} reset={reset} />,
+});
 
 function AppointmentsPage() {
   const [month, setMonth] = useState(new Date(2025, 3, 1));

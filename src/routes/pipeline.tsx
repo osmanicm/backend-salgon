@@ -6,7 +6,12 @@ import { AppShell } from "@/components/layout/AppShell";
 import { leads as initialLeads, agents, fmtMoney, type Lead, type LeadStatus } from "@/data/mock";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/pipeline")({ component: PipelinePage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/pipeline")({
+  component: PipelinePage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Pipeline" error={error} reset={reset} />,
+});
 
 const columns: { id: LeadStatus; label: string; tint: string }[] = [
   { id: "New", label: "Nuevo Prospecto", tint: "border-t-info" },

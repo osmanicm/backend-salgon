@@ -28,7 +28,12 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/availability")({ component: AvailabilityPage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/availability")({
+  component: AvailabilityPage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Disponibilidad" error={error} reset={reset} />,
+});
 
 const STATUS_TINTS: Record<AvailabilityStatus, string> = {
   Available: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",

@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { agents } from "@/data/mock";
 
-export const Route = createFileRoute("/users")({ component: UsersPage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/users")({
+  component: UsersPage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Usuarios" error={error} reset={reset} />,
+});
 
 function initials(name: string) {
   return name.split(" ").map(p => p[0]).slice(0, 2).join("");

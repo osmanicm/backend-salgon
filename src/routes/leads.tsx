@@ -14,7 +14,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { agents, leads, fmtMoney } from "@/data/mock";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/leads")({ component: LeadsPage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/leads")({
+  component: LeadsPage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Leads" error={error} reset={reset} />,
+});
 
 const SOURCE_ES: Record<string, string> = {
   Website: "Sitio Web",

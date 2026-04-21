@@ -10,7 +10,12 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { appointments, leads, fmtMXN } from "@/data/mock";
 import { useAvailability, useProperties } from "@/data/store";
 
-export const Route = createFileRoute("/")({ component: DashboardPage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/")({
+  component: DashboardPage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Dashboard" error={error} reset={reset} />,
+});
 
 function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();

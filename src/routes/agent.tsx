@@ -13,8 +13,11 @@ import {
   readBlockedAttempt,
 } from "@/lib/blockedAttempt";
 
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
 export const Route = createFileRoute("/agent")({
   component: AgentDashboard,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Mi panel" error={error} reset={reset} />,
 });
 
 function AgentDashboard() {
