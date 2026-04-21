@@ -56,7 +56,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/properties/$id")({
+export const Route = createFileRoute("/properties_/$id")({
   component: PropertyDetailPage,
   notFoundComponent: () => (
     <AppShell title="Propiedad" subtitle="Detalle">
