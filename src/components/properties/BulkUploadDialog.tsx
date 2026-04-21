@@ -342,6 +342,7 @@ export function BulkUploadDialog({
       setMapping(next);
       setMatchKinds(nextKinds);
       if (parsedJson.name) setTemplateName(parsedJson.name);
+      setLoadedTemplateFile(file.name);
       toast.success(
         `Mapeo aplicado: ${applied} campo(s)` +
           (missing > 0 ? ` · ${missing} no encontrados en este CSV` : "")
@@ -349,6 +350,20 @@ export function BulkUploadDialog({
     } catch {
       toast.error("No se pudo leer la plantilla JSON");
     }
+  }
+
+  function clearLoadedTemplate() {
+    const cleared = { ...mapping };
+    const clearedKinds = { ...matchKinds };
+    FIELDS.forEach((f) => {
+      cleared[f.key] = null;
+      clearedKinds[f.key] = "none";
+    });
+    setMapping(cleared);
+    setMatchKinds(clearedKinds);
+    setTemplateName("");
+    setLoadedTemplateFile(null);
+    toast.success("Plantilla eliminada de esta sesión");
   }
 
 
