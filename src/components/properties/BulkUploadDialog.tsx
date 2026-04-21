@@ -14,6 +14,7 @@ import {
   FileJson,
   Trash2,
   PlayCircle,
+  Info,
 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -35,6 +36,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PropertyInsert, PropertyRow } from "@/data/propertiesApi";
@@ -81,16 +88,17 @@ const FIELDS: {
   aliases: string[];
   expectedHeader: string;
   example: string;
+  examples: string[];
 }[] = [
-  { key: "title", label: "Título", required: true, aliases: ["title", "titulo", "título", "nombre", "name"], expectedHeader: "title", example: "Casa Modelo Aurora" },
-  { key: "code", label: "Folio", required: false, aliases: ["code", "folio", "codigo", "código", "sku"], expectedHeader: "code", example: "SKU-001" },
-  { key: "price", label: "Precio", required: true, aliases: ["price", "precio", "monto", "valor"], expectedHeader: "price", example: "2500000" },
-  { key: "location", label: "Ubicación", required: true, aliases: ["location", "ubicacion", "ubicación", "direccion", "dirección", "city", "ciudad"], expectedHeader: "location", example: "Querétaro" },
-  { key: "status", label: "Estatus", required: true, aliases: ["status", "estatus", "estado"], expectedHeader: "status", example: "Available" },
-  { key: "bedrooms", label: "Recámaras", required: true, aliases: ["bedrooms", "recamaras", "recámaras", "habitaciones", "rooms", "beds"], expectedHeader: "bedrooms", example: "3" },
-  { key: "bathrooms", label: "Baños", required: true, aliases: ["bathrooms", "banos", "baños", "baths"], expectedHeader: "bathrooms", example: "2" },
-  { key: "area", label: "Área (m²)", required: true, aliases: ["area", "área", "m2", "metros", "superficie", "size"], expectedHeader: "area", example: "150" },
-  { key: "image_url", label: "URL de imagen", required: false, aliases: ["image_url", "image", "imagen", "foto", "photo", "url"], expectedHeader: "image_url", example: "https://..." },
+  { key: "title", label: "Título", required: true, aliases: ["title", "titulo", "título", "nombre", "name"], expectedHeader: "title", example: "Casa Modelo Aurora", examples: ["Casa Modelo Aurora", "Departamento Vista"] },
+  { key: "code", label: "Folio", required: false, aliases: ["code", "folio", "codigo", "código", "sku"], expectedHeader: "code", example: "SKU-001", examples: ["SKU-001", "AUR-2024-03"] },
+  { key: "price", label: "Precio", required: true, aliases: ["price", "precio", "monto", "valor"], expectedHeader: "price", example: "2500000", examples: ["2500000", "1850000"] },
+  { key: "location", label: "Ubicación", required: true, aliases: ["location", "ubicacion", "ubicación", "direccion", "dirección", "city", "ciudad"], expectedHeader: "location", example: "Querétaro", examples: ["Querétaro", "CDMX"] },
+  { key: "status", label: "Estatus", required: true, aliases: ["status", "estatus", "estado"], expectedHeader: "status", example: "Available", examples: ["Available", "Reserved"] },
+  { key: "bedrooms", label: "Recámaras", required: true, aliases: ["bedrooms", "recamaras", "recámaras", "habitaciones", "rooms", "beds"], expectedHeader: "bedrooms", example: "3", examples: ["3", "2"] },
+  { key: "bathrooms", label: "Baños", required: true, aliases: ["bathrooms", "banos", "baños", "baths"], expectedHeader: "bathrooms", example: "2", examples: ["2", "1.5"] },
+  { key: "area", label: "Área (m²)", required: true, aliases: ["area", "área", "m2", "metros", "superficie", "size"], expectedHeader: "area", example: "150", examples: ["150", "85"] },
+  { key: "image_url", label: "URL de imagen", required: false, aliases: ["image_url", "image", "imagen", "foto", "photo", "url"], expectedHeader: "image_url", example: "https://...", examples: ["https://example.com/casa.jpg"] },
 ];
 
 const TEMPLATE_CSV =
