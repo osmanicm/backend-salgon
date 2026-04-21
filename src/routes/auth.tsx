@@ -226,12 +226,24 @@ $ grep -n "fieldset" src/routes/properties.tsx
               ))}
             </div>
           </div>
-          <Input
-            value={historyQuery}
-            onChange={(e) => setHistoryQuery(e.target.value)}
-            placeholder='Buscar (p. ej. "tsc" o "ERROR")'
-            className="h-7 mb-2 text-xs"
-          />
+          <div className="flex gap-2 mb-2">
+            <Input
+              value={historyQuery}
+              onChange={(e) => setHistoryQuery(e.target.value)}
+              placeholder='Buscar (p. ej. "tsc" o "ERROR")'
+              className="h-7 text-xs flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setHistoryQuery("")}
+              disabled={!historyQuery}
+              className="h-7 px-2 text-xs"
+            >
+              Limpiar búsqueda
+            </Button>
+          </div>
           {historyQuery && (
             <div className="text-[10px] text-muted-foreground mb-1">
               {filteredRuns.length} de {compileRuns.length} resultados
