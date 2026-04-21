@@ -719,6 +719,24 @@ export function BulkUploadDialog({
               <p className="text-[11px] text-muted-foreground">
                 Asigna un nombre para reconocer esta plantilla al reutilizarla.
               </p>
+              {loadedTemplateFile && (
+                <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-2 py-1.5">
+                  <div className="flex items-center gap-2 min-w-0 text-xs">
+                    <FileJson className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="text-muted-foreground shrink-0">Cargada:</span>
+                    <span className="font-medium truncate">{loadedTemplateFile}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearLoadedTemplate}
+                    className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                    aria-label="Eliminar plantilla cargada"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Eliminar
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Warnings panel */}
