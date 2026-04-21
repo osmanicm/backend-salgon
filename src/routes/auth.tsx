@@ -279,14 +279,16 @@ $ grep -n "fieldset" src/routes/properties.tsx
                     r.result === "OK" ? "bg-primary" : "bg-destructive"
                   }`}
                 />
-                <span className="font-mono text-muted-foreground shrink-0">{r.time}</span>
+                <span className="font-mono text-muted-foreground shrink-0">
+                  <HighlightMatch text={r.time} query={historyQuery} />
+                </span>
                 <span
                   className={`font-medium shrink-0 ${r.result === "OK" ? "text-primary" : "text-destructive"}`}
                 >
-                  {r.result}
+                  <HighlightMatch text={r.result} query={historyQuery} />
                 </span>
                 <span className="text-muted-foreground truncate flex-1 min-w-0" title={r.note}>
-                  {r.note}
+                  <HighlightMatch text={r.note} query={historyQuery} />
                 </span>
                 <button
                   type="button"
@@ -316,7 +318,7 @@ $ grep -n "fieldset" src/routes/properties.tsx
               </DialogDescription>
             </DialogHeader>
             <pre className="max-h-80 overflow-auto rounded-md border border-border bg-muted/40 p-3 text-[11px] leading-relaxed font-mono text-foreground whitespace-pre-wrap">
-              {openLog?.log}
+              {openLog ? <HighlightMatch text={openLog.log} query={historyQuery} /> : null}
             </pre>
           </DialogContent>
         </Dialog>
@@ -365,6 +367,26 @@ $ grep -n "fieldset" src/routes/properties.tsx
         </div>
       </div>
     </div>
+  );
+}
+
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{text}</>;
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === q.toLowerCase() ? (
+          <mark key={i} className="rounded-sm bg-primary/25 text-foreground px-0.5">
+            {part}
+          </mark>
+        ) : (
+          <React.Fragment key={i}>{part}</React.Fragment>
+        )
+      )}
+    </>
   );
 }
 
