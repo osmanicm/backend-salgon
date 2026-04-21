@@ -4,16 +4,20 @@ import { cn } from "@/lib/utils";
 export function PageCard({
   title,
   description,
+  subtitle,
   action,
   className,
   children,
 }: {
   title?: string;
   description?: string;
+  /** @deprecated use `description` */
+  subtitle?: string;
   action?: ReactNode;
   className?: string;
   children: ReactNode;
 }) {
+  const desc = description ?? subtitle;
   return (
     <section className={cn("rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]", className)}>
       {(title || action) && (
