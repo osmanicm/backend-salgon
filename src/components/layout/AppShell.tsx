@@ -4,10 +4,11 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
+import { ForbiddenScreen } from "./ForbiddenScreen";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
-// Routes that only admins should access. Agents are redirected to /agent.
+// Routes that only admins should access. Agents see a 403 screen.
 // "/" is the admin dashboard; the agent dashboard is "/agent".
 const ADMIN_ONLY_PATHS = ["/", "/users", "/pipeline", "/availability"];
 
@@ -33,15 +34,10 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
     // Admin landing on the agent view → send to dashboard.
     if (isAdmin && pathname === "/agent") {
       navigate({ to: "/" });
-      return;
     }
-    // Non-admin on an admin-only route → send to agent view.
-    if (blocked) {
-      navigate({ to: "/agent", replace: true });
-    }
-  }, [loading, user, isAdmin, blocked, pathname, navigate]);
+  }, [loading, user, isAdmin, pathname, navigate]);
 
-  if (loading || !user || blocked) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen grid place-items-center bg-background">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
@@ -50,6 +46,10 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
         </div>
       </div>
     );
+  }
+
+  if (blocked) {
+    return <ForbiddenScreen />;
   }
 
   return (
