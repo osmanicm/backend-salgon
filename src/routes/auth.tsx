@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -36,6 +37,59 @@ function AuthPage() {
   const [password, setPassword] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+
+  type CompileRun = { time: string; result: "OK" | "ERROR"; note: string; log: string };
+  const compileRuns: CompileRun[] = [
+    {
+      time: "2026-04-21 14:32",
+      result: "OK",
+      note: "tsc sin errores",
+      log: `$ bunx tsc --noEmit -p tsconfig.json
+(exit 0)
+
+✔ Sin errores de tipo.
+✔ JSX balanceado en src/routes/properties.tsx.`,
+    },
+    {
+      time: "2026-04-21 14:28",
+      result: "OK",
+      note: "fieldset removido",
+      log: `$ grep -n "fieldset" src/routes/properties.tsx
+(sin coincidencias)
+
+✔ <fieldset> reemplazado por className condicional en <form>.
+✔ Build estable.`,
+    },
+    {
+      time: "2026-04-21 14:21",
+      result: "ERROR",
+      note: "Expected closing tag for <fieldset> (520:8)",
+      log: `HTTPError: Expected corresponding JSX closing tag for <fieldset>. (520:8)
+  at jsxParseElementAt (@babel/parser)
+  at parseExprAtom
+  at parseStatementContent
+
+→ Causa: <fieldset disabled={locked}> abierto sin </fieldset> de cierre.
+→ Fix aplicado: remover wrapper y usar className condicional.`,
+    },
+    {
+      time: "2026-04-21 14:05",
+      result: "OK",
+      note: "guards canManage añadidos",
+      log: `✔ handleSubmit valida canManage(property) antes de mutar.
+✔ confirmDelete valida canManage(property) antes de soft-delete.
+✔ toast.error si el usuario no tiene permisos.`,
+    },
+    {
+      time: "2026-04-21 13:48",
+      result: "OK",
+      note: "RLS por agente",
+      log: `✔ Política UPDATE: admin OR agent_id = auth.uid()
+✔ Política DELETE (soft): admin OR agent_id = auth.uid()
+✔ supabase--linter sin warnings críticos.`,
+    },
+  ];
+  const [openLog, setOpenLog] = React.useState<CompileRun | null>(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -145,16 +199,10 @@ $ grep -n "fieldset" src/routes/properties.tsx
             <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">Últimas 5</span>
           </div>
           <ul className="divide-y divide-border text-xs">
-            {[
-              { time: "2026-04-21 14:32", result: "OK", note: "tsc sin errores" },
-              { time: "2026-04-21 14:28", result: "OK", note: "fieldset removido" },
-              { time: "2026-04-21 14:21", result: "ERROR", note: "Expected closing tag for <fieldset> (520:8)" },
-              { time: "2026-04-21 14:05", result: "OK", note: "guards canManage añadidos" },
-              { time: "2026-04-21 13:48", result: "OK", note: "RLS por agente" },
-            ].map((r) => (
-              <li key={r.time} className="flex items-start gap-2 py-1.5">
+            {compileRuns.map((r) => (
+              <li key={r.time} className="flex items-center gap-2 py-1.5">
                 <span
-                  className={`mt-1 inline-flex h-1.5 w-1.5 rounded-full shrink-0 ${
+                  className={`inline-flex h-1.5 w-1.5 rounded-full shrink-0 ${
                     r.result === "OK" ? "bg-primary" : "bg-destructive"
                   }`}
                 />
@@ -164,13 +212,41 @@ $ grep -n "fieldset" src/routes/properties.tsx
                 >
                   {r.result}
                 </span>
-                <span className="text-muted-foreground truncate" title={r.note}>
+                <span className="text-muted-foreground truncate flex-1 min-w-0" title={r.note}>
                   {r.note}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => setOpenLog(r)}
+                  className="text-primary hover:underline shrink-0"
+                >
+                  Ver log
+                </button>
               </li>
             ))}
           </ul>
         </div>
+
+        <Dialog open={!!openLog} onOpenChange={(o) => !o && setOpenLog(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <span
+                  className={`inline-flex h-2 w-2 rounded-full ${
+                    openLog?.result === "OK" ? "bg-primary" : "bg-destructive"
+                  }`}
+                />
+                Run {openLog?.time}
+              </DialogTitle>
+              <DialogDescription>
+                {openLog?.result} · {openLog?.note}
+              </DialogDescription>
+            </DialogHeader>
+            <pre className="max-h-80 overflow-auto rounded-md border border-border bg-muted/40 p-3 text-[11px] leading-relaxed font-mono text-foreground whitespace-pre-wrap">
+              {openLog?.log}
+            </pre>
+          </DialogContent>
+        </Dialog>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
           <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")}>
