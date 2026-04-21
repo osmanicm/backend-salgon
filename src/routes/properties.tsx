@@ -102,6 +102,11 @@ function PropertiesPage() {
 
   async function confirmDelete() {
     if (!deleting) return;
+    if (!canManage(deleting)) {
+      toast.error("No tienes permisos para eliminar esta propiedad");
+      setDeleting(null);
+      return;
+    }
     try {
       await softDelete.mutateAsync(deleting.id);
       toast.success(`"${deleting.title}" enviada a la papelera`);
