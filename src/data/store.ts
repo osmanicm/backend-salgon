@@ -23,9 +23,21 @@ function emit() { listeners.forEach((l) => l()); }
 function subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; }
 
 const today = () => new Date().toISOString().slice(0, 10);
+const nowIso = () => new Date().toISOString();
+const CURRENT_AGENT_ID = "U-001";
 
 export interface AvailabilitySyncResult {
   syncedPropertyIds: string[];
+}
+
+function appendHistory(
+  row: AvailabilityRow,
+  from: AvailabilityStatus,
+  to: AvailabilityStatus,
+): AvailabilityRow["history"] {
+  const entry = { at: nowIso(), from, to, agentId: CURRENT_AGENT_ID };
+  const prev = row.history ?? [];
+  return [...prev, entry];
 }
 
 /** Update one availability row and propagate status → linked property. */
@@ -35,15 +47,20 @@ export function updateAvailabilityRow(
 ): AvailabilitySyncResult {
   const synced: string[] = [];
   const updatedAt = today();
+  const prevRow = state.availability.find((r) => r.id === id);
+  const statusChanged = prevRow && patch.status && patch.status !== prevRow.status;
 
   const availability = state.availability.map((r) => {
     if (r.id !== id) return r;
-    return { ...r, ...patch, updatedAt };
+    const history = statusChanged
+      ? appendHistory(r, r.status, patch.status as AvailabilityStatus)
+      : r.history;
+    return { ...r, ...patch, updatedAt, history };
   });
 
   const target = availability.find((r) => r.id === id);
   let properties = state.properties;
-  if (target?.propertyId && patch.status && patch.status !== state.availability.find(r => r.id === id)?.status) {
+  if (target?.propertyId && statusChanged) {
     properties = properties.map((p) =>
       p.id === target.propertyId
         ? { ...p, status: patch.status as PropertyStatus }
@@ -65,9 +82,11 @@ export function bulkUpdateAvailabilityStatus(
   const updatedAt = today();
   const synced: string[] = [];
 
-  const availability = state.availability.map((r) =>
-    ids.has(r.id) ? { ...r, status, updatedAt } : r,
-  );
+  const availability = state.availability.map((r) => {
+    if (!ids.has(r.id)) return r;
+    const history = r.status !== status ? appendHistory(r, r.status, status) : r.history;
+    return { ...r, status, updatedAt, history };
+  });
 
   const linkedPropertyIds = new Set(
     availability

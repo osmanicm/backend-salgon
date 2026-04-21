@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   FileText, Filter, RefreshCw, Smartphone, Database, CheckCircle2,
-  Pencil, Save, X, Printer, Search, ChevronDown, Send, CircleDollarSign,
+  Pencil, Save, X, Printer, Search, ChevronDown, ChevronRight, Send, CircleDollarSign, History, User as UserIcon,
 } from "lucide-react";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { AppShell } from "@/components/layout/AppShell";
@@ -19,6 +19,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   fmtMXN,
+  agents,
   type AvailabilityRow, type AvailabilityStatus,
 } from "@/data/mock";
 import {
@@ -50,9 +51,18 @@ function AvailabilityPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<AvailabilityRow>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<AvailabilityStatus>("Available");
   const [pdfOpen, setPdfOpen] = useState(false);
+
+  function toggleExpand(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   const models   = useMemo(() => Array.from(new Set(rows.map(r => r.model))), [rows]);
   const clusters = useMemo(() => Array.from(new Set(rows.map(r => r.cluster))), [rows]);
@@ -261,6 +271,8 @@ function AvailabilityPage() {
                   selected={selected}
                   toggleRow={toggleRow}
                   quickMarkSold={quickMarkSold}
+                  expanded={expanded}
+                  toggleExpand={toggleExpand}
                 />
               ))}
               {grouped.length === 0 && (
@@ -345,7 +357,7 @@ function FilterSelect({
 
 function ModelGroup({
   model, items, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
-  selected, toggleRow, quickMarkSold,
+  selected, toggleRow, quickMarkSold, expanded, toggleExpand,
 }: {
   model: string;
   items: AvailabilityRow[];
@@ -358,6 +370,8 @@ function ModelGroup({
   selected: Set<string>;
   toggleRow: (id: string, on: boolean) => void;
   quickMarkSold: (r: AvailabilityRow) => void;
+  expanded: Set<string>;
+  toggleExpand: (id: string) => void;
 }) {
   const avg = items.reduce((s, r) => s + r.price, 0) / items.length;
   return (
@@ -377,90 +391,170 @@ function ModelGroup({
       {items.map((r) => {
         const editing = editingId === r.id;
         const isSel = selected.has(r.id);
+        const isOpen = expanded.has(r.id);
+        const history = (r.history ?? []).slice(-5).reverse();
         return (
-          <tr key={r.id} className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]")}>
-            <td className="pl-5 pr-2 py-2.5">
-              <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
-            </td>
-            <td className="px-2 py-2.5 font-mono text-xs">{r.lot}</td>
-            <td className="px-2 py-2.5 text-muted-foreground">{r.cluster}</td>
-            <td className="px-2 py-2.5 text-right font-medium tabular-nums">
-              {editing ? (
-                <Input type="number" className="h-8 text-right tabular-nums"
-                  value={draft.price ?? r.price}
-                  onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) })} />
-              ) : fmtMXN(r.price)}
-            </td>
-            <td className="px-2 py-2.5">
-              {editing ? (
-                <Input type="date" className="h-8"
-                  value={(draft.delivery ?? r.delivery).slice(0, 10)}
-                  onChange={(e) => setDraft({ ...draft, delivery: e.target.value })} />
-              ) : (
-                <span className="text-xs">{new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</span>
-              )}
-            </td>
-            <td className="px-2 py-2.5">
-              {editing ? (
-                <Select value={(draft.status ?? r.status) as string}
-                  onValueChange={(v) => setDraft({ ...draft, status: v as AvailabilityStatus })}>
-                  <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Available">Disponible</SelectItem>
-                    <SelectItem value="Reserved">Apartado</SelectItem>
-                    <SelectItem value="Sold">Vendido</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", STATUS_TINTS[r.status])}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[r.status])} />
-                  {r.status === "Available" ? "Disponible" : r.status === "Reserved" ? "Apartado" : "Vendido"}
-                </span>
-              )}
-            </td>
-            <td className="px-2 py-2.5 max-w-[220px]">
-              {editing ? (
-                <Input className="h-8" value={draft.notes ?? r.notes}
-                  onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-              ) : <span className="text-xs text-muted-foreground truncate block">{r.notes}</span>}
-            </td>
-            <td className="px-2 py-2.5">
-              {r.propertyId
-                ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
-                : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
-            </td>
-            <td className="px-5 py-2.5 text-right">
-              {editing ? (
-                <div className="inline-flex gap-1">
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
-                  <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
-                    <Save className="h-3.5 w-3.5" /> Guardar
-                  </Button>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-1">
-                  {r.status !== "Sold" && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                      onClick={() => quickMarkSold(r)}
-                      aria-label={`Marcar lote ${r.lot} como vendido`}
-                    >
-                      <CircleDollarSign className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Marcar Vendido</span>
+          <Fragment key={r.id}>
+            <tr className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]", isOpen && "bg-muted/20")}>
+              <td className="pl-5 pr-2 py-2.5">
+                <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
+              </td>
+              <td className="px-2 py-2.5 font-mono text-xs">
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(r.id)}
+                  className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+                  aria-expanded={isOpen}
+                  aria-label={isOpen ? `Ocultar historial de ${r.lot}` : `Ver historial de ${r.lot}`}
+                >
+                  {isOpen
+                    ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                  {r.lot}
+                </button>
+              </td>
+              <td className="px-2 py-2.5 text-muted-foreground">{r.cluster}</td>
+              <td className="px-2 py-2.5 text-right font-medium tabular-nums">
+                {editing ? (
+                  <Input type="number" className="h-8 text-right tabular-nums"
+                    value={draft.price ?? r.price}
+                    onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) })} />
+                ) : fmtMXN(r.price)}
+              </td>
+              <td className="px-2 py-2.5">
+                {editing ? (
+                  <Input type="date" className="h-8"
+                    value={(draft.delivery ?? r.delivery).slice(0, 10)}
+                    onChange={(e) => setDraft({ ...draft, delivery: e.target.value })} />
+                ) : (
+                  <span className="text-xs">{new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                )}
+              </td>
+              <td className="px-2 py-2.5">
+                {editing ? (
+                  <Select value={(draft.status ?? r.status) as string}
+                    onValueChange={(v) => setDraft({ ...draft, status: v as AvailabilityStatus })}>
+                    <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Available">Disponible</SelectItem>
+                      <SelectItem value="Reserved">Apartado</SelectItem>
+                      <SelectItem value="Sold">Vendido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", STATUS_TINTS[r.status])}>
+                    <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[r.status])} />
+                    {r.status === "Available" ? "Disponible" : r.status === "Reserved" ? "Apartado" : "Vendido"}
+                  </span>
+                )}
+              </td>
+              <td className="px-2 py-2.5 max-w-[220px]">
+                {editing ? (
+                  <Input className="h-8" value={draft.notes ?? r.notes}
+                    onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+                ) : <span className="text-xs text-muted-foreground truncate block">{r.notes}</span>}
+              </td>
+              <td className="px-2 py-2.5">
+                {r.propertyId
+                  ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
+                  : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
+              </td>
+              <td className="px-5 py-2.5 text-right">
+                {editing ? (
+                  <div className="inline-flex gap-1">
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
+                      <Save className="h-3.5 w-3.5" /> Guardar
                     </Button>
-                  )}
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              )}
-            </td>
-          </tr>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1">
+                    {r.status !== "Sold" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                        onClick={() => quickMarkSold(r)}
+                        aria-label={`Marcar lote ${r.lot} como vendido`}
+                      >
+                        <CircleDollarSign className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Marcar Vendido</span>
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </td>
+            </tr>
+            {isOpen && (
+              <tr className="border-b border-border/60 bg-muted/10">
+                <td colSpan={9} className="px-5 py-3">
+                  <HistoryLog entries={history} lot={r.lot} />
+                </td>
+              </tr>
+            )}
+          </Fragment>
         );
       })}
     </>
+  );
+}
+
+/* ───────────── History log ───────────── */
+
+function HistoryLog({
+  entries,
+  lot,
+}: {
+  entries: { at: string; from: AvailabilityStatus; to: AvailabilityStatus; agentId: string }[];
+  lot: string;
+}) {
+  const statusEs = (s: AvailabilityStatus) =>
+    s === "Available" ? "Disponible" : s === "Reserved" ? "Apartado" : "Vendido";
+  const agentName = (id: string) => agents.find((a) => a.id === id)?.name ?? id;
+
+  return (
+    <div className="rounded-lg border border-border bg-background/60 p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <History className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-medium">Historial de cambios — Lote {lot}</span>
+        <span className="text-[11px] text-muted-foreground">últimos {entries.length} de máx. 5</span>
+      </div>
+      {entries.length === 0 ? (
+        <p className="text-xs text-muted-foreground italic px-1 py-2">
+          Sin cambios de estatus registrados todavía.
+        </p>
+      ) : (
+        <ol className="relative border-l border-border/70 ml-1.5 space-y-2.5 pl-4">
+          {entries.map((e, i) => (
+            <li key={i} className="relative">
+              <span className={cn("absolute -left-[21px] top-1 h-2 w-2 rounded-full ring-2 ring-background", STATUS_DOT[e.to])} />
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
+                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.from])}>
+                  {statusEs(e.from)}
+                </span>
+                <span className="text-muted-foreground">→</span>
+                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.to])}>
+                  {statusEs(e.to)}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <UserIcon className="h-3 w-3" />
+                  {agentName(e.agentId)}
+                </span>
+                <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">
+                  {new Date(e.at).toLocaleString("es-MX", {
+                    day: "2-digit", month: "short", year: "numeric",
+                    hour: "2-digit", minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
 

@@ -158,6 +158,13 @@ export function fmtMXN(n: number) {
 
 export type AvailabilityStatus = "Available" | "Reserved" | "Sold";
 
+export interface AvailabilityHistoryEntry {
+  at: string;                  // ISO datetime
+  from: AvailabilityStatus;
+  to: AvailabilityStatus;
+  agentId: string;             // FK to agents.id
+}
+
 export interface AvailabilityRow {
   id: string;          // PK in availability_master
   model: string;       // FK group → property model
@@ -169,6 +176,7 @@ export interface AvailabilityRow {
   notes: string;
   propertyId?: string; // FK to properties.id (sync target)
   updatedAt: string;
+  history?: AvailabilityHistoryEntry[];
 }
 
 const today = new Date();
@@ -179,26 +187,53 @@ const inMonths = (m: number) => {
   return iso(d);
 };
 
+const daysAgo = (n: number) => {
+  const d = new Date(today);
+  d.setDate(d.getDate() - n);
+  return d.toISOString();
+};
+
 export const availabilityRows: AvailabilityRow[] = [
   // Tulipán
-  { id: "AV-1001", model: "Tulipán",     lot: "L-04",  cluster: "Cluster Norte",  price: 2_850_000, delivery: inMonths(0), status: "Available", notes: "Entrega inmediata", propertyId: "P-1024", updatedAt: iso(today) },
-  { id: "AV-1002", model: "Tulipán",     lot: "L-07",  cluster: "Cluster Norte",  price: 2_910_000, delivery: inMonths(2), status: "Reserved",  notes: "Apartado 30 días",  propertyId: "P-1025", updatedAt: iso(today) },
+  { id: "AV-1001", model: "Tulipán",     lot: "L-04",  cluster: "Cluster Norte",  price: 2_850_000, delivery: inMonths(0), status: "Available", notes: "Entrega inmediata", propertyId: "P-1024", updatedAt: iso(today),
+    history: [
+      { at: daysAgo(45), from: "Available", to: "Reserved", agentId: "U-002" },
+      { at: daysAgo(30), from: "Reserved",  to: "Available", agentId: "U-002" },
+    ] },
+  { id: "AV-1002", model: "Tulipán",     lot: "L-07",  cluster: "Cluster Norte",  price: 2_910_000, delivery: inMonths(2), status: "Reserved",  notes: "Apartado 30 días",  propertyId: "P-1025", updatedAt: iso(today),
+    history: [
+      { at: daysAgo(12), from: "Available", to: "Reserved", agentId: "U-003" },
+    ] },
   { id: "AV-1003", model: "Tulipán",     lot: "L-12",  cluster: "Cluster Norte",  price: 2_980_000, delivery: inMonths(6), status: "Available", notes: "6 meses firma",     updatedAt: iso(today) },
-  { id: "AV-1004", model: "Tulipán",     lot: "L-15",  cluster: "Cluster Norte",  price: 2_780_000, delivery: inMonths(0), status: "Sold",      notes: "Escriturado",       propertyId: "P-1027", updatedAt: iso(today) },
+  { id: "AV-1004", model: "Tulipán",     lot: "L-15",  cluster: "Cluster Norte",  price: 2_780_000, delivery: inMonths(0), status: "Sold",      notes: "Escriturado",       propertyId: "P-1027", updatedAt: iso(today),
+    history: [
+      { at: daysAgo(60), from: "Available", to: "Reserved", agentId: "U-002" },
+      { at: daysAgo(40), from: "Reserved",  to: "Sold",     agentId: "U-002" },
+    ] },
 
   // Nardo
   { id: "AV-2001", model: "Nardo",       lot: "L-02",  cluster: "Cluster Lago",   price: 3_450_000, delivery: inMonths(1), status: "Available", notes: "Entrega inmediata", propertyId: "P-1028", updatedAt: iso(today) },
   { id: "AV-2002", model: "Nardo",       lot: "L-09",  cluster: "Cluster Lago",   price: 3_490_000, delivery: inMonths(4), status: "Available", notes: "4 meses firma",     updatedAt: iso(today) },
-  { id: "AV-2003", model: "Nardo",       lot: "L-14",  cluster: "Cluster Lago",   price: 3_520_000, delivery: inMonths(0), status: "Reserved",  notes: "Apartado 15 días",  updatedAt: iso(today) },
+  { id: "AV-2003", model: "Nardo",       lot: "L-14",  cluster: "Cluster Lago",   price: 3_520_000, delivery: inMonths(0), status: "Reserved",  notes: "Apartado 15 días",  updatedAt: iso(today),
+    history: [
+      { at: daysAgo(5), from: "Available", to: "Reserved", agentId: "U-005" },
+    ] },
 
   // Bugambilia
   { id: "AV-3001", model: "Bugambilia",  lot: "L-01",  cluster: "Cluster Sur",    price: 4_180_000, delivery: inMonths(0), status: "Available", notes: "Entrega inmediata", propertyId: "P-1026", updatedAt: iso(today) },
-  { id: "AV-3002", model: "Bugambilia",  lot: "L-06",  cluster: "Cluster Sur",    price: 4_220_000, delivery: inMonths(3), status: "Sold",      notes: "Crédito INFONAVIT", propertyId: "P-1031", updatedAt: iso(today) },
+  { id: "AV-3002", model: "Bugambilia",  lot: "L-06",  cluster: "Cluster Sur",    price: 4_220_000, delivery: inMonths(3), status: "Sold",      notes: "Crédito INFONAVIT", propertyId: "P-1031", updatedAt: iso(today),
+    history: [
+      { at: daysAgo(80), from: "Available", to: "Reserved", agentId: "U-004" },
+      { at: daysAgo(50), from: "Reserved",  to: "Sold",     agentId: "U-004" },
+    ] },
   { id: "AV-3003", model: "Bugambilia",  lot: "L-11",  cluster: "Cluster Sur",    price: 4_260_000, delivery: inMonths(8), status: "Available", notes: "8 meses firma",     updatedAt: iso(today) },
   { id: "AV-3004", model: "Bugambilia",  lot: "L-18",  cluster: "Cluster Sur",    price: 4_300_000, delivery: inMonths(8), status: "Available", notes: "8 meses firma",     updatedAt: iso(today) },
 
   // Jacaranda
-  { id: "AV-4001", model: "Jacaranda",   lot: "L-03",  cluster: "Cluster Reserva",price: 5_650_000, delivery: inMonths(2), status: "Reserved",  notes: "Apartado 60 días",  propertyId: "P-1029", updatedAt: iso(today) },
+  { id: "AV-4001", model: "Jacaranda",   lot: "L-03",  cluster: "Cluster Reserva",price: 5_650_000, delivery: inMonths(2), status: "Reserved",  notes: "Apartado 60 días",  propertyId: "P-1029", updatedAt: iso(today),
+    history: [
+      { at: daysAgo(20), from: "Available", to: "Reserved", agentId: "U-003" },
+    ] },
   { id: "AV-4002", model: "Jacaranda",   lot: "L-08",  cluster: "Cluster Reserva",price: 5_720_000, delivery: inMonths(6), status: "Available", notes: "6 meses firma",     updatedAt: iso(today) },
   { id: "AV-4003", model: "Jacaranda",   lot: "L-17",  cluster: "Cluster Reserva",price: 5_790_000, delivery: inMonths(0), status: "Available", notes: "Entrega inmediata", propertyId: "P-1030", updatedAt: iso(today) },
 
