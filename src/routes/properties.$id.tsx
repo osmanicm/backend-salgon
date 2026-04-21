@@ -497,6 +497,96 @@ function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
   );
 }
 
+function FichaPdfTab({
+  files,
+  onGenerate,
+  canManage,
+}: {
+  files: PropertyFileRow[];
+  onGenerate: () => void;
+  canManage: boolean;
+}) {
+  const pdfs = files.filter(
+    (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
+  );
+  const ficha = pdfs.find((f) => /ficha/i.test(f.label)) ?? pdfs[0] ?? null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button onClick={onGenerate} className="gap-1.5">
+          <FileDown className="h-4 w-4" /> Generar Ficha (PDF)
+        </Button>
+        {ficha && (
+          <a
+            href={ficha.url}
+            target="_blank"
+            rel="noreferrer"
+            download
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+          >
+            <Download className="h-4 w-4 text-primary" /> Descargar PDF cargado
+          </a>
+        )}
+        {ficha && (
+          <a
+            href={ficha.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+          >
+            <ExternalLink className="h-3.5 w-3.5" /> Abrir en pestaña nueva
+          </a>
+        )}
+      </div>
+
+      {ficha ? (
+        <div className="rounded-lg border border-border overflow-hidden bg-muted">
+          <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-background">
+            <div className="text-xs font-medium truncate flex items-center gap-1.5">
+              <FileDown className="h-3.5 w-3.5 text-primary" /> {ficha.label}
+            </div>
+            <div className="text-[10px] text-muted-foreground">PDF</div>
+          </div>
+          <object
+            data={ficha.url}
+            type="application/pdf"
+            className="w-full h-[60vh] bg-background"
+            aria-label={`Vista previa de ${ficha.label}`}
+          >
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              Tu navegador no puede mostrar el PDF.{" "}
+              <a href={ficha.url} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                Descárgalo aquí
+              </a>
+              .
+            </div>
+          </object>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-dashed border-border px-4 py-10 text-center space-y-2">
+          <FileDown className="h-8 w-8 mx-auto text-muted-foreground" />
+          <div className="text-sm font-medium">No hay Ficha PDF cargada</div>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Genera una ficha automática con los datos de la propiedad o sube tu propio PDF
+            {canManage ? (
+              <>
+                {" "}desde{" "}
+                <Link to="/properties" className="text-primary hover:underline">
+                  Editar propiedad
+                </Link>
+                .
+              </>
+            ) : (
+              "."
+            )}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DownloadGroup({
   label,
   icon,
