@@ -43,7 +43,7 @@ export const Route = createFileRoute("/properties/$id")({
   component: PropertyDetailPage,
   notFoundComponent: () => (
     <AppShell>
-      <PageCard title="Propiedad no encontrada" subtitle="Verifica el enlace o vuelve al listado.">
+      <PageCard title="Propiedad no encontrada" description="Verifica el enlace o vuelve al listado.">
         <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Volver a Propiedades
         </Link>
@@ -52,7 +52,7 @@ export const Route = createFileRoute("/properties/$id")({
   ),
   errorComponent: ({ error }) => (
     <AppShell>
-      <PageCard title="Error al cargar la propiedad" subtitle={error.message}>
+      <PageCard title="Error al cargar la propiedad" description={error.message}>
         <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Volver
         </Link>
@@ -117,7 +117,7 @@ function PropertyDetailPage() {
   if (!property) {
     return (
       <AppShell>
-        <PageCard title="Propiedad no encontrada" subtitle="Es posible que haya sido eliminada.">
+        <PageCard title="Propiedad no encontrada" description="Es posible que haya sido eliminada.">
           <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" /> Volver a Propiedades
           </Link>
@@ -235,7 +235,7 @@ function PropertyDetailPage() {
               </div>
             )}
 
-            <PageCard title="Información general" subtitle="Detalles del inmueble">
+            <PageCard title="Información general" description="Detalles del inmueble">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                 <Field icon={<Building2 className="h-3.5 w-3.5" />} label="Modelo">
                   {property.model || "—"}
@@ -274,7 +274,7 @@ function PropertyDetailPage() {
             </PageCard>
 
             {/* Galería */}
-            <PageCard title="Galería visual" subtitle="Fotos, renders y videos">
+            <PageCard title="Galería visual" description="Fotos, renders y videos">
               <div className="space-y-4">
                 <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} />
                 <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} />
@@ -287,7 +287,7 @@ function PropertyDetailPage() {
           <div className="space-y-4">
             <PageCard
               title="Disponibilidad en tiempo real"
-              subtitle="Sincronizada desde el módulo de Disponibilidad"
+              description="Sincronizada desde el módulo de Disponibilidad"
             >
               <div className="space-y-3">
                 <div className="rounded-lg border border-border bg-muted/30 p-3">
@@ -329,7 +329,7 @@ function PropertyDetailPage() {
               </div>
             </PageCard>
 
-            <PageCard title="Archivos descargables" subtitle="Material para agentes">
+            <PageCard title="Archivos descargables" description="Material para agentes">
               <div className="space-y-2">
                 <Button onClick={handleGeneratePdf} className="w-full justify-start gap-2" variant="outline">
                   <FileDown className="h-4 w-4 text-primary" /> Descargar Ficha (PDF)
