@@ -256,6 +256,7 @@ export function BulkUploadDialog({
     setParsed([]);
     setProgress(0);
     setTemplateName("");
+    setLoadedTemplateFile(null);
   }
 
   function downloadTemplate() {
