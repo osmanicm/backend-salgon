@@ -206,22 +206,22 @@ function AddLeadDialog() {
       <DialogContent className="max-w-xl">
         <DialogHeader><DialogTitle>Agregar nuevo prospecto</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} noValidate className="grid grid-cols-2 gap-4">
-          <FormField label="Nombre completo *" error={errors.name}>
+          <FormField label="Nombre completo *" hint="Mínimo 2 caracteres" error={errors.name}>
             <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Juan Pérez" maxLength={100} aria-invalid={!!errors.name} />
           </FormField>
-          <FormField label="Teléfono *" error={errors.phone}>
+          <FormField label="Teléfono *" hint="Formato: +52 55 0000 0000" error={errors.phone}>
             <Input value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+52 55 0000 0000" maxLength={25} aria-invalid={!!errors.phone} />
           </FormField>
-          <FormField label="Correo electrónico *" error={errors.email} className="col-span-2">
+          <FormField label="Correo electrónico *" hint="Ej. nombre@dominio.com" error={errors.email} className="col-span-2">
             <Input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="correo@ejemplo.com" maxLength={255} aria-invalid={!!errors.email} />
           </FormField>
-          <FormField label="Interés *" error={errors.interest} className="col-span-2">
+          <FormField label="Interés *" hint="Describe qué busca (3–200 caracteres)" error={errors.interest} className="col-span-2">
             <Input value={form.interest} onChange={(e) => update("interest", e.target.value)} placeholder="Casa de 3 recámaras en Polanco" maxLength={200} aria-invalid={!!errors.interest} />
           </FormField>
-          <FormField label="Presupuesto (MXN) *" error={errors.budget}>
+          <FormField label="Presupuesto (MXN) *" hint="Entero positivo (máx. 1,000,000,000)" error={errors.budget}>
             <Input type="number" min="1" step="1" value={form.budget} onChange={(e) => update("budget", e.target.value)} placeholder="2500000" aria-invalid={!!errors.budget} />
           </FormField>
-          <FormField label="Origen *" error={errors.source}>
+          <FormField label="Origen *" hint="¿De dónde vino el prospecto?" error={errors.source}>
             <Select value={form.source} onValueChange={(v) => update("source", v)}>
               <SelectTrigger aria-invalid={!!errors.source}><SelectValue placeholder="Selecciona" /></SelectTrigger>
               <SelectContent>
@@ -233,7 +233,7 @@ function AddLeadDialog() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Estatus *" error={errors.status}>
+          <FormField label="Estatus *" hint="Etapa actual en el pipeline" error={errors.status}>
             <Select value={form.status} onValueChange={(v) => update("status", v)}>
               <SelectTrigger aria-invalid={!!errors.status}><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -245,7 +245,7 @@ function AddLeadDialog() {
               </SelectContent>
             </Select>
           </FormField>
-          <FormField label="Agente asignado *" error={errors.agent_id}>
+          <FormField label="Agente asignado *" hint="Quién dará seguimiento" error={errors.agent_id}>
             <Select value={form.agent_id} onValueChange={(v) => update("agent_id", v)}>
               <SelectTrigger aria-invalid={!!errors.agent_id}><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
               <SelectContent>{agents.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
@@ -261,12 +261,16 @@ function AddLeadDialog() {
   );
 }
 
-function FormField({ label, error, className, children }: { label: string; error?: string; className?: string; children: React.ReactNode }) {
+function FormField({ label, hint, error, className, children }: { label: string; hint?: string; error?: string; className?: string; children: React.ReactNode }) {
   return (
     <div className={cn("space-y-1.5", className)}>
       <Label>{label}</Label>
       {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error ? (
+        <p className="text-xs text-destructive">{error}</p>
+      ) : hint ? (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      ) : null}
     </div>
   );
 }
