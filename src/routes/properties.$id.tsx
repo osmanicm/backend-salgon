@@ -25,6 +25,7 @@ import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useProperty,
   usePropertyMedia,
