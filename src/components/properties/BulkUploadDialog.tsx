@@ -265,6 +265,7 @@ export function BulkUploadDialog({
     sampleChecked: number;
     sampleValid: number;
   } | null>(null);
+  const [renamedHeaders, setRenamedHeaders] = useState<Set<string>>(new Set());
 
   const validRows = useMemo(() => parsed.filter((r) => r.errors.length === 0), [parsed]);
   const invalidRows = useMemo(() => parsed.filter((r) => r.errors.length > 0), [parsed]);
@@ -281,6 +282,7 @@ export function BulkUploadDialog({
     setTemplateName("");
     setLoadedTemplateFile(null);
     setTestResult(null);
+    setRenamedHeaders(new Set());
   }
 
   function downloadTemplate() {
