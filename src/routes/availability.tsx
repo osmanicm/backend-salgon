@@ -300,6 +300,18 @@ function Stat({ label, value, tint }: { label: string; value: number; tint?: str
   );
 }
 
+function LegendItem({ tint, dot, label, help }: { tint: string; dot: string; label: string; help: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3">
+      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium shrink-0", tint)}>
+        <span className={cn("h-1.5 w-1.5 rounded-full", dot)} />
+        {label}
+      </span>
+      <p className="text-xs text-muted-foreground leading-snug">{help}</p>
+    </div>
+  );
+}
+
 function FilterSelect({
   label, value, onChange, options, icon,
 }: {
