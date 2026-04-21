@@ -280,15 +280,15 @@ $ grep -n "fieldset" src/routes/properties.tsx
                   }`}
                 />
                 <span className="font-mono text-muted-foreground shrink-0">
-                  <Highlight text={r.time} query={historyQuery} />
+                  <HighlightMatch text={r.time} query={historyQuery} />
                 </span>
                 <span
                   className={`font-medium shrink-0 ${r.result === "OK" ? "text-primary" : "text-destructive"}`}
                 >
-                  <Highlight text={r.result} query={historyQuery} />
+                  <HighlightMatch text={r.result} query={historyQuery} />
                 </span>
                 <span className="text-muted-foreground truncate flex-1 min-w-0" title={r.note}>
-                  <Highlight text={r.note} query={historyQuery} />
+                  <HighlightMatch text={r.note} query={historyQuery} />
                 </span>
                 <button
                   type="button"
