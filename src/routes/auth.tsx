@@ -90,6 +90,8 @@ function AuthPage() {
     },
   ];
   const [openLog, setOpenLog] = React.useState<CompileRun | null>(null);
+  const [historyFilter, setHistoryFilter] = React.useState<"all" | "OK" | "ERROR">("all");
+  const filteredRuns = compileRuns.filter((r) => historyFilter === "all" || r.result === historyFilter);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
