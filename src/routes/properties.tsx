@@ -24,6 +24,7 @@ import {
   type PropertyRow,
 } from "@/data/propertiesApi";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
+import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { z } from "zod";
 
