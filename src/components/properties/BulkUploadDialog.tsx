@@ -241,6 +241,7 @@ export function BulkUploadDialog({
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [templateName, setTemplateName] = useState("");
+  const [loadedTemplateFile, setLoadedTemplateFile] = useState<string | null>(null);
 
   const validRows = useMemo(() => parsed.filter((r) => r.errors.length === 0), [parsed]);
   const invalidRows = useMemo(() => parsed.filter((r) => r.errors.length > 0), [parsed]);
