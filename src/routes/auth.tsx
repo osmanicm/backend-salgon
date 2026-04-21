@@ -103,23 +103,39 @@ function AuthPage() {
 
         <div
           role="status"
-          className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground"
+          className="mb-4 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground"
         >
-          <FileCheck2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-          <div className="flex-1 space-y-0.5">
-            <div className="font-medium">Última verificación de compilación</div>
-            <div className="text-xs text-muted-foreground">
-              Resultado: <span className="text-primary font-medium">JSX válido · tsc sin errores</span> · Archivo:{" "}
-              <code className="font-mono">src/routes/properties.tsx</code>
+          <div className="flex items-start gap-2">
+            <FileCheck2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+            <div className="flex-1 space-y-0.5">
+              <div className="font-medium">Última verificación de compilación</div>
+              <div className="text-xs text-muted-foreground">
+                Resultado: <span className="text-primary font-medium">JSX válido · tsc sin errores</span> · Archivo:{" "}
+                <code className="font-mono">src/routes/properties.tsx</code>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
+            >
+              <RefreshCw className="h-3 w-3" /> Reintentar
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
-          >
-            <RefreshCw className="h-3 w-3" /> Reintentar
-          </button>
+          <details className="mt-2 group">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground select-none">
+              Ver detalles
+            </summary>
+            <pre className="mt-2 max-h-48 overflow-auto rounded-md border border-border bg-background p-2 text-[11px] leading-relaxed font-mono text-muted-foreground whitespace-pre-wrap">
+{`$ bunx tsc --noEmit -p tsconfig.json
+$ grep -n "fieldset" src/routes/properties.tsx
+(sin coincidencias)
+
+✔ Sin errores de compilación.
+✔ Etiquetas JSX balanceadas en src/routes/properties.tsx.
+✔ Sin <fieldset> huérfano (el fix anterior reemplazó el wrapper por className condicional en <form>).`}
+            </pre>
+          </details>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
