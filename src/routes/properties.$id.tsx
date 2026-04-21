@@ -38,6 +38,7 @@ import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PropertyDetailSkeleton } from "@/components/properties/PropertyDetailSkeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useProperty,
@@ -135,16 +136,8 @@ function PropertyDetailPage() {
   const renders = useMemo(() => media.filter((m) => m.kind === "render"), [media]);
   const videos = useMemo(() => media.filter((m) => m.kind === "video"), [media]);
 
-  if (propertyQuery.isLoading) {
-    return (
-      <AppShell title="Propiedad" subtitle="Detalle">
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-64 w-full rounded-xl" />
-          <Skeleton className="h-40 w-full rounded-xl" />
-        </div>
-      </AppShell>
-    );
+  if (propertyQuery.isLoading || (!property && (mediaQuery.isLoading || filesQuery.isLoading))) {
+    return <PropertyDetailSkeleton />;
   }
 
   if (!property) {
