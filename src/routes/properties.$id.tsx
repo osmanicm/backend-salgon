@@ -95,6 +95,22 @@ function PropertyDetailPage() {
 
   const canManage = !!property && (isAdmin || (!!user && property.agent_id === user.id));
 
+  // CRUD dialogs
+  const allPropertiesQuery = useProperties();
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const softDelete = useSoftDeleteProperty();
+  async function confirmDelete() {
+    if (!property) return;
+    try {
+      await softDelete.mutateAsync(property.id);
+      toast.success(`"${property.title}" enviada a la papelera`);
+      navigate({ to: "/properties" });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar");
+    }
+  }
+
   // Realtime sync for status updates from Disponibilidad module
   const [lastSync, setLastSync] = useState<Date>(new Date());
   useEffect(() => {
