@@ -384,7 +384,7 @@ function PropertiesPage() {
   );
 }
 
-function PropertyFormDialog({
+export function PropertyFormDialog({
   open,
   onOpenChange,
   initial,
