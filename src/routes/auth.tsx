@@ -91,7 +91,18 @@ function AuthPage() {
   ];
   const [openLog, setOpenLog] = React.useState<CompileRun | null>(null);
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "OK" | "ERROR">("all");
-  const filteredRuns = compileRuns.filter((r) => historyFilter === "all" || r.result === historyFilter);
+  const [historyQuery, setHistoryQuery] = React.useState("");
+  const filteredRuns = compileRuns.filter((r) => {
+    if (historyFilter !== "all" && r.result !== historyFilter) return false;
+    const q = historyQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      r.note.toLowerCase().includes(q) ||
+      r.result.toLowerCase().includes(q) ||
+      r.time.toLowerCase().includes(q) ||
+      r.log.toLowerCase().includes(q)
+    );
+  });
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
