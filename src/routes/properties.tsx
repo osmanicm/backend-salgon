@@ -168,7 +168,10 @@ function PropertiesPage() {
                 <Plus className="h-4 w-4" /> Agregar Propiedad
               </Button>
             </div>
-            <div className="md:hidden">
+            <div className="md:hidden flex gap-2">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setTrashOpen(true)}>
+                <Archive className="h-3.5 w-3.5" />
+              </Button>
               <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setBulkOpen(true)}>
                 <Upload className="h-3.5 w-3.5" /> CSV
               </Button>
