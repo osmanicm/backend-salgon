@@ -190,7 +190,7 @@ function PropertiesPage() {
                       {p.bedrooms} rec · {p.bathrooms} baños · {p.area} m² · {p.agent?.full_name ?? "Sin agente"}
                     </div>
                     <div className="mt-3 flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1 gap-1.5" onClick={() => setViewing(p)}>
+                      <Button size="sm" variant="outline" className="flex-1 gap-1.5" onClick={() => navigate({ to: "/properties/$id", params: { id: p.id } })}>
                         <Eye className="h-3.5 w-3.5" /> Ver
                       </Button>
                       {canManage(p) && (
@@ -257,7 +257,7 @@ function PropertiesPage() {
                       <td className="px-3 py-3">{p.agent?.full_name ?? <span className="text-xs text-muted-foreground italic">Sin asignar</span>}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-end gap-1">
-                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver" onClick={() => setViewing(p)}><Eye className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver" onClick={() => navigate({ to: "/properties/$id", params: { id: p.id } })}><Eye className="h-4 w-4" /></Button>
                           {canManage(p) && (
                             <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
                           )}
