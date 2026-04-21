@@ -17,9 +17,8 @@ function AgentDashboard() {
 
   const mine = useMemo(() => {
     const myProps = properties.filter((p) => p.agentId === user?.id);
-    const myLeads = leads.filter((l) => l.assignedTo === user?.id);
-    const myAppts = appointments.filter((a) => a.agentId === user?.id);
-    return { myProps, myLeads, myAppts };
+    const myLeads = leads.filter((l) => l.agentId === user?.id);
+    return { myProps, myLeads, myAppts: appointments };
   }, [properties, user?.id]);
 
   const name = profile?.full_name || user?.email?.split("@")[0] || "Agente";
