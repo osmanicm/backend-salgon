@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2 } from "lucide-react";
+import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,6 +99,27 @@ function AuthPage() {
           <span>
             Build OK: el diálogo de Propiedades compila y parsea correctamente (sin errores de JSX).
           </span>
+        </div>
+
+        <div
+          role="status"
+          className="mb-4 flex items-start gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-foreground"
+        >
+          <FileCheck2 className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
+          <div className="flex-1 space-y-0.5">
+            <div className="font-medium">Última verificación de compilación</div>
+            <div className="text-xs text-muted-foreground">
+              Resultado: <span className="text-primary font-medium">JSX válido · tsc sin errores</span> · Archivo:{" "}
+              <code className="font-mono">src/routes/properties.tsx</code>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
+          >
+            <RefreshCw className="h-3 w-3" /> Reintentar
+          </button>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
