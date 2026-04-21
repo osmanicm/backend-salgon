@@ -10,6 +10,8 @@ import {
   X,
   AlertTriangle,
   ArrowLeft,
+  Save,
+  FileJson,
 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -259,6 +261,74 @@ export function BulkUploadDialog({
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  function exportMappingTemplate() {
+    const fields: Record<string, string | null> = {};
+    FIELDS.forEach((f) => (fields[f.key] = mapping[f.key] ?? null));
+    const template = {
+      version: 1,
+      kind: "salgon.property-csv-mapping",
+      exportedAt: new Date().toISOString(),
+      sourceFile: fileName ?? null,
+      fields,
+    };
+    const blob = new Blob([JSON.stringify(template, null, 2)], {
+      type: "application/json;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mapeo-propiedades.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Plantilla de mapeo exportada");
+  }
+
+  async function importMappingTemplate(file: File) {
+    if (!file.name.toLowerCase().endsWith(".json")) {
+      toast.error("Sólo se permiten archivos .json");
+      return;
+    }
+    try {
+      const text = await file.text();
+      const parsedJson = JSON.parse(text) as {
+        kind?: string;
+        fields?: Record<string, string | null>;
+      };
+      if (parsedJson.kind !== "salgon.property-csv-mapping" || !parsedJson.fields) {
+        toast.error("El archivo no es una plantilla de mapeo válida");
+        return;
+      }
+      const next = { ...mapping };
+      const nextKinds = { ...matchKinds };
+      let applied = 0;
+      let missing = 0;
+      for (const f of FIELDS) {
+        const desired = parsedJson.fields[f.key];
+        if (desired && headers.includes(desired)) {
+          next[f.key] = desired;
+          nextKinds[f.key] = "exact";
+          applied++;
+        } else if (desired) {
+          missing++;
+          next[f.key] = null;
+          nextKinds[f.key] = "none";
+        } else {
+          next[f.key] = null;
+          nextKinds[f.key] = "none";
+        }
+      }
+      setMapping(next);
+      setMatchKinds(nextKinds);
+      toast.success(
+        `Mapeo aplicado: ${applied} campo(s)` +
+          (missing > 0 ? ` · ${missing} no encontrados en este CSV` : "")
+      );
+    } catch {
+      toast.error("No se pudo leer la plantilla JSON");
+    }
+  }
+
 
   async function handleFile(file: File) {
     if (!file.name.toLowerCase().endsWith(".csv")) {
@@ -568,6 +638,32 @@ export function BulkUploadDialog({
               <Button variant="ghost" size="sm" onClick={reset}>
                 <X className="h-4 w-4 mr-1" /> Cambiar archivo
               </Button>
+            </div>
+
+            {/* Mapping template actions */}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                id="mapping-template-input"
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) importMappingTemplate(f);
+                  e.target.value = "";
+                }}
+              />
+              <Button variant="outline" size="sm" onClick={exportMappingTemplate}>
+                <Save className="h-3.5 w-3.5 mr-1.5" /> Exportar mapeo (JSON)
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <label htmlFor="mapping-template-input" className="cursor-pointer">
+                  <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar mapeo
+                </label>
+              </Button>
+              <span className="text-[11px] text-muted-foreground">
+                Reutiliza el mismo mapeo en futuras importaciones.
+              </span>
             </div>
 
             {/* Warnings panel */}
