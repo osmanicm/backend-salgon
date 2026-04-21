@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Save,
   FileJson,
+  Trash2,
 } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
