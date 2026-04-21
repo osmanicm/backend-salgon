@@ -265,6 +265,7 @@ export function BulkUploadDialog({
     sampleChecked: number;
     sampleValid: number;
   } | null>(null);
+  const [renamedHeaders, setRenamedHeaders] = useState<Set<string>>(new Set());
 
   const validRows = useMemo(() => parsed.filter((r) => r.errors.length === 0), [parsed]);
   const invalidRows = useMemo(() => parsed.filter((r) => r.errors.length > 0), [parsed]);
@@ -281,6 +282,7 @@ export function BulkUploadDialog({
     setTemplateName("");
     setLoadedTemplateFile(null);
     setTestResult(null);
+    setRenamedHeaders(new Set());
   }
 
   function downloadTemplate() {
@@ -388,6 +390,7 @@ export function BulkUploadDialog({
     setTemplateName("");
     setLoadedTemplateFile(null);
     setTestResult(null);
+    setRenamedHeaders(new Set());
     toast.success("Plantilla eliminada de esta sesión");
   }
 
@@ -966,51 +969,119 @@ export function BulkUploadDialog({
                     Columnas del CSV ignoradas: {testResult.unmappedHeaders.join(", ")}
                   </div>
                 )}
-                {testResult.aliasMatches.length > 0 && (
-                  <div className="rounded-md border border-primary/30 bg-primary/5 p-2 space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
-                      <AlertTriangle className="h-3.5 w-3.5 text-primary" />
-                      Coincidencias por alias ({testResult.aliasMatches.length})
+                {testResult.aliasMatches.length > 0 && (() => {
+                  const total = testResult.aliasMatches.length;
+                  const doneCount = testResult.aliasMatches.filter((a) =>
+                    renamedHeaders.has(a.header)
+                  ).length;
+                  const allDone = doneCount === total;
+                  return (
+                    <div className="rounded-md border border-primary/30 bg-primary/5 p-2 space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-foreground flex-wrap">
+                        <AlertTriangle className="h-3.5 w-3.5 text-primary" />
+                        <span>Checklist de renombrado ({doneCount}/{total})</span>
+                        {allDone && (
+                          <span className="inline-flex items-center gap-1 text-success ml-1">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Todo renombrado
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="ml-auto text-[11px] text-muted-foreground hover:text-foreground underline"
+                          onClick={() => setRenamedHeaders(new Set())}
+                          disabled={doneCount === 0}
+                        >
+                          Reiniciar
+                        </button>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        Marca cada encabezado como renombrado en tu CSV para evitar advertencias en el próximo import.
+                      </div>
+                      <ul className="space-y-1.5 text-xs">
+                        {testResult.aliasMatches.map((a) => {
+                          const done = renamedHeaders.has(a.header);
+                          const cbId = `rename-done-${a.fieldKey}`;
+                          return (
+                            <li
+                              key={a.fieldKey}
+                              className={`rounded border p-1.5 ${
+                                done
+                                  ? "border-success/40 bg-success/5"
+                                  : "border-border bg-background/40"
+                              }`}
+                            >
+                              <label
+                                htmlFor={cbId}
+                                className="flex items-start gap-2 cursor-pointer"
+                              >
+                                <input
+                                  id={cbId}
+                                  type="checkbox"
+                                  className="mt-0.5 h-3.5 w-3.5 accent-success"
+                                  checked={done}
+                                  onChange={(e) => {
+                                    setRenamedHeaders((prev) => {
+                                      const next = new Set(prev);
+                                      if (e.target.checked) next.add(a.header);
+                                      else next.delete(a.header);
+                                      return next;
+                                    });
+                                  }}
+                                />
+                                <div className="flex-1 space-y-0.5">
+                                  <div className="flex flex-wrap items-center gap-1">
+                                    <span className="font-medium">{a.field}</span>
+                                    <span className="text-muted-foreground">→</span>
+                                    <code
+                                      className={`font-mono px-1 py-0.5 rounded ${
+                                        done
+                                          ? "bg-muted line-through text-muted-foreground"
+                                          : "bg-muted"
+                                      }`}
+                                    >
+                                      {a.header}
+                                    </code>
+                                    <span className="text-muted-foreground">
+                                      (esperado{" "}
+                                      <code className="font-mono">{a.expectedHeader}</code>)
+                                    </span>
+                                    {done ? (
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] uppercase text-success ml-0.5">
+                                        <CheckCircle2 className="h-3 w-3" />
+                                        rename done
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] uppercase text-primary ml-0.5">
+                                        {a.kind === "alias" ? "alias" : "aprox."}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {!done && (
+                                    <div className="flex items-start gap-1.5 text-[11px] text-primary">
+                                      <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+                                      <span>
+                                        Renombra la columna{" "}
+                                        <code className="font-mono bg-muted px-1 py-0.5 rounded text-foreground">
+                                          {a.header}
+                                        </code>{" "}
+                                        a{" "}
+                                        <code className="font-mono bg-muted px-1 py-0.5 rounded text-foreground">
+                                          {a.expectedHeader}
+                                        </code>{" "}
+                                        en tu CSV para evitar problemas al importar.
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </label>
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
-                      Estos encabezados no son exactos pero se aceptaron por similitud. Renómbralos en el CSV para evitar advertencias.
-                    </div>
-                    <ul className="space-y-1.5 text-xs">
-                      {testResult.aliasMatches.map((a) => (
-                        <li key={a.fieldKey} className="space-y-0.5">
-                          <div className="flex flex-wrap items-center gap-1">
-                            <span className="font-medium">{a.field}</span>
-                            <span className="text-muted-foreground">→</span>
-                            <code className="font-mono bg-muted px-1 py-0.5 rounded">
-                              {a.header}
-                            </code>
-                            <span className="text-muted-foreground">
-                              (esperado{" "}
-                              <code className="font-mono">{a.expectedHeader}</code>)
-                            </span>
-                            <span className="text-[10px] uppercase text-primary ml-0.5">
-                              {a.kind === "alias" ? "alias" : "aprox."}
-                            </span>
-                          </div>
-                          <div className="flex items-start gap-1.5 text-[11px] text-primary pl-1">
-                            <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
-                            <span>
-                              Renombra la columna{" "}
-                              <code className="font-mono bg-muted px-1 py-0.5 rounded text-foreground">
-                                {a.header}
-                              </code>{" "}
-                              a{" "}
-                              <code className="font-mono bg-muted px-1 py-0.5 rounded text-foreground">
-                                {a.expectedHeader}
-                              </code>{" "}
-                              en tu CSV para evitar problemas al importar.
-                            </span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                  );
+                })()}
                 {testResult.sampleErrors.length > 0 && (
                   <div className="text-xs space-y-1">
                     <div className="font-medium text-destructive">
@@ -1202,6 +1273,7 @@ export function BulkUploadDialog({
                                 [f.key]: newVal ? "exact" : "none",
                               }));
                               setTestResult(null);
+                              setRenamedHeaders(new Set());
                             }}
                           >
                             <SelectTrigger className="h-8 text-xs">
