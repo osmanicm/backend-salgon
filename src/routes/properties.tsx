@@ -689,3 +689,144 @@ function LeadPickerPopover({ trigger, onPick }: { trigger: React.ReactNode; onPi
     </Popover>
   );
 }
+
+function TrashDialog({
+  open,
+  onOpenChange,
+  isAdmin,
+  currentUserId,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  isAdmin: boolean;
+  currentUserId: string | null;
+}) {
+  const trashQuery = useDeletedProperties();
+  const restore = useRestoreProperty();
+  const hardDelete = useHardDeleteProperty();
+  const [confirmHard, setConfirmHard] = useState<PropertyRow | null>(null);
+
+  const items = trashQuery.data ?? [];
+
+  const canRestore = (p: PropertyRow) =>
+    isAdmin || (!!currentUserId && p.agent_id === currentUserId);
+
+  async function handleRestore(p: PropertyRow) {
+    try {
+      await restore.mutateAsync(p.id);
+      toast.success(`"${p.title}" restaurada`);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "No se pudo restaurar");
+    }
+  }
+
+  async function handleHardDelete() {
+    if (!confirmHard) return;
+    try {
+      await hardDelete.mutateAsync(confirmHard.id);
+      toast.success(`"${confirmHard.title}" eliminada permanentemente`);
+      setConfirmHard(null);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar");
+    }
+  }
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Archive className="h-5 w-5" /> Papelera de propiedades
+            </DialogTitle>
+            <DialogDescription>
+              Propiedades eliminadas. Restáuralas o elimínalas permanentemente.
+              {!isAdmin && " La eliminación permanente está reservada a administradores."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {trashQuery.isLoading && (
+            <div className="py-12 grid place-items-center text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          )}
+
+          {!trashQuery.isLoading && items.length === 0 && (
+            <div className="py-12 text-center text-sm text-muted-foreground">
+              La papelera está vacía.
+            </div>
+          )}
+
+          {!trashQuery.isLoading && items.length > 0 && (
+            <ul className="max-h-[60vh] overflow-y-auto divide-y divide-border -mx-2">
+              {items.map((p) => (
+                <li key={p.id} className="px-2 py-3 flex items-center gap-3">
+                  {p.image_url ? (
+                    <img src={p.image_url} alt={p.title} className="h-12 w-16 rounded-md object-cover shrink-0" />
+                  ) : (
+                    <div className="h-12 w-16 rounded-md bg-muted shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm truncate">{p.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {p.code} · {p.location}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      Eliminada {p.deleted_at ? new Date(p.deleted_at).toLocaleString() : "—"}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      disabled={!canRestore(p) || restore.isPending}
+                      onClick={() => handleRestore(p)}
+                      title={!canRestore(p) ? "Solo el agente asignado o un admin puede restaurar" : undefined}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> Restaurar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1.5 text-destructive hover:text-destructive"
+                      disabled={!isAdmin}
+                      onClick={() => setConfirmHard(p)}
+                      title={!isAdmin ? "Solo administradores" : "Eliminar permanentemente"}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!confirmHard} onOpenChange={(o) => !o && setConfirmHard(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará "{confirmHard?.title}" y sus archivos asociados de forma definitiva.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleHardDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {hardDelete.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />} Eliminar permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
