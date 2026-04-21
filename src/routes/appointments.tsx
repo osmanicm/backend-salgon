@@ -199,31 +199,32 @@ function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
     onClose?.();
   }
 
+  const todayIso = new Date().toISOString().slice(0, 10);
   return (
     <DialogContent>
       <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
       <form onSubmit={handleSubmit} noValidate className="grid gap-4">
-        <ApptField label="Cliente (Prospecto) *" error={errors.leadId}>
+        <ApptField label="Cliente (Prospecto) *" hint="Prospecto que asistirá a la visita" error={errors.leadId}>
           <Select value={form.leadId} onValueChange={(v) => update("leadId", v)}>
             <SelectTrigger aria-invalid={!!errors.leadId}><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
             <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
           </Select>
         </ApptField>
-        <ApptField label="Propiedad *" error={errors.propertyId}>
+        <ApptField label="Propiedad *" hint="Inmueble a mostrar" error={errors.propertyId}>
           <Select value={form.propertyId} onValueChange={(v) => update("propertyId", v)}>
             <SelectTrigger aria-invalid={!!errors.propertyId}><SelectValue placeholder="Selecciona propiedad" /></SelectTrigger>
             <SelectContent>{properties.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
           </Select>
         </ApptField>
         <div className="grid grid-cols-2 gap-4">
-          <ApptField label="Fecha *" error={errors.date}>
-            <Input type="date" value={form.date} onChange={(e) => update("date", e.target.value)} aria-invalid={!!errors.date} />
+          <ApptField label="Fecha *" hint="Debe ser hoy o posterior" error={errors.date}>
+            <Input type="date" min={todayIso} value={form.date} onChange={(e) => update("date", e.target.value)} aria-invalid={!!errors.date} />
           </ApptField>
-          <ApptField label="Hora *" error={errors.time}>
+          <ApptField label="Hora *" hint="Formato 24 h (HH:MM)" error={errors.time}>
             <Input type="time" value={form.time} onChange={(e) => update("time", e.target.value)} aria-invalid={!!errors.time} />
           </ApptField>
         </div>
-        <ApptField label="Notas" error={errors.notes}>
+        <ApptField label="Notas" hint="Opcional · máx. 500 caracteres" error={errors.notes}>
           <Textarea rows={3} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Detalles de la visita…" maxLength={500} aria-invalid={!!errors.notes} />
         </ApptField>
         <DialogFooter>
@@ -235,12 +236,16 @@ function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
   );
 }
 
-function ApptField({ label, error, className, children }: { label: string; error?: string; className?: string; children: React.ReactNode }) {
+function ApptField({ label, hint, error, className, children }: { label: string; hint?: string; error?: string; className?: string; children: React.ReactNode }) {
   return (
     <div className={cn("space-y-1.5", className)}>
       <Label>{label}</Label>
       {children}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error ? (
+        <p className="text-xs text-destructive">{error}</p>
+      ) : hint ? (
+        <p className="text-xs text-muted-foreground">{hint}</p>
+      ) : null}
     </div>
   );
 }

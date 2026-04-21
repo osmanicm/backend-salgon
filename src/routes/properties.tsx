@@ -457,10 +457,12 @@ function PropertyFormDialog({
           <div className="sm:col-span-2 space-y-1.5">
             <Label>Título *</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Penthouse Vista al Mar" required maxLength={120} />
+            <p className="text-xs text-muted-foreground">Máx. 120 caracteres</p>
           </div>
           <div className="space-y-1.5">
             <Label>Folio</Label>
             <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="P-1024" required maxLength={20} disabled={isEdit} />
+            <p className="text-xs text-muted-foreground">{isEdit ? "El folio no se puede cambiar" : "Identificador único, máx. 20 caracteres"}</p>
           </div>
           <div className="space-y-1.5">
             <Label>Estatus</Label>
@@ -472,26 +474,32 @@ function PropertyFormDialog({
                 <SelectItem value="Sold">Vendido</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">Disponibilidad actual</p>
           </div>
           <div className="space-y-1.5">
             <Label>Precio (MXN) *</Label>
             <Input type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="3500000" required />
+            <p className="text-xs text-muted-foreground">Monto en pesos, sin comas</p>
           </div>
           <div className="space-y-1.5">
             <Label>Área (m²)</Label>
             <Input type="number" min="0" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
+            <p className="text-xs text-muted-foreground">Superficie en metros cuadrados</p>
           </div>
           <div className="space-y-1.5">
             <Label>Recámaras</Label>
             <Input type="number" min="0" value={form.bedrooms} onChange={(e) => setForm({ ...form, bedrooms: e.target.value })} />
+            <p className="text-xs text-muted-foreground">Número entero ≥ 0</p>
           </div>
           <div className="space-y-1.5">
             <Label>Baños</Label>
             <Input type="number" min="0" value={form.bathrooms} onChange={(e) => setForm({ ...form, bathrooms: e.target.value })} />
+            <p className="text-xs text-muted-foreground">Número entero ≥ 0</p>
           </div>
           <div className="sm:col-span-2 space-y-1.5">
             <Label>Ubicación *</Label>
             <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="CDMX, Polanco" required maxLength={200} />
+            <p className="text-xs text-muted-foreground">Ciudad y zona, máx. 200 caracteres</p>
           </div>
           <div className="space-y-1.5">
             <Label>Agente Asignado</Label>
@@ -504,10 +512,12 @@ function PropertyFormDialog({
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">Solo el agente asignado o un admin podrán editarla</p>
           </div>
           <div className="space-y-1.5">
             <Label>URL de imagen</Label>
             <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" maxLength={500} />
+            <p className="text-xs text-muted-foreground">Opcional · debe iniciar con http(s)://</p>
           </div>
           
           <DialogFooter className="sm:col-span-2">
