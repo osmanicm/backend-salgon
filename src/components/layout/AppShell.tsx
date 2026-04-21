@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { BottomNav } from "./BottomNav";
@@ -7,15 +7,31 @@ import { MobileHeader } from "./MobileHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
+// Routes that only admins should access. Agents land on /agent instead.
+const ADMIN_ONLY_PATHS = ["/users"];
+
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, roles } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return;
+    if (!user) {
       navigate({ to: "/auth" });
+      return;
     }
-  }, [loading, user, navigate]);
+    const isAdmin = roles.includes("admin");
+    // Admin trying to view the agent landing → send to dashboard.
+    if (isAdmin && pathname === "/agent") {
+      navigate({ to: "/" });
+      return;
+    }
+    // Non-admin hitting an admin-only path → send to agent view.
+    if (!isAdmin && ADMIN_ONLY_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
+      navigate({ to: "/agent" });
+    }
+  }, [loading, user, roles, pathname, navigate]);
 
   if (loading || !user) {
     return (
