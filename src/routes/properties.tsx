@@ -399,9 +399,14 @@ function PropertyFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (locked) {
+      toast.error("No tienes permisos para editar esta propiedad");
+      return;
+    }
     const parsed = propertySchema.safeParse({
       title: form.title,
       code: form.code,
+      price: Number(form.price),
       price: Number(form.price),
       location: form.location,
       status: form.status,
