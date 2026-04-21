@@ -453,8 +453,7 @@ function PropertyFormDialog({
             Solo el agente asignado o un admin pueden editar esta propiedad.
           </div>
         )}
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <fieldset disabled={locked} className="contents">
+        <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${locked ? "opacity-60 pointer-events-none" : ""}`}>
           <div className="sm:col-span-2 space-y-1.5">
             <Label>Título *</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Penthouse Vista al Mar" required maxLength={120} />
@@ -510,7 +509,7 @@ function PropertyFormDialog({
             <Label>URL de imagen</Label>
             <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" maxLength={500} />
           </div>
-          </fieldset>
+          
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>Cancelar</Button>
             <Button type="submit" disabled={pending || locked}>
