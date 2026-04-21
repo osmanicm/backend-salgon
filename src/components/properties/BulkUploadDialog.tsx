@@ -975,21 +975,37 @@ export function BulkUploadDialog({
                     <div className="text-[11px] text-muted-foreground">
                       Estos encabezados no son exactos pero se aceptaron por similitud. Renómbralos en el CSV para evitar advertencias.
                     </div>
-                    <ul className="space-y-0.5 text-xs">
+                    <ul className="space-y-1.5 text-xs">
                       {testResult.aliasMatches.map((a) => (
-                        <li key={a.fieldKey} className="flex flex-wrap items-center gap-1">
-                          <span className="font-medium">{a.field}</span>
-                          <span className="text-muted-foreground">→</span>
-                          <code className="font-mono bg-muted px-1 py-0.5 rounded">
-                            {a.header}
-                          </code>
-                          <span className="text-muted-foreground">
-                            (esperado{" "}
-                            <code className="font-mono">{a.expectedHeader}</code>)
-                          </span>
-                          <span className="text-[10px] uppercase text-primary ml-0.5">
-                            {a.kind === "alias" ? "alias" : "aprox."}
-                          </span>
+                        <li key={a.fieldKey} className="space-y-0.5">
+                          <div className="flex flex-wrap items-center gap-1">
+                            <span className="font-medium">{a.field}</span>
+                            <span className="text-muted-foreground">→</span>
+                            <code className="font-mono bg-muted px-1 py-0.5 rounded">
+                              {a.header}
+                            </code>
+                            <span className="text-muted-foreground">
+                              (esperado{" "}
+                              <code className="font-mono">{a.expectedHeader}</code>)
+                            </span>
+                            <span className="text-[10px] uppercase text-primary ml-0.5">
+                              {a.kind === "alias" ? "alias" : "aprox."}
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-1.5 text-[11px] text-primary pl-1">
+                            <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+                            <span>
+                              Renombra la columna{" "}
+                              <code className="font-mono bg-muted px-1 py-0.5 rounded text-foreground">
+                                {a.header}
+                              </code>{" "}
+                              a{" "}
+                              <code className="font-mono bg-muted px-1 py-0.5 rounded text-foreground">
+                                {a.expectedHeader}
+                              </code>{" "}
+                              en tu CSV para evitar problemas al importar.
+                            </span>
+                          </div>
                         </li>
                       ))}
                     </ul>
