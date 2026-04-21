@@ -42,7 +42,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/properties/$id")({
   component: PropertyDetailPage,
   notFoundComponent: () => (
-    <AppShell>
+    <AppShell title="Propiedad" subtitle="Detalle">
       <PageCard title="Propiedad no encontrada" description="Verifica el enlace o vuelve al listado.">
         <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Volver a Propiedades
@@ -51,7 +51,7 @@ export const Route = createFileRoute("/properties/$id")({
     </AppShell>
   ),
   errorComponent: ({ error }) => (
-    <AppShell>
+    <AppShell title="Propiedad" subtitle="Detalle">
       <PageCard title="Error al cargar la propiedad" description={error.message}>
         <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Volver
@@ -104,7 +104,7 @@ function PropertyDetailPage() {
 
   if (propertyQuery.isLoading) {
     return (
-      <AppShell>
+      <AppShell title="Propiedad" subtitle="Detalle">
         <div className="space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-64 w-full rounded-xl" />
@@ -116,7 +116,7 @@ function PropertyDetailPage() {
 
   if (!property) {
     return (
-      <AppShell>
+      <AppShell title="Propiedad" subtitle="Detalle">
         <PageCard title="Propiedad no encontrada" description="Es posible que haya sido eliminada.">
           <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" /> Volver a Propiedades
@@ -164,7 +164,7 @@ function PropertyDetailPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell title="Propiedad" subtitle="Detalle">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start gap-3">
