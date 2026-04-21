@@ -19,6 +19,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   fmtMXN,
+  agents,
   type AvailabilityRow, type AvailabilityStatus,
 } from "@/data/mock";
 import {
