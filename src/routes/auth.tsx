@@ -230,7 +230,14 @@ $ grep -n "fieldset" src/routes/properties.tsx
             <Input
               value={historyQuery}
               onChange={(e) => setHistoryQuery(e.target.value)}
-              placeholder='Buscar (p. ej. "tsc" o "ERROR")'
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && historyQuery) {
+                  e.preventDefault();
+                  setHistoryQuery("");
+                }
+              }}
+              placeholder='Buscar (Esc para limpiar)'
+              aria-label="Buscar en historial de verificaciones (Esc para limpiar)"
               className="h-7 text-xs flex-1"
             />
             <Button
