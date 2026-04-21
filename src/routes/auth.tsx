@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw } from "lucide-react";
+import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -136,6 +136,40 @@ $ grep -n "fieldset" src/routes/properties.tsx
 ✔ Sin <fieldset> huérfano (el fix anterior reemplazó el wrapper por className condicional en <form>).`}
             </pre>
           </details>
+        </div>
+
+        <div className="mb-4 rounded-lg border border-border bg-card px-3 py-2 text-sm">
+          <div className="flex items-center gap-2 mb-1.5">
+            <History className="h-4 w-4 text-primary" />
+            <div className="font-medium">Historial de verificaciones</div>
+            <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">Últimas 5</span>
+          </div>
+          <ul className="divide-y divide-border text-xs">
+            {[
+              { time: "2026-04-21 14:32", result: "OK", note: "tsc sin errores" },
+              { time: "2026-04-21 14:28", result: "OK", note: "fieldset removido" },
+              { time: "2026-04-21 14:21", result: "ERROR", note: "Expected closing tag for <fieldset> (520:8)" },
+              { time: "2026-04-21 14:05", result: "OK", note: "guards canManage añadidos" },
+              { time: "2026-04-21 13:48", result: "OK", note: "RLS por agente" },
+            ].map((r) => (
+              <li key={r.time} className="flex items-start gap-2 py-1.5">
+                <span
+                  className={`mt-1 inline-flex h-1.5 w-1.5 rounded-full shrink-0 ${
+                    r.result === "OK" ? "bg-primary" : "bg-destructive"
+                  }`}
+                />
+                <span className="font-mono text-muted-foreground shrink-0">{r.time}</span>
+                <span
+                  className={`font-medium shrink-0 ${r.result === "OK" ? "text-primary" : "text-destructive"}`}
+                >
+                  {r.result}
+                </span>
+                <span className="text-muted-foreground truncate" title={r.note}>
+                  {r.note}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
