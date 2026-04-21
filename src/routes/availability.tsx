@@ -159,10 +159,34 @@ function AvailabilityPage() {
         </div>
       </div>
 
+      {/* Status legend */}
+      <PageCard title="Leyenda de estatus" description="Cómo interpretar cada color en la matriz">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <LegendItem
+            tint={STATUS_TINTS.Available}
+            dot={STATUS_DOT.Available}
+            label="Disponible"
+            help="Unidad lista para venta. Visible para todos los agentes y la app móvil."
+          />
+          <LegendItem
+            tint={STATUS_TINTS.Reserved}
+            dot={STATUS_DOT.Reserved}
+            label="Apartado"
+            help="Cliente con anticipo o compromiso. Bloqueada por 7 días."
+          />
+          <LegendItem
+            tint={STATUS_TINTS.Sold}
+            dot={STATUS_DOT.Sold}
+            label="Vendido"
+            help="Operación cerrada. Se retira del inventario disponible."
+          />
+        </div>
+      </PageCard>
+
       {/* Toolbar */}
       <PageCard
         title="Matriz de inventario"
-        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo`}
+        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo · clic en ✏️ para editar`}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" className="gap-1.5"
@@ -272,6 +296,18 @@ function Stat({ label, value, tint }: { label: string; value: number; tint?: str
     <div className="px-3 py-1.5 rounded-lg bg-muted/60 text-center min-w-[68px]">
       <div className={cn("text-base font-semibold leading-none", tint)}>{value}</div>
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-1">{label}</div>
+    </div>
+  );
+}
+
+function LegendItem({ tint, dot, label, help }: { tint: string; dot: string; label: string; help: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3">
+      <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium shrink-0", tint)}>
+        <span className={cn("h-1.5 w-1.5 rounded-full", dot)} />
+        {label}
+      </span>
+      <p className="text-xs text-muted-foreground leading-snug">{help}</p>
     </div>
   );
 }
