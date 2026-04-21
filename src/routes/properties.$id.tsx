@@ -409,11 +409,15 @@ function PropertyDetailPage() {
                 files={files}
                 onGenerate={() => handleGeneratePdf()}
                 onRetry={handleRetryPdf}
+                onCancel={cancelPdf}
                 generating={generatingPdf}
                 canManage={canManage}
                 error={pdfError}
                 attempt={pdfAttempt}
                 maxRetries={MAX_PDF_RETRIES}
+                status={pdfStatus}
+                elapsedMs={pdfElapsedMs}
+                durationMs={pdfDurationMs}
               />
             </TabsContent>
 
