@@ -57,6 +57,8 @@ function PropertiesPage() {
   );
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [editing, setEditing] = useState<PropertyRow | null>(null);
   const [viewing, setViewing] = useState<PropertyRow | null>(null);
   const [deleting, setDeleting] = useState<PropertyRow | null>(null);
@@ -69,6 +71,14 @@ function PropertiesPage() {
     const matchesS = status === "all" || p.status === status;
     return matchesQ && matchesS;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  React.useEffect(() => { setPage(1); }, [q, status, pageSize]);
+  React.useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
+  const pageStart = (page - 1) * pageSize;
+  const paged = filtered.slice(pageStart, pageStart + pageSize);
+  const showingFrom = filtered.length === 0 ? 0 : pageStart + 1;
+  const showingTo = Math.min(filtered.length, pageStart + pageSize);
 
   async function shareOnWhatsapp(p: PropertyRow, lead?: Lead) {
     const greeting = lead ? `¡Hola ${lead.name.split(" ")[0]}!` : `¡Hola!`;
@@ -174,7 +184,7 @@ function PropertiesPage() {
           <>
             {/* Mobile: card list */}
             <ul className="md:hidden space-y-3">
-              {filtered.map((p) => (
+              {paged.map((p) => (
                 <li key={p.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-[var(--shadow-soft)]">
                   <div className="relative">
                     {p.image_url ? (
@@ -246,7 +256,7 @@ function PropertiesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
+                  {paged.map((p) => (
                     <tr key={p.id} className="border-b border-border/60 hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
@@ -293,6 +303,32 @@ function PropertiesPage() {
                 </tbody>
               </table>
             </div>
+
+            {filtered.length > 0 && (
+              <div className="mt-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm">
+                <div className="text-muted-foreground">
+                  Mostrando <span className="font-medium text-foreground">{showingFrom}</span>–<span className="font-medium text-foreground">{showingTo}</span> de <span className="font-medium text-foreground">{filtered.length}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground hidden sm:inline">Por página</span>
+                  <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+                    <SelectTrigger className="w-20 h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[10, 25, 50, 100].map((n) => (
+                        <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(1)}>«</Button>
+                  <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Anterior</Button>
+                  <span className="text-xs text-muted-foreground tabular-nums px-1">
+                    {page} / {totalPages}
+                  </span>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Siguiente</Button>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(totalPages)}>»</Button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </PageCard>
