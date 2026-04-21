@@ -51,9 +51,18 @@ function AvailabilityPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Partial<AvailabilityRow>>({});
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<AvailabilityStatus>("Available");
   const [pdfOpen, setPdfOpen] = useState(false);
+
+  function toggleExpand(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   const models   = useMemo(() => Array.from(new Set(rows.map(r => r.model))), [rows]);
   const clusters = useMemo(() => Array.from(new Set(rows.map(r => r.cluster))), [rows]);
