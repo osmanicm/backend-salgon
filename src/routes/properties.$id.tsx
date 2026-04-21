@@ -163,11 +163,13 @@ function PropertyDetailPage() {
   const MAX_PDF_RETRIES = 3;
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [pdfAttempt, setPdfAttempt] = useState(0);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   async function handleGeneratePdf(isRetry = false) {
     if (!property || generatingPdf) return;
     const attempt = isRetry ? pdfAttempt + 1 : 1;
     setPdfAttempt(attempt);
     setGeneratingPdf(true);
+    setPdfError(null);
     const loadingMsg = isRetry
       ? `Reintentando Ficha PDF… (intento ${attempt} de ${MAX_PDF_RETRIES})`
       : "Generando Ficha PDF…";
@@ -176,12 +178,14 @@ function PropertyDetailPage() {
       await generatePropertyPdf(property);
       toast.success("Ficha PDF lista. Usa el cuadro de impresión para guardarla.", { id: t });
       setPdfAttempt(0);
+      setPdfError(null);
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const isPopupBlocked = /popup/i.test(raw);
       const baseDescription = isPopupBlocked
         ? "Tu navegador bloqueó la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
         : raw || "Ocurrió un error inesperado.";
+      setPdfError(baseDescription);
 
       if (attempt >= MAX_PDF_RETRIES) {
         toast.error("Se alcanzó el máximo de reintentos", {
@@ -192,6 +196,7 @@ function PropertyDetailPage() {
             label: "Empezar de nuevo",
             onClick: () => {
               setPdfAttempt(0);
+              setPdfError(null);
               void handleGeneratePdf(false);
             },
           },
@@ -211,6 +216,15 @@ function PropertyDetailPage() {
       }
     } finally {
       setGeneratingPdf(false);
+    }
+  }
+  function handleRetryPdf() {
+    if (pdfAttempt >= MAX_PDF_RETRIES) {
+      setPdfAttempt(0);
+      setPdfError(null);
+      void handleGeneratePdf(false);
+    } else {
+      void handleGeneratePdf(true);
     }
   }
 
@@ -325,9 +339,13 @@ function PropertyDetailPage() {
             <TabsContent value="ficha" className="mt-4">
               <FichaPdfTab
                 files={files}
-                onGenerate={handleGeneratePdf}
+                onGenerate={() => handleGeneratePdf()}
+                onRetry={handleRetryPdf}
                 generating={generatingPdf}
                 canManage={canManage}
+                error={pdfError}
+                attempt={pdfAttempt}
+                maxRetries={MAX_PDF_RETRIES}
               />
             </TabsContent>
 
@@ -552,18 +570,28 @@ function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
 function FichaPdfTab({
   files,
   onGenerate,
+  onRetry,
   generating,
   canManage,
+  error,
+  attempt,
+  maxRetries,
 }: {
   files: PropertyFileRow[];
   onGenerate: () => void;
+  onRetry: () => void;
   generating: boolean;
   canManage: boolean;
+  error: string | null;
+  attempt: number;
+  maxRetries: number;
 }) {
   const pdfs = files.filter(
     (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
   );
   const ficha = pdfs.find((f) => /ficha/i.test(f.label)) ?? pdfs[0] ?? null;
+  const reachedMax = attempt >= maxRetries;
+  const remaining = Math.max(0, maxRetries - attempt);
 
   return (
     <div className="space-y-3">
@@ -594,6 +622,39 @@ function FichaPdfTab({
           </a>
         )}
       </div>
+
+      {error && !generating && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-3 py-2.5 text-sm space-y-2">
+          <div className="flex items-start gap-2">
+            <span className="text-destructive font-medium">Error al generar la Ficha PDF</span>
+            {attempt > 0 && (
+              <span className="text-[11px] text-muted-foreground ml-auto shrink-0">
+                Intento {attempt}/{maxRetries}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">{error}</p>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onRetry}
+              disabled={generating}
+              className="gap-1.5"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              {reachedMax
+                ? "Empezar de nuevo"
+                : `Reintentar generación${remaining ? ` (${remaining} restantes)` : ""}`}
+            </Button>
+            {reachedMax && (
+              <span className="text-[11px] text-muted-foreground">
+                Se alcanzó el máximo de reintentos. Esto reiniciará el contador.
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {ficha ? (
         <div className="rounded-lg border border-border overflow-hidden bg-muted">
