@@ -32,6 +32,7 @@ import {
   usePropertyFiles,
   type PropertyRow,
   type PropertyMediaRow,
+  type PropertyFileRow,
 } from "@/data/propertiesApi";
 import { fmtMoney } from "@/data/mock";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
