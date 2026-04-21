@@ -1,66 +1,69 @@
 import { ReactNode, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
-type PageCardProps = {
-  title?: string;
-  description?: string;
-  /** @deprecated use `description` */
-  subtitle?: string;
-  action?: ReactNode;
+/**
+ * Type-level constraints:
+ * - `subtitle` is forbidden (deprecated). Using it produces a TS error.
+ * - `description` or `action` REQUIRE `title` (header must have a heading).
+ *
+ * These are enforced via discriminated overloads below.
+ */
+type BasePageCardProps = {
   className?: string;
   children: ReactNode;
 };
 
-const ALLOWED_PROPS = new Set<keyof PageCardProps>([
+type WithHeader = BasePageCardProps & {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+  /** @deprecated Forbidden — use `description`. */
+  subtitle?: never;
+};
+
+type WithoutHeader = BasePageCardProps & {
+  title?: undefined;
+  description?: undefined;
+  action?: undefined;
+  /** @deprecated Forbidden — use `description`. */
+  subtitle?: never;
+};
+
+export type PageCardProps = WithHeader | WithoutHeader;
+
+const ALLOWED_PROPS = new Set([
   "title",
   "description",
-  "subtitle",
   "action",
   "className",
   "children",
 ]);
 
 export function PageCard(props: PageCardProps) {
-  const { title, description, subtitle, action, className, children } = props;
-  const desc = description ?? subtitle;
+  const { title, description, action, className, children } = props;
   const warned = useRef(false);
 
   useEffect(() => {
     if (!import.meta.env.DEV || warned.current) return;
     warned.current = true;
 
-    // Warn for unknown props (e.g. typos like `descripton`, `header`, etc.)
-    const unknown = Object.keys(props as Record<string, unknown>).filter(
-      (k) => !ALLOWED_PROPS.has(k as keyof PageCardProps),
-    );
+    const all = props as Record<string, unknown>;
+    const unknown = Object.keys(all).filter((k) => !ALLOWED_PROPS.has(k));
     if (unknown.length > 0) {
       console.warn(
         `[PageCard] Unsupported prop(s): ${unknown.join(", ")}. ` +
+          (unknown.includes("subtitle")
+            ? "`subtitle` is deprecated — use `description`. "
+            : "") +
           `Allowed: ${[...ALLOWED_PROPS].join(", ")}.`,
       );
     }
-
-    // Warn when deprecated `subtitle` is used
-    if (subtitle !== undefined) {
+    if ((description || action) && !title) {
       console.warn(
-        "[PageCard] Prop `subtitle` is deprecated — use `description` instead.",
+        "[PageCard] `description`/`action` require `title`. Header will not render without it.",
       );
     }
-
-    // Confirm required props for visible header
-    if ((action || desc) && !title) {
-      console.warn(
-        "[PageCard] `title` is recommended when `action` or `description` is provided.",
-      );
-    }
-
-    // Warn when description is given without a title (no header rendered)
-    if (desc && !title && !action) {
-      console.warn(
-        "[PageCard] `description` provided without `title` — header will not render.",
-      );
-    }
-  }, [props, title, action, desc, subtitle]);
+  }, [props, title, description, action]);
 
   return (
     <section className={cn("rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]", className)}>
@@ -68,7 +71,7 @@ export function PageCard(props: PageCardProps) {
         <header className="flex flex-wrap items-start justify-between gap-3 px-4 md:px-5 pt-4 md:pt-5 pb-3">
           <div className="min-w-0">
             {title && <h2 className="text-base font-semibold tracking-tight">{title}</h2>}
-            {desc && <p className="text-xs text-muted-foreground mt-0.5">{desc}</p>}
+            {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
           </div>
           {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
         </header>
