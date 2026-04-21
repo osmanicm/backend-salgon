@@ -31,6 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PropertyInsert, PropertyRow } from "@/data/propertiesApi";
@@ -658,7 +660,7 @@ export function BulkUploadDialog({
             </div>
 
             {/* Mapping template actions */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
               <input
                 id="mapping-template-input"
                 type="file"
@@ -670,17 +672,35 @@ export function BulkUploadDialog({
                   e.target.value = "";
                 }}
               />
-              <Button variant="outline" size="sm" onClick={exportMappingTemplate}>
-                <Save className="h-3.5 w-3.5 mr-1.5" /> Exportar mapeo (JSON)
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <label htmlFor="mapping-template-input" className="cursor-pointer">
-                  <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar mapeo
-                </label>
-              </Button>
-              <span className="text-[11px] text-muted-foreground">
-                Reutiliza el mismo mapeo en futuras importaciones.
-              </span>
+              <Label htmlFor="mapping-template-name" className="text-xs">
+                Nombre de la plantilla
+              </Label>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  id="mapping-template-name"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="Ej. CRM externo v1"
+                  maxLength={60}
+                  className="h-8 text-sm flex-1 min-w-[160px]"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportMappingTemplate}
+                  disabled={!templateName.trim()}
+                >
+                  <Save className="h-3.5 w-3.5 mr-1.5" /> Exportar mapeo
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <label htmlFor="mapping-template-input" className="cursor-pointer">
+                    <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar
+                  </label>
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Asigna un nombre para reconocer esta plantilla al reutilizarla.
+              </p>
             </div>
 
             {/* Warnings panel */}
