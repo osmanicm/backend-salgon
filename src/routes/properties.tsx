@@ -455,7 +455,7 @@ function PropertyFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar propiedad" : "Agregar nueva propiedad"}</DialogTitle>
           <DialogDescription>
