@@ -298,6 +298,7 @@ function PropertiesPage() {
         open={creating}
         onOpenChange={setCreating}
         existing={properties}
+        canManageInitial={true}
       />
 
       {/* Edit dialog */}
@@ -306,6 +307,7 @@ function PropertiesPage() {
         onOpenChange={(o) => !o && setEditing(null)}
         existing={properties}
         initial={editing ?? undefined}
+        canManageInitial={editing ? canManage(editing) : false}
       />
 
       {/* View dialog */}
