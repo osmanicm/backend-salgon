@@ -31,6 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import type { PropertyInsert, PropertyRow } from "@/data/propertiesApi";
@@ -237,6 +239,7 @@ export function BulkUploadDialog({
   const [parsed, setParsed] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [templateName, setTemplateName] = useState("");
 
   const validRows = useMemo(() => parsed.filter((r) => r.errors.length === 0), [parsed]);
   const invalidRows = useMemo(() => parsed.filter((r) => r.errors.length > 0), [parsed]);
@@ -250,6 +253,7 @@ export function BulkUploadDialog({
     setMatchKinds({} as Record<FieldKey, MatchKind>);
     setParsed([]);
     setProgress(0);
+    setTemplateName("");
   }
 
   function downloadTemplate() {
@@ -263,11 +267,17 @@ export function BulkUploadDialog({
   }
 
   function exportMappingTemplate() {
+    const trimmed = templateName.trim();
+    if (!trimmed) {
+      toast.error("Escribe un nombre para la plantilla");
+      return;
+    }
     const fields: Record<string, string | null> = {};
     FIELDS.forEach((f) => (fields[f.key] = mapping[f.key] ?? null));
     const template = {
       version: 1,
       kind: "salgon.property-csv-mapping",
+      name: trimmed,
       exportedAt: new Date().toISOString(),
       sourceFile: fileName ?? null,
       fields,
@@ -278,10 +288,17 @@ export function BulkUploadDialog({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "mapeo-propiedades.json";
+    const safe = trimmed
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "mapeo";
+    a.download = `mapeo-${safe}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Plantilla de mapeo exportada");
+    toast.success(`Plantilla "${trimmed}" exportada`);
   }
 
   async function importMappingTemplate(file: File) {
@@ -293,6 +310,7 @@ export function BulkUploadDialog({
       const text = await file.text();
       const parsedJson = JSON.parse(text) as {
         kind?: string;
+        name?: string;
         fields?: Record<string, string | null>;
       };
       if (parsedJson.kind !== "salgon.property-csv-mapping" || !parsedJson.fields) {
@@ -320,6 +338,7 @@ export function BulkUploadDialog({
       }
       setMapping(next);
       setMatchKinds(nextKinds);
+      if (parsedJson.name) setTemplateName(parsedJson.name);
       toast.success(
         `Mapeo aplicado: ${applied} campo(s)` +
           (missing > 0 ? ` · ${missing} no encontrados en este CSV` : "")
@@ -641,7 +660,7 @@ export function BulkUploadDialog({
             </div>
 
             {/* Mapping template actions */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
               <input
                 id="mapping-template-input"
                 type="file"
@@ -653,17 +672,35 @@ export function BulkUploadDialog({
                   e.target.value = "";
                 }}
               />
-              <Button variant="outline" size="sm" onClick={exportMappingTemplate}>
-                <Save className="h-3.5 w-3.5 mr-1.5" /> Exportar mapeo (JSON)
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <label htmlFor="mapping-template-input" className="cursor-pointer">
-                  <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar mapeo
-                </label>
-              </Button>
-              <span className="text-[11px] text-muted-foreground">
-                Reutiliza el mismo mapeo en futuras importaciones.
-              </span>
+              <Label htmlFor="mapping-template-name" className="text-xs">
+                Nombre de la plantilla
+              </Label>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  id="mapping-template-name"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="Ej. CRM externo v1"
+                  maxLength={60}
+                  className="h-8 text-sm flex-1 min-w-[160px]"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportMappingTemplate}
+                  disabled={!templateName.trim()}
+                >
+                  <Save className="h-3.5 w-3.5 mr-1.5" /> Exportar mapeo
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <label htmlFor="mapping-template-input" className="cursor-pointer">
+                    <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar
+                  </label>
+                </Button>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Asigna un nombre para reconocer esta plantilla al reutilizarla.
+              </p>
             </div>
 
             {/* Warnings panel */}
