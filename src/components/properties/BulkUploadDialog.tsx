@@ -640,6 +640,32 @@ export function BulkUploadDialog({
               </Button>
             </div>
 
+            {/* Mapping template actions */}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                id="mapping-template-input"
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) importMappingTemplate(f);
+                  e.target.value = "";
+                }}
+              />
+              <Button variant="outline" size="sm" onClick={exportMappingTemplate}>
+                <Save className="h-3.5 w-3.5 mr-1.5" /> Exportar mapeo (JSON)
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <label htmlFor="mapping-template-input" className="cursor-pointer">
+                  <FileJson className="h-3.5 w-3.5 mr-1.5" /> Cargar mapeo
+                </label>
+              </Button>
+              <span className="text-[11px] text-muted-foreground">
+                Reutiliza el mismo mapeo en futuras importaciones.
+              </span>
+            </div>
+
             {/* Warnings panel */}
             {(mappingIssues.warnings.length > 0 || mappingIssues.missingRequired.length > 0) && (
               <div className="space-y-2">
