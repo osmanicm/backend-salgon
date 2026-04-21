@@ -158,6 +158,9 @@ function PropertiesPage() {
               </SelectContent>
             </Select>
             <div className="hidden md:flex gap-2">
+              <Button variant="outline" className="gap-1.5" onClick={() => setTrashOpen(true)} title="Ver propiedades eliminadas">
+                <Archive className="h-4 w-4" /> Papelera
+              </Button>
               <Button variant="outline" className="gap-1.5" onClick={() => setBulkOpen(true)}>
                 <FileSpreadsheet className="h-4 w-4" /> Importar CSV
               </Button>
