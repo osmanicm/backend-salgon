@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2 } from "lucide-react";
+import { Loader2, Mail, Lock, User as UserIcon, CheckCircle2, FileCheck2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
