@@ -7,13 +7,22 @@ import { MobileHeader } from "./MobileHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
-// Routes that only admins should access. Agents land on /agent instead.
-const ADMIN_ONLY_PATHS = ["/users", "/pipeline", "/availability"];
+// Routes that only admins should access. Agents are redirected to /agent.
+// "/" is the admin dashboard; the agent dashboard is "/agent".
+const ADMIN_ONLY_PATHS = ["/", "/users", "/pipeline", "/availability"];
+
+function isAdminOnly(pathname: string) {
+  return ADMIN_ONLY_PATHS.some((p) =>
+    p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(p + "/"),
+  );
+}
 
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { user, loading, roles } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isAdmin = roles.includes("admin");
+  const blocked = !loading && !!user && !isAdmin && isAdminOnly(pathname);
 
   useEffect(() => {
     if (loading) return;
@@ -21,19 +30,18 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
       navigate({ to: "/auth" });
       return;
     }
-    const isAdmin = roles.includes("admin");
-    // Admin trying to view the agent landing → send to dashboard.
+    // Admin landing on the agent view → send to dashboard.
     if (isAdmin && pathname === "/agent") {
       navigate({ to: "/" });
       return;
     }
-    // Non-admin hitting an admin-only path → send to agent view.
-    if (!isAdmin && ADMIN_ONLY_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
-      navigate({ to: "/agent" });
+    // Non-admin on an admin-only route → send to agent view.
+    if (blocked) {
+      navigate({ to: "/agent", replace: true });
     }
-  }, [loading, user, roles, pathname, navigate]);
+  }, [loading, user, isAdmin, blocked, pathname, navigate]);
 
-  if (loading || !user) {
+  if (loading || !user || blocked) {
     return (
       <div className="min-h-screen grid place-items-center bg-background">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
