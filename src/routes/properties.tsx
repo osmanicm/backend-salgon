@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, Outlet, useChildMatches } from "@tanstack/react-router";
 import * as React from "react";
 import { useState } from "react";
 import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, Share2, Loader2, FileSpreadsheet, RotateCcw, Archive } from "lucide-react";
@@ -87,6 +87,14 @@ const propertySchema = z.object({
 });
 
 function PropertiesPage() {
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) {
+    return <Outlet />;
+  }
+  return <PropertiesIndex />;
+}
+
+function PropertiesIndex() {
   const propsQuery = useProperties();
   const properties = propsQuery.data ?? [];
   const navigate = useNavigate();
