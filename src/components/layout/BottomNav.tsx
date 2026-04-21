@@ -1,8 +1,16 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Building2, Users, CalendarDays, MoreHorizontal } from "lucide-react";
+import { Home, Building2, Users, CalendarDays, MessageCircle, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
-const tabs: { to: "/" | "/properties" | "/leads" | "/appointments" | "/more"; label: string; icon: typeof Home; exact?: boolean }[] = [
+type Tab = {
+  to: "/" | "/agent" | "/properties" | "/leads" | "/appointments" | "/whatsapp" | "/more";
+  label: string;
+  icon: typeof Home;
+  exact?: boolean;
+};
+
+const adminTabs: Tab[] = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
   { to: "/properties", label: "Propiedades", icon: Building2 },
   { to: "/leads", label: "Prospectos", icon: Users },
@@ -10,8 +18,18 @@ const tabs: { to: "/" | "/properties" | "/leads" | "/appointments" | "/more"; la
   { to: "/more", label: "Más", icon: MoreHorizontal },
 ];
 
+const agentTabs: Tab[] = [
+  { to: "/agent", label: "Inicio", icon: Home, exact: true },
+  { to: "/properties", label: "Propiedades", icon: Building2 },
+  { to: "/leads", label: "Prospectos", icon: Users },
+  { to: "/appointments", label: "Citas", icon: CalendarDays },
+  { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
+];
+
 export function BottomNav() {
   const { pathname } = useLocation();
+  const { roles } = useAuth();
+  const tabs = roles.includes("admin") ? adminTabs : agentTabs;
   return (
     <nav
       className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 backdrop-blur border-t border-border"

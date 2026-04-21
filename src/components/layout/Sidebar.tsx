@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-const nav = [
+const adminNav = [
   { to: "/", label: "Panel de Control", icon: LayoutDashboard },
   { to: "/properties", label: "Propiedades", icon: Building2 },
   { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
@@ -26,9 +26,19 @@ const nav = [
   { to: "/users", label: "Usuarios", icon: UserCog },
 ] as const;
 
+const agentNav = [
+  { to: "/agent", label: "Inicio", icon: LayoutDashboard },
+  { to: "/properties", label: "Propiedades", icon: Building2 },
+  { to: "/leads", label: "Prospectos", icon: Users },
+  { to: "/appointments", label: "Citas", icon: CalendarDays },
+  { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
+] as const;
+
 export function Sidebar() {
   const { pathname } = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const nav = isAdmin ? adminNav : agentNav;
   async function handleSignOut() {
     await signOut();
     toast.success("Sesión cerrada");
