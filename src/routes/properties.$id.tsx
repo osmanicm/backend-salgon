@@ -20,7 +20,19 @@ import {
   ExternalLink,
   Download,
   X,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { PropertyFormDialog } from "./properties";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -34,6 +46,8 @@ import {
   type PropertyRow,
   type PropertyMediaRow,
   type PropertyFileRow,
+  useProperties,
+  useSoftDeleteProperty,
 } from "@/data/propertiesApi";
 import { fmtMoney } from "@/data/mock";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
