@@ -24,6 +24,7 @@ import {
   type PropertyRow,
 } from "@/data/propertiesApi";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
+import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -46,6 +47,12 @@ function PropertiesPage() {
   const propsQuery = useProperties();
   const properties = propsQuery.data ?? [];
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = useHasRole("admin");
+  const canManage = React.useCallback(
+    (p: PropertyRow) => isAdmin || (!!user && p.agent_id === user.id),
+    [isAdmin, user]
+  );
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [editing, setEditing] = useState<PropertyRow | null>(null);
@@ -181,9 +188,11 @@ function PropertiesPage() {
                       <Button size="sm" variant="outline" className="flex-1 gap-1.5" onClick={() => setViewing(p)}>
                         <Eye className="h-3.5 w-3.5" /> Ver
                       </Button>
-                      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setEditing(p)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
+                      {canManage(p) && (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setEditing(p)} aria-label="Editar">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <LeadPickerPopover
                         onPick={(lead) => shareOnWhatsapp(p, lead)}
                         trigger={
@@ -192,9 +201,11 @@ function PropertiesPage() {
                           </Button>
                         }
                       />
-                      <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar" onClick={() => setDeleting(p)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canManage(p) && (
+                        <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar" onClick={() => setDeleting(p)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </li>
@@ -242,7 +253,9 @@ function PropertiesPage() {
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-end gap-1">
                           <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver" onClick={() => setViewing(p)}><Eye className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
+                          {canManage(p) && (
+                            <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
+                          )}
                           <LeadPickerPopover
                             onPick={(lead) => shareOnWhatsapp(p, lead)}
                             trigger={
@@ -251,7 +264,9 @@ function PropertiesPage() {
                               </Button>
                             }
                           />
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar" onClick={() => setDeleting(p)}><Trash2 className="h-4 w-4" /></Button>
+                          {canManage(p) && (
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar" onClick={() => setDeleting(p)}><Trash2 className="h-4 w-4" /></Button>
+                          )}
                         </div>
                       </td>
                     </tr>
