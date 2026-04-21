@@ -160,31 +160,55 @@ function PropertyDetailPage() {
     navigate({ to: "/whatsapp" });
   }
 
+  const MAX_PDF_RETRIES = 3;
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  async function handleGeneratePdf() {
+  const [pdfAttempt, setPdfAttempt] = useState(0);
+  async function handleGeneratePdf(isRetry = false) {
     if (!property || generatingPdf) return;
+    const attempt = isRetry ? pdfAttempt + 1 : 1;
+    setPdfAttempt(attempt);
     setGeneratingPdf(true);
-    const t = toast.loading("Generando Ficha PDF…");
+    const loadingMsg = isRetry
+      ? `Reintentando Ficha PDF… (intento ${attempt} de ${MAX_PDF_RETRIES})`
+      : "Generando Ficha PDF…";
+    const t = toast.loading(loadingMsg);
     try {
       await generatePropertyPdf(property);
       toast.success("Ficha PDF lista. Usa el cuadro de impresión para guardarla.", { id: t });
+      setPdfAttempt(0);
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const isPopupBlocked = /popup/i.test(raw);
-      const description = isPopupBlocked
+      const baseDescription = isPopupBlocked
         ? "Tu navegador bloqueó la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
         : raw || "Ocurrió un error inesperado.";
-      toast.error("No se pudo generar el PDF", {
-        id: t,
-        description,
-        duration: 10000,
-        action: {
-          label: "Reintentar",
-          onClick: () => {
-            void handleGeneratePdf();
+
+      if (attempt >= MAX_PDF_RETRIES) {
+        toast.error("Se alcanzó el máximo de reintentos", {
+          id: t,
+          description: `${baseDescription} Intentos: ${attempt}/${MAX_PDF_RETRIES}. Espera unos segundos antes de volver a intentar.`,
+          duration: 12000,
+          action: {
+            label: "Empezar de nuevo",
+            onClick: () => {
+              setPdfAttempt(0);
+              void handleGeneratePdf(false);
+            },
           },
-        },
-      });
+        });
+      } else {
+        toast.error("No se pudo generar el PDF", {
+          id: t,
+          description: `${baseDescription} (Intento ${attempt}/${MAX_PDF_RETRIES})`,
+          duration: 10000,
+          action: {
+            label: `Reintentar (${MAX_PDF_RETRIES - attempt} restantes)`,
+            onClick: () => {
+              void handleGeneratePdf(true);
+            },
+          },
+        });
+      }
     } finally {
       setGeneratingPdf(false);
     }
