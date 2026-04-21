@@ -139,20 +139,91 @@ function LeadsPage() {
   );
 }
 
+const leadSchema = z.object({
+  name: z.string().trim().min(2, "Nombre requerido (mín. 2)").max(100, "Máx. 100"),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Teléfono inválido")
+    .max(25, "Máx. 25")
+    .regex(/^[+\d\s().-]+$/, "Solo dígitos y +()-. permitidos"),
+  email: z.string().trim().email("Correo inválido").max(255, "Máx. 255"),
+  interest: z.string().trim().min(3, "Describe el interés").max(200, "Máx. 200"),
+  budget: z
+    .number({ invalid_type_error: "Presupuesto requerido" })
+    .int("Solo enteros")
+    .positive("Debe ser mayor a 0")
+    .max(1_000_000_000, "Monto demasiado alto"),
+  source: z.string().min(1, "Selecciona origen"),
+  status: z.string().min(1, "Selecciona estatus"),
+  agent_id: z.string().min(1, "Selecciona agente"),
+});
+
+type LeadForm = {
+  name: string; phone: string; email: string; interest: string;
+  budget: string; source: string; status: string; agent_id: string;
+};
+const emptyLead: LeadForm = {
+  name: "", phone: "", email: "", interest: "",
+  budget: "", source: "", status: "New", agent_id: "",
+};
+
 function AddLeadDialog() {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState<LeadForm>(emptyLead);
+  const [errors, setErrors] = useState<Partial<Record<keyof LeadForm, string>>>({});
+
+  function update<K extends keyof LeadForm>(key: K, value: LeadForm[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+    if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const parsed = leadSchema.safeParse({
+      ...form,
+      budget: form.budget === "" ? Number.NaN : Number(form.budget),
+    });
+    if (!parsed.success) {
+      const fieldErrors: Partial<Record<keyof LeadForm, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const key = issue.path[0] as keyof LeadForm;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
+      toast.error(parsed.error.issues[0].message);
+      return;
+    }
+    toast.success("Prospecto guardado");
+    setForm(emptyLead);
+    setErrors({});
+    setOpen(false);
+  }
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setErrors({}); }}>
       <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Agregar Prospecto</Button></DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader><DialogTitle>Agregar nuevo prospecto</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1.5"><Label>Nombre completo</Label><Input placeholder="Juan Pérez" /></div>
-          <div className="space-y-1.5"><Label>Teléfono</Label><Input placeholder="+52 55 0000 0000" /></div>
-          <div className="col-span-2 space-y-1.5"><Label>Correo electrónico</Label><Input type="email" placeholder="correo@ejemplo.com" /></div>
-          <div className="col-span-2 space-y-1.5"><Label>Interés</Label><Input placeholder="Casa de 3 recámaras en Polanco" /></div>
-          <div className="space-y-1.5"><Label>Presupuesto (MXN)</Label><Input type="number" placeholder="2500000" /></div>
-          <div className="space-y-1.5"><Label>Origen</Label>
-            <Select><SelectTrigger><SelectValue placeholder="Selecciona" /></SelectTrigger>
+        <form onSubmit={handleSubmit} noValidate className="grid grid-cols-2 gap-4">
+          <FormField label="Nombre completo *" error={errors.name}>
+            <Input value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="Juan Pérez" maxLength={100} aria-invalid={!!errors.name} />
+          </FormField>
+          <FormField label="Teléfono *" error={errors.phone}>
+            <Input value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+52 55 0000 0000" maxLength={25} aria-invalid={!!errors.phone} />
+          </FormField>
+          <FormField label="Correo electrónico *" error={errors.email} className="col-span-2">
+            <Input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="correo@ejemplo.com" maxLength={255} aria-invalid={!!errors.email} />
+          </FormField>
+          <FormField label="Interés *" error={errors.interest} className="col-span-2">
+            <Input value={form.interest} onChange={(e) => update("interest", e.target.value)} placeholder="Casa de 3 recámaras en Polanco" maxLength={200} aria-invalid={!!errors.interest} />
+          </FormField>
+          <FormField label="Presupuesto (MXN) *" error={errors.budget}>
+            <Input type="number" min="1" step="1" value={form.budget} onChange={(e) => update("budget", e.target.value)} placeholder="2500000" aria-invalid={!!errors.budget} />
+          </FormField>
+          <FormField label="Origen *" error={errors.source}>
+            <Select value={form.source} onValueChange={(v) => update("source", v)}>
+              <SelectTrigger aria-invalid={!!errors.source}><SelectValue placeholder="Selecciona" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Website">Sitio Web</SelectItem>
                 <SelectItem value="WhatsApp">WhatsApp</SelectItem>
@@ -161,9 +232,10 @@ function AddLeadDialog() {
                 <SelectItem value="Facebook">Facebook</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5"><Label>Estatus</Label>
-            <Select defaultValue="New"><SelectTrigger><SelectValue /></SelectTrigger>
+          </FormField>
+          <FormField label="Estatus *" error={errors.status}>
+            <Select value={form.status} onValueChange={(v) => update("status", v)}>
+              <SelectTrigger aria-invalid={!!errors.status}><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="New">Nuevo</SelectItem>
                 <SelectItem value="Contacted">Contactado</SelectItem>
@@ -172,15 +244,29 @@ function AddLeadDialog() {
                 <SelectItem value="Closed">Cerrado</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="space-y-1.5"><Label>Agente asignado</Label>
-            <Select><SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
+          </FormField>
+          <FormField label="Agente asignado *" error={errors.agent_id}>
+            <Select value={form.agent_id} onValueChange={(v) => update("agent_id", v)}>
+              <SelectTrigger aria-invalid={!!errors.agent_id}><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
               <SelectContent>{agents.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent>
             </Select>
-          </div>
-        </div>
-        <DialogFooter><Button variant="outline">Cancelar</Button><Button>Guardar prospecto</Button></DialogFooter>
+          </FormField>
+          <DialogFooter className="col-span-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="submit">Guardar prospecto</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FormField({ label, error, className, children }: { label: string; error?: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label>{label}</Label>
+      {children}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
   );
 }
