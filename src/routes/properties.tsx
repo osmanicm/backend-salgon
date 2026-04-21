@@ -3,6 +3,7 @@ import * as React from "react";
 import { useState } from "react";
 import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, Share2, Loader2, FileSpreadsheet } from "lucide-react";
 import { BulkUploadDialog } from "@/components/properties/BulkUploadDialog";
+import { PropertyMediaManager } from "@/components/properties/PropertyMediaManager";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -454,7 +455,7 @@ function PropertyFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar propiedad" : "Agregar nueva propiedad"}</DialogTitle>
           <DialogDescription>
@@ -528,11 +529,23 @@ function PropertyFormDialog({
             <p className="text-xs text-muted-foreground">Solo el agente asignado o un admin podrán editarla</p>
           </div>
           <div className="space-y-1.5">
-            <Label>URL de imagen</Label>
+            <Label>URL de imagen de portada</Label>
             <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" maxLength={500} />
             <p className="text-xs text-muted-foreground">Opcional · debe iniciar con http(s)://</p>
           </div>
-          
+
+          {isEdit && initial && !locked && (
+            <div className="sm:col-span-2 border-t border-border pt-4 space-y-2">
+              <div>
+                <Label className="text-base">Galería y archivos descargables</Label>
+                <p className="text-xs text-muted-foreground">
+                  Sube la ficha PDF, fotos, renders y videos. Los agentes podrán descargarlos desde la vista de la propiedad.
+                </p>
+              </div>
+              <PropertyMediaManager propertyId={initial.id} />
+            </div>
+          )}
+
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>Cancelar</Button>
             <Button type="submit" disabled={pending || locked}>
