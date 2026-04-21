@@ -453,8 +453,7 @@ function PropertyFormDialog({
             Solo el agente asignado o un admin pueden editar esta propiedad.
           </div>
         )}
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <fieldset disabled={locked} className="contents">
+        <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${locked ? "opacity-60 pointer-events-none" : ""}`}>
           <div className="sm:col-span-2 space-y-1.5">
             <Label>Título *</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Penthouse Vista al Mar" required maxLength={120} />
