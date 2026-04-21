@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 import { useState } from "react";
-import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, Share2, Loader2, FileSpreadsheet } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, Share2, Loader2, FileSpreadsheet, RotateCcw, Archive } from "lucide-react";
 import { BulkUploadDialog } from "@/components/properties/BulkUploadDialog";
 import { PropertyMediaManager } from "@/components/properties/PropertyMediaManager";
 import { AppShell } from "@/components/layout/AppShell";
@@ -20,7 +20,10 @@ import {
   nextPropertyCode,
   useAgentsList,
   useCreateProperty,
+  useDeletedProperties,
+  useHardDeleteProperty,
   useProperties,
+  useRestoreProperty,
   useSoftDeleteProperty,
   useUpdateProperty,
   type PropertyRow,
@@ -64,6 +67,7 @@ function PropertiesPage() {
   const [deleting, setDeleting] = useState<PropertyRow | null>(null);
   const [creating, setCreating] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
   const softDelete = useSoftDeleteProperty();
 
   const filtered = properties.filter((p) => {
