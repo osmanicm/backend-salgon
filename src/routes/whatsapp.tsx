@@ -23,7 +23,12 @@ interface ExtraPhoto {
 const MAX_EXTRA_PHOTOS = 6;
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
 
-export const Route = createFileRoute("/whatsapp")({ component: WhatsappPage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/whatsapp")({
+  component: WhatsappPage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="WhatsApp" error={error} reset={reset} />,
+});
 
 function formatBytes(n: number) {
   if (n < 1024) return `${n} B`;

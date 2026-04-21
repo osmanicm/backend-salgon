@@ -6,7 +6,12 @@ import {
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 
-export const Route = createFileRoute("/more")({ component: MorePage });
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+export const Route = createFileRoute("/more")({
+  component: MorePage,
+  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Más" error={error} reset={reset} />,
+});
 
 const sections = [
   {
