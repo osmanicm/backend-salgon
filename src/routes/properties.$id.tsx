@@ -161,31 +161,98 @@ function PropertyDetailPage() {
   }
 
   const MAX_PDF_RETRIES = 3;
+  type PdfStatus = "idle" | "queued" | "generating" | "ready" | "error" | "cancelled";
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [pdfAttempt, setPdfAttempt] = useState(0);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [pdfStatus, setPdfStatus] = useState<PdfStatus>("idle");
+  const [pdfStartedAt, setPdfStartedAt] = useState<number | null>(null);
+  const [pdfElapsedMs, setPdfElapsedMs] = useState(0);
+  const [pdfDurationMs, setPdfDurationMs] = useState<number | null>(null);
+  const pdfCancelRef = React.useRef<{ cancelled: boolean } | null>(null);
+
+  // Tick elapsed time while generating/queued
+  useEffect(() => {
+    if (pdfStatus !== "generating" && pdfStatus !== "queued") return;
+    const start = pdfStartedAt ?? Date.now();
+    const interval = setInterval(() => setPdfElapsedMs(Date.now() - start), 100);
+    return () => clearInterval(interval);
+  }, [pdfStatus, pdfStartedAt]);
+
+  // Cancel if user closes/hides the tab while generating
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState === "hidden" && pdfCancelRef.current && !pdfCancelRef.current.cancelled) {
+        pdfCancelRef.current.cancelled = true;
+      }
+    }
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      // unmount cancels in-flight
+      if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
+    };
+  }, []);
+
+  function cancelPdf() {
+    if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
+    setPdfStatus("cancelled");
+    setGeneratingPdf(false);
+    toast.message("Generación cancelada");
+  }
+
   async function handleGeneratePdf(isRetry = false) {
     if (!property || generatingPdf) return;
     const attempt = isRetry ? pdfAttempt + 1 : 1;
+    const token = { cancelled: false };
+    pdfCancelRef.current = token;
     setPdfAttempt(attempt);
     setGeneratingPdf(true);
     setPdfError(null);
+    setPdfDurationMs(null);
+    setPdfElapsedMs(0);
+    const startedAt = Date.now();
+    setPdfStartedAt(startedAt);
+    setPdfStatus("queued");
+
     const loadingMsg = isRetry
       ? `Reintentando Ficha PDF… (intento ${attempt} de ${MAX_PDF_RETRIES})`
       : "Generando Ficha PDF…";
     const t = toast.loading(loadingMsg);
+
+    // Brief queued phase to surface the "En cola" state
+    await new Promise((r) => setTimeout(r, 250));
+    if (token.cancelled) {
+      toast.dismiss(t);
+      return;
+    }
+    setPdfStatus("generating");
+
     try {
       await generatePropertyPdf(property);
-      toast.success("Ficha PDF lista. Usa el cuadro de impresión para guardarla.", { id: t });
+      if (token.cancelled) {
+        toast.dismiss(t);
+        return;
+      }
+      const duration = Date.now() - startedAt;
+      setPdfDurationMs(duration);
+      setPdfStatus("ready");
+      toast.success(`Ficha PDF lista en ${(duration / 1000).toFixed(1)}s.`, { id: t });
       setPdfAttempt(0);
       setPdfError(null);
     } catch (e) {
+      if (token.cancelled) {
+        toast.dismiss(t);
+        return;
+      }
       const raw = e instanceof Error ? e.message : String(e);
       const isPopupBlocked = /popup/i.test(raw);
       const baseDescription = isPopupBlocked
         ? "Tu navegador bloqueó la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
         : raw || "Ocurrió un error inesperado.";
       setPdfError(baseDescription);
+      setPdfStatus("error");
+      setPdfDurationMs(Date.now() - startedAt);
 
       if (attempt >= MAX_PDF_RETRIES) {
         toast.error("Se alcanzó el máximo de reintentos", {
@@ -216,6 +283,7 @@ function PropertyDetailPage() {
       }
     } finally {
       setGeneratingPdf(false);
+      if (pdfCancelRef.current === token) pdfCancelRef.current = null;
     }
   }
   function handleRetryPdf() {
