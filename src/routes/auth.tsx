@@ -251,9 +251,21 @@ $ grep -n "fieldset" src/routes/properties.tsx
               Limpiar búsqueda
             </Button>
           </div>
-          {historyQuery && (
-            <div className="text-[10px] text-muted-foreground mb-1">
-              {filteredRuns.length} de {compileRuns.length} resultados
+          {historyQuery ? (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mb-1.5 inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 text-[11px]"
+            >
+              <span className="font-medium text-foreground">{filteredRuns.length}</span>
+              <span className="text-muted-foreground">resultados de</span>
+              <span className="font-medium text-foreground">{compileRuns.length}</span>
+              <span className="text-muted-foreground">para</span>
+              <span className="font-mono text-primary truncate max-w-[10rem]">"{historyQuery}"</span>
+            </div>
+          ) : (
+            <div className="mb-1.5 text-[11px] text-muted-foreground">
+              Mostrando {filteredRuns.length} de {compileRuns.length} runs
             </div>
           )}
           <ul className="divide-y divide-border text-xs">
