@@ -169,7 +169,22 @@ function PropertyDetailPage() {
       await generatePropertyPdf(property);
       toast.success("Ficha PDF lista. Usa el cuadro de impresión para guardarla.", { id: t });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo generar el PDF", { id: t });
+      const raw = e instanceof Error ? e.message : String(e);
+      const isPopupBlocked = /popup/i.test(raw);
+      const description = isPopupBlocked
+        ? "Tu navegador bloqueó la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
+        : raw || "Ocurrió un error inesperado.";
+      toast.error("No se pudo generar el PDF", {
+        id: t,
+        description,
+        duration: 10000,
+        action: {
+          label: "Reintentar",
+          onClick: () => {
+            void handleGeneratePdf();
+          },
+        },
+      });
     } finally {
       setGeneratingPdf(false);
     }
