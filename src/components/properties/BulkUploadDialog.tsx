@@ -256,6 +256,7 @@ export function BulkUploadDialog({
   const [testResult, setTestResult] = useState<{
     ok: boolean;
     matched: { field: string; header: string }[];
+    aliasMatches: { field: string; fieldKey: FieldKey; header: string; expectedHeader: string; kind: MatchKind }[];
     missingRequired: string[];
     missingOptional: string[];
     duplicates: string[];
@@ -392,12 +393,30 @@ export function BulkUploadDialog({
 
   function testMapping() {
     const matched: { field: string; header: string }[] = [];
+    const aliasMatches: {
+      field: string;
+      fieldKey: FieldKey;
+      header: string;
+      expectedHeader: string;
+      kind: MatchKind;
+    }[] = [];
     const missingRequired: string[] = [];
     const missingOptional: string[] = [];
     for (const f of FIELDS) {
       const sel = mapping[f.key];
-      if (sel) matched.push({ field: f.label, header: sel });
-      else if (f.required) missingRequired.push(f.label);
+      if (sel) {
+        matched.push({ field: f.label, header: sel });
+        const kind = matchKinds[f.key];
+        if (kind === "alias" || kind === "fuzzy") {
+          aliasMatches.push({
+            field: f.label,
+            fieldKey: f.key,
+            header: sel,
+            expectedHeader: f.expectedHeader,
+            kind,
+          });
+        }
+      } else if (f.required) missingRequired.push(f.label);
       else missingOptional.push(f.label);
     }
 
@@ -469,6 +488,7 @@ export function BulkUploadDialog({
     setTestResult({
       ok,
       matched,
+      aliasMatches,
       missingRequired,
       missingOptional,
       duplicates,
