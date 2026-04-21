@@ -384,15 +384,17 @@ $ grep -n "fieldset" src/routes/properties.tsx
   );
 }
 
-function HighlightMatch({ text, query }: { text: string; query: string }) {
+function HighlightMatch({ text, query, caseSensitive = false }: { text: string; query: string; caseSensitive?: boolean }) {
   const q = query.trim();
   if (!q) return <>{text}</>;
   const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  const flags = caseSensitive ? "g" : "gi";
+  const parts = text.split(new RegExp(`(${escaped})`, flags));
+  const matches = (part: string) => (caseSensitive ? part === q : part.toLowerCase() === q.toLowerCase());
   return (
     <>
       {parts.map((part, i) =>
-        part.toLowerCase() === q.toLowerCase() ? (
+        matches(part) ? (
           <mark key={i} className="rounded-sm bg-primary/25 text-foreground px-0.5">
             {part}
           </mark>
