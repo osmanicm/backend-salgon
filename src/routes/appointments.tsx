@@ -90,14 +90,15 @@ function AppointmentsPage() {
 }
 
 function NewAppointmentFab() {
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="icon" className="h-14 w-14 rounded-full shadow-[var(--shadow-elevated)] bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition" aria-label="Nueva cita">
           <Plus className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <NewAppointmentDialogContent />
+      <NewAppointmentDialogContent onClose={() => setOpen(false)} />
     </Dialog>
   );
 }
