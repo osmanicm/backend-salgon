@@ -510,9 +510,10 @@ function PropertyFormDialog({
             <Label>URL de imagen</Label>
             <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" maxLength={500} />
           </div>
+          </fieldset>
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>Cancelar</Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" disabled={pending || locked}>
               {pending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               {isEdit ? "Guardar cambios" : "Crear propiedad"}
             </Button>
