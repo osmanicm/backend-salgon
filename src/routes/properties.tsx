@@ -57,6 +57,8 @@ function PropertiesPage() {
   );
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [editing, setEditing] = useState<PropertyRow | null>(null);
   const [viewing, setViewing] = useState<PropertyRow | null>(null);
   const [deleting, setDeleting] = useState<PropertyRow | null>(null);
@@ -69,6 +71,14 @@ function PropertiesPage() {
     const matchesS = status === "all" || p.status === status;
     return matchesQ && matchesS;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  React.useEffect(() => { setPage(1); }, [q, status, pageSize]);
+  React.useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
+  const pageStart = (page - 1) * pageSize;
+  const paged = filtered.slice(pageStart, pageStart + pageSize);
+  const showingFrom = filtered.length === 0 ? 0 : pageStart + 1;
+  const showingTo = Math.min(filtered.length, pageStart + pageSize);
 
   async function shareOnWhatsapp(p: PropertyRow, lead?: Lead) {
     const greeting = lead ? `¡Hola ${lead.name.split(" ")[0]}!` : `¡Hola!`;
