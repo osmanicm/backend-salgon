@@ -785,7 +785,7 @@ function FichaPdfTab({
         )}
       </div>
 
-      {error && !generating && (
+      {(status === "error" || error) && !generating && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-3 py-2.5 text-sm space-y-2">
           <div className="flex items-start gap-2">
             <span className="text-destructive font-medium">Error al generar la Ficha PDF</span>
