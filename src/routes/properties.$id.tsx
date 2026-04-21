@@ -19,6 +19,7 @@ import {
   Loader2,
   ExternalLink,
   Download,
+  X,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
