@@ -357,7 +357,7 @@ function FilterSelect({
 
 function ModelGroup({
   model, items, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
-  selected, toggleRow, quickMarkSold,
+  selected, toggleRow, quickMarkSold, expanded, toggleExpand,
 }: {
   model: string;
   items: AvailabilityRow[];
@@ -370,6 +370,8 @@ function ModelGroup({
   selected: Set<string>;
   toggleRow: (id: string, on: boolean) => void;
   quickMarkSold: (r: AvailabilityRow) => void;
+  expanded: Set<string>;
+  toggleExpand: (id: string) => void;
 }) {
   const avg = items.reduce((s, r) => s + r.price, 0) / items.length;
   return (
