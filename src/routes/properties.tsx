@@ -253,7 +253,9 @@ function PropertiesPage() {
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-end gap-1">
                           <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Ver" onClick={() => setViewing(p)}><Eye className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
+                          {canManage(p) && (
+                            <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
+                          )}
                           <LeadPickerPopover
                             onPick={(lead) => shareOnWhatsapp(p, lead)}
                             trigger={
@@ -262,7 +264,9 @@ function PropertiesPage() {
                               </Button>
                             }
                           />
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar" onClick={() => setDeleting(p)}><Trash2 className="h-4 w-4" /></Button>
+                          {canManage(p) && (
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar" onClick={() => setDeleting(p)}><Trash2 className="h-4 w-4" /></Button>
+                          )}
                         </div>
                       </td>
                     </tr>
