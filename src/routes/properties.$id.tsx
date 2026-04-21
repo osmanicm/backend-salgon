@@ -20,7 +20,19 @@ import {
   ExternalLink,
   Download,
   X,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { PropertyFormDialog } from "./properties";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -34,6 +46,8 @@ import {
   type PropertyRow,
   type PropertyMediaRow,
   type PropertyFileRow,
+  useProperties,
+  useSoftDeleteProperty,
 } from "@/data/propertiesApi";
 import { fmtMoney } from "@/data/mock";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
@@ -80,6 +94,22 @@ function PropertyDetailPage() {
   const files = filesQuery.data ?? [];
 
   const canManage = !!property && (isAdmin || (!!user && property.agent_id === user.id));
+
+  // CRUD dialogs
+  const allPropertiesQuery = useProperties();
+  const [editing, setEditing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const softDelete = useSoftDeleteProperty();
+  async function confirmDelete() {
+    if (!property) return;
+    try {
+      await softDelete.mutateAsync(property.id);
+      toast.success(`"${property.title}" enviada a la papelera`);
+      navigate({ to: "/properties" });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "No se pudo eliminar");
+    }
+  }
 
   // Realtime sync for status updates from Disponibilidad module
   const [lastSync, setLastSync] = useState<Date>(new Date());
@@ -323,7 +353,7 @@ function PropertyDetailPage() {
         </div>
 
         {/* Quick actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
           <Button onClick={handleWhatsapp} className="gap-1.5">
             <MessageCircle className="h-4 w-4" /> WhatsApp
           </Button>
@@ -333,12 +363,21 @@ function PropertyDetailPage() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigate({ to: "/properties" })}
+            onClick={() => setEditing(true)}
             disabled={!canManage}
             className="gap-1.5"
             title={!canManage ? "Solo el agente asignado o un admin puede editar" : undefined}
           >
             <Pencil className="h-4 w-4" /> Editar
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setDeleting(true)}
+            disabled={!canManage}
+            className="gap-1.5 text-destructive hover:text-destructive"
+            title={!canManage ? "Solo el agente asignado o un admin puede eliminar" : undefined}
+          >
+            <Trash2 className="h-4 w-4" /> Eliminar
           </Button>
           <Button
             variant="outline"
@@ -556,6 +595,36 @@ function PropertyDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit dialog (reuses the form from the list page) */}
+      <PropertyFormDialog
+        open={editing}
+        onOpenChange={setEditing}
+        existing={allPropertiesQuery.data ?? []}
+        initial={property}
+        canManageInitial={canManage}
+      />
+
+      {/* Delete confirm */}
+      <AlertDialog open={deleting} onOpenChange={setDeleting}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Enviar a la papelera?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{property.title}" se ocultará del catálogo. Un admin puede restaurarla más tarde.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {softDelete.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />} Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppShell>
   );
 }
