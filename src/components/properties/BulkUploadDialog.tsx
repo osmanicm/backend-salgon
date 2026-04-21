@@ -336,6 +336,7 @@ export function BulkUploadDialog({
       }
       setMapping(next);
       setMatchKinds(nextKinds);
+      if (parsedJson.name) setTemplateName(parsedJson.name);
       toast.success(
         `Mapeo aplicado: ${applied} campo(s)` +
           (missing > 0 ? ` · ${missing} no encontrados en este CSV` : "")
