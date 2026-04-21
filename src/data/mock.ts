@@ -85,7 +85,17 @@ export const leads: Lead[] = [
   { id: "L-2008", name: "Nadia Solís", phone: "+52 55 8901 2345", email: "nadia@ejemplo.com", interest: "Departamento familiar Coyoacán", budget: 4600000, source: "Referral", status: "Visit", agentId: "U-002", createdAt: "2025-04-09" },
 ];
 
+const todayAt = (h: number, m: number) => {
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  // Local ISO without timezone suffix so `new Date(...)` parses as local time.
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(h)}:${pad(m)}:00`;
+};
+
 export const appointments: Appointment[] = [
+  { id: "A-3000", leadId: "L-2001", propertyId: "P-1023", date: todayAt(10, 30), notes: "Visita guiada modelo muestra" },
+  { id: "A-3006", leadId: "L-2005", propertyId: "P-1028", date: todayAt(16, 0), notes: "Cierre de oferta" },
   { id: "A-3001", leadId: "L-2003", propertyId: "P-1025", date: "2025-04-22T10:00:00", notes: "Primera visita, llevar folleto" },
   { id: "A-3002", leadId: "L-2002", propertyId: "P-1026", date: "2025-04-22T14:30:00", notes: "Revisar opciones de financiamiento" },
   { id: "A-3003", leadId: "L-2004", propertyId: "P-1024", date: "2025-04-23T11:00:00", notes: "Reunión de negociación" },
