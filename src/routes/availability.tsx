@@ -391,87 +391,111 @@ function ModelGroup({
       {items.map((r) => {
         const editing = editingId === r.id;
         const isSel = selected.has(r.id);
+        const isOpen = expanded.has(r.id);
+        const history = (r.history ?? []).slice(-5).reverse();
         return (
-          <tr key={r.id} className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]")}>
-            <td className="pl-5 pr-2 py-2.5">
-              <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
-            </td>
-            <td className="px-2 py-2.5 font-mono text-xs">{r.lot}</td>
-            <td className="px-2 py-2.5 text-muted-foreground">{r.cluster}</td>
-            <td className="px-2 py-2.5 text-right font-medium tabular-nums">
-              {editing ? (
-                <Input type="number" className="h-8 text-right tabular-nums"
-                  value={draft.price ?? r.price}
-                  onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) })} />
-              ) : fmtMXN(r.price)}
-            </td>
-            <td className="px-2 py-2.5">
-              {editing ? (
-                <Input type="date" className="h-8"
-                  value={(draft.delivery ?? r.delivery).slice(0, 10)}
-                  onChange={(e) => setDraft({ ...draft, delivery: e.target.value })} />
-              ) : (
-                <span className="text-xs">{new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</span>
-              )}
-            </td>
-            <td className="px-2 py-2.5">
-              {editing ? (
-                <Select value={(draft.status ?? r.status) as string}
-                  onValueChange={(v) => setDraft({ ...draft, status: v as AvailabilityStatus })}>
-                  <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Available">Disponible</SelectItem>
-                    <SelectItem value="Reserved">Apartado</SelectItem>
-                    <SelectItem value="Sold">Vendido</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", STATUS_TINTS[r.status])}>
-                  <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[r.status])} />
-                  {r.status === "Available" ? "Disponible" : r.status === "Reserved" ? "Apartado" : "Vendido"}
-                </span>
-              )}
-            </td>
-            <td className="px-2 py-2.5 max-w-[220px]">
-              {editing ? (
-                <Input className="h-8" value={draft.notes ?? r.notes}
-                  onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
-              ) : <span className="text-xs text-muted-foreground truncate block">{r.notes}</span>}
-            </td>
-            <td className="px-2 py-2.5">
-              {r.propertyId
-                ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
-                : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
-            </td>
-            <td className="px-5 py-2.5 text-right">
-              {editing ? (
-                <div className="inline-flex gap-1">
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
-                  <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
-                    <Save className="h-3.5 w-3.5" /> Guardar
-                  </Button>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-1">
-                  {r.status !== "Sold" && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                      onClick={() => quickMarkSold(r)}
-                      aria-label={`Marcar lote ${r.lot} como vendido`}
-                    >
-                      <CircleDollarSign className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Marcar Vendido</span>
+          <Fragment key={r.id}>
+            <tr className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]", isOpen && "bg-muted/20")}>
+              <td className="pl-5 pr-2 py-2.5">
+                <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
+              </td>
+              <td className="px-2 py-2.5 font-mono text-xs">
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(r.id)}
+                  className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+                  aria-expanded={isOpen}
+                  aria-label={isOpen ? `Ocultar historial de ${r.lot}` : `Ver historial de ${r.lot}`}
+                >
+                  {isOpen
+                    ? <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    : <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                  {r.lot}
+                </button>
+              </td>
+              <td className="px-2 py-2.5 text-muted-foreground">{r.cluster}</td>
+              <td className="px-2 py-2.5 text-right font-medium tabular-nums">
+                {editing ? (
+                  <Input type="number" className="h-8 text-right tabular-nums"
+                    value={draft.price ?? r.price}
+                    onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) })} />
+                ) : fmtMXN(r.price)}
+              </td>
+              <td className="px-2 py-2.5">
+                {editing ? (
+                  <Input type="date" className="h-8"
+                    value={(draft.delivery ?? r.delivery).slice(0, 10)}
+                    onChange={(e) => setDraft({ ...draft, delivery: e.target.value })} />
+                ) : (
+                  <span className="text-xs">{new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                )}
+              </td>
+              <td className="px-2 py-2.5">
+                {editing ? (
+                  <Select value={(draft.status ?? r.status) as string}
+                    onValueChange={(v) => setDraft({ ...draft, status: v as AvailabilityStatus })}>
+                    <SelectTrigger className="h-8 w-[130px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Available">Disponible</SelectItem>
+                      <SelectItem value="Reserved">Apartado</SelectItem>
+                      <SelectItem value="Sold">Vendido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium", STATUS_TINTS[r.status])}>
+                    <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_DOT[r.status])} />
+                    {r.status === "Available" ? "Disponible" : r.status === "Reserved" ? "Apartado" : "Vendido"}
+                  </span>
+                )}
+              </td>
+              <td className="px-2 py-2.5 max-w-[220px]">
+                {editing ? (
+                  <Input className="h-8" value={draft.notes ?? r.notes}
+                    onChange={(e) => setDraft({ ...draft, notes: e.target.value })} />
+                ) : <span className="text-xs text-muted-foreground truncate block">{r.notes}</span>}
+              </td>
+              <td className="px-2 py-2.5">
+                {r.propertyId
+                  ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
+                  : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
+              </td>
+              <td className="px-5 py-2.5 text-right">
+                {editing ? (
+                  <div className="inline-flex gap-1">
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
+                      <Save className="h-3.5 w-3.5" /> Guardar
                     </Button>
-                  )}
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              )}
-            </td>
-          </tr>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1">
+                    {r.status !== "Sold" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                        onClick={() => quickMarkSold(r)}
+                        aria-label={`Marcar lote ${r.lot} como vendido`}
+                      >
+                        <CircleDollarSign className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Marcar Vendido</span>
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </td>
+            </tr>
+            {isOpen && (
+              <tr className="border-b border-border/60 bg-muted/10">
+                <td colSpan={9} className="px-5 py-3">
+                  <HistoryLog entries={history} lot={r.lot} />
+                </td>
+              </tr>
+            )}
+          </Fragment>
         );
       })}
     </>
