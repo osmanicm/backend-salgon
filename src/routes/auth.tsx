@@ -92,15 +92,18 @@ function AuthPage() {
   const [openLog, setOpenLog] = React.useState<CompileRun | null>(null);
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "OK" | "ERROR">("all");
   const [historyQuery, setHistoryQuery] = React.useState("");
+  const [caseSensitive, setCaseSensitive] = React.useState(false);
   const filteredRuns = compileRuns.filter((r) => {
     if (historyFilter !== "all" && r.result !== historyFilter) return false;
-    const q = historyQuery.trim().toLowerCase();
-    if (!q) return true;
+    const raw = historyQuery.trim();
+    if (!raw) return true;
+    const q = caseSensitive ? raw : raw.toLowerCase();
+    const norm = (s: string) => (caseSensitive ? s : s.toLowerCase());
     return (
-      r.note.toLowerCase().includes(q) ||
-      r.result.toLowerCase().includes(q) ||
-      r.time.toLowerCase().includes(q) ||
-      r.log.toLowerCase().includes(q)
+      norm(r.note).includes(q) ||
+      norm(r.result).includes(q) ||
+      norm(r.time).includes(q) ||
+      norm(r.log).includes(q)
     );
   });
 
