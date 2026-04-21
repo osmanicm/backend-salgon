@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 // Routes that only admins should access. Agents land on /agent instead.
-const ADMIN_ONLY_PATHS = ["/users"];
+const ADMIN_ONLY_PATHS = ["/users", "/pipeline", "/availability"];
 
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { user, loading, roles } = useAuth();
