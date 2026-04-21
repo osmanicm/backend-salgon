@@ -570,18 +570,28 @@ function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
 function FichaPdfTab({
   files,
   onGenerate,
+  onRetry,
   generating,
   canManage,
+  error,
+  attempt,
+  maxRetries,
 }: {
   files: PropertyFileRow[];
   onGenerate: () => void;
+  onRetry: () => void;
   generating: boolean;
   canManage: boolean;
+  error: string | null;
+  attempt: number;
+  maxRetries: number;
 }) {
   const pdfs = files.filter(
     (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
   );
   const ficha = pdfs.find((f) => /ficha/i.test(f.label)) ?? pdfs[0] ?? null;
+  const reachedMax = attempt >= maxRetries;
+  const remaining = Math.max(0, maxRetries - attempt);
 
   return (
     <div className="space-y-3">
