@@ -39,6 +39,12 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyDetailSkeleton } from "@/components/properties/PropertyDetailSkeleton";
+import {
+  FichaPdfTabSkeleton,
+  GalleryTabSkeleton,
+  VideosTabSkeleton,
+  FilesTabSkeleton,
+} from "@/components/properties/PropertyTabSkeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useProperty,
@@ -136,7 +142,7 @@ function PropertyDetailPage() {
   const renders = useMemo(() => media.filter((m) => m.kind === "render"), [media]);
   const videos = useMemo(() => media.filter((m) => m.kind === "video"), [media]);
 
-  if (propertyQuery.isLoading || (!property && (mediaQuery.isLoading || filesQuery.isLoading))) {
+  if (propertyQuery.isLoading) {
     return <PropertyDetailSkeleton />;
   }
 
@@ -438,36 +444,54 @@ function PropertyDetailPage() {
             </TabsList>
 
             <TabsContent value="ficha" className="mt-4">
-              <FichaPdfTab
-                files={files}
-                onGenerate={() => handleGeneratePdf()}
-                onRetry={handleRetryPdf}
-                onCancel={cancelPdf}
-                generating={generatingPdf}
-                canManage={canManage}
-                error={pdfError}
-                attempt={pdfAttempt}
-                maxRetries={MAX_PDF_RETRIES}
-                status={pdfStatus}
-                elapsedMs={pdfElapsedMs}
-                durationMs={pdfDurationMs}
-              />
+              {filesQuery.isLoading ? (
+                <FichaPdfTabSkeleton />
+              ) : (
+                <FichaPdfTab
+                  files={files}
+                  onGenerate={() => handleGeneratePdf()}
+                  onRetry={handleRetryPdf}
+                  onCancel={cancelPdf}
+                  generating={generatingPdf}
+                  canManage={canManage}
+                  error={pdfError}
+                  attempt={pdfAttempt}
+                  maxRetries={MAX_PDF_RETRIES}
+                  status={pdfStatus}
+                  elapsedMs={pdfElapsedMs}
+                  durationMs={pdfDurationMs}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="photos" className="mt-4">
-              <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} />
+              {mediaQuery.isLoading ? (
+                <GalleryTabSkeleton kind="photos" />
+              ) : (
+                <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} />
+              )}
             </TabsContent>
 
             <TabsContent value="renders" className="mt-4">
-              <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} />
+              {mediaQuery.isLoading ? (
+                <GalleryTabSkeleton kind="renders" />
+              ) : (
+                <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} />
+              )}
             </TabsContent>
 
             <TabsContent value="videos" className="mt-4">
-              <VideoGallery items={videos} />
+              {mediaQuery.isLoading ? (
+                <VideosTabSkeleton />
+              ) : (
+                <VideoGallery items={videos} />
+              )}
             </TabsContent>
 
             <TabsContent value="files" className="mt-4 space-y-2">
-              {files.length === 0 ? (
+              {filesQuery.isLoading ? (
+                <FilesTabSkeleton />
+              ) : files.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
                   No hay archivos cargados.
                   {canManage && (
