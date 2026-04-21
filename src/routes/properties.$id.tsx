@@ -163,11 +163,13 @@ function PropertyDetailPage() {
   const MAX_PDF_RETRIES = 3;
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [pdfAttempt, setPdfAttempt] = useState(0);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   async function handleGeneratePdf(isRetry = false) {
     if (!property || generatingPdf) return;
     const attempt = isRetry ? pdfAttempt + 1 : 1;
     setPdfAttempt(attempt);
     setGeneratingPdf(true);
+    setPdfError(null);
     const loadingMsg = isRetry
       ? `Reintentando Ficha PDF… (intento ${attempt} de ${MAX_PDF_RETRIES})`
       : "Generando Ficha PDF…";
@@ -176,12 +178,14 @@ function PropertyDetailPage() {
       await generatePropertyPdf(property);
       toast.success("Ficha PDF lista. Usa el cuadro de impresión para guardarla.", { id: t });
       setPdfAttempt(0);
+      setPdfError(null);
     } catch (e) {
       const raw = e instanceof Error ? e.message : String(e);
       const isPopupBlocked = /popup/i.test(raw);
       const baseDescription = isPopupBlocked
         ? "Tu navegador bloqueó la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
         : raw || "Ocurrió un error inesperado.";
+      setPdfError(baseDescription);
 
       if (attempt >= MAX_PDF_RETRIES) {
         toast.error("Se alcanzó el máximo de reintentos", {
@@ -192,6 +196,7 @@ function PropertyDetailPage() {
             label: "Empezar de nuevo",
             onClick: () => {
               setPdfAttempt(0);
+              setPdfError(null);
               void handleGeneratePdf(false);
             },
           },
@@ -211,6 +216,15 @@ function PropertyDetailPage() {
       }
     } finally {
       setGeneratingPdf(false);
+    }
+  }
+  function handleRetryPdf() {
+    if (pdfAttempt >= MAX_PDF_RETRIES) {
+      setPdfAttempt(0);
+      setPdfError(null);
+      void handleGeneratePdf(false);
+    } else {
+      void handleGeneratePdf(true);
     }
   }
 
