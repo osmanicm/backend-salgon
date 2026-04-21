@@ -93,18 +93,27 @@ function AuthPage() {
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "OK" | "ERROR">("all");
   const [historyQuery, setHistoryQuery] = React.useState("");
   const [caseSensitive, setCaseSensitive] = React.useState(false);
+  const queryRegex = React.useMemo(() => {
+    const raw = historyQuery.trim();
+    if (!raw) return null;
+    // Escape regex specials, then convert wildcard '*' (encoded as \*) into '.*'
+    const pattern = raw.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+    if (!pattern || pattern === ".*") return null;
+    try {
+      return new RegExp(pattern, caseSensitive ? "g" : "gi");
+    } catch {
+      return null;
+    }
+  }, [historyQuery, caseSensitive]);
+
   const filteredRuns = compileRuns.filter((r) => {
     if (historyFilter !== "all" && r.result !== historyFilter) return false;
-    const raw = historyQuery.trim();
-    if (!raw) return true;
-    const q = caseSensitive ? raw : raw.toLowerCase();
-    const norm = (s: string) => (caseSensitive ? s : s.toLowerCase());
-    return (
-      norm(r.note).includes(q) ||
-      norm(r.result).includes(q) ||
-      norm(r.time).includes(q) ||
-      norm(r.log).includes(q)
-    );
+    if (!queryRegex) return true;
+    const test = (s: string) => {
+      queryRegex.lastIndex = 0;
+      return queryRegex.test(s);
+    };
+    return test(r.note) || test(r.result) || test(r.time) || test(r.log);
   });
 
   async function handleLogin(e: React.FormEvent) {
@@ -387,23 +396,31 @@ $ grep -n "fieldset" src/routes/properties.tsx
 function HighlightMatch({ text, query, caseSensitive = false }: { text: string; query: string; caseSensitive?: boolean }) {
   const q = query.trim();
   if (!q) return <>{text}</>;
-  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const flags = caseSensitive ? "g" : "gi";
-  const parts = text.split(new RegExp(`(${escaped})`, flags));
-  const matches = (part: string) => (caseSensitive ? part === q : part.toLowerCase() === q.toLowerCase());
-  return (
-    <>
-      {parts.map((part, i) =>
-        matches(part) ? (
-          <mark key={i} className="rounded-sm bg-primary/25 text-foreground px-0.5">
-            {part}
-          </mark>
-        ) : (
-          <React.Fragment key={i}>{part}</React.Fragment>
-        )
-      )}
-    </>
-  );
+  // Escape regex specials, then convert wildcard '*' (encoded as \*) into '.*?' (non-greedy)
+  const pattern = q.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*?");
+  if (!pattern || pattern === ".*?") return <>{text}</>;
+  let regex: RegExp;
+  try {
+    regex = new RegExp(`(${pattern})`, caseSensitive ? "g" : "gi");
+  } catch {
+    return <>{text}</>;
+  }
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
+  let key = 0;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIndex) parts.push(<React.Fragment key={key++}>{text.slice(lastIndex, m.index)}</React.Fragment>);
+    parts.push(
+      <mark key={key++} className="rounded-sm bg-primary/25 text-foreground px-0.5">
+        {m[0]}
+      </mark>
+    );
+    lastIndex = m.index + m[0].length;
+    if (m[0].length === 0) regex.lastIndex++; // avoid zero-width infinite loop
+  }
+  if (lastIndex < text.length) parts.push(<React.Fragment key={key++}>{text.slice(lastIndex)}</React.Fragment>);
+  return <>{parts}</>;
 }
 
 function Field({ icon, label, id, children }: { icon: React.ReactNode; label: string; id: string; children: React.ReactNode }) {
