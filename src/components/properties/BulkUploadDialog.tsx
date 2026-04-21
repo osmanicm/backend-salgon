@@ -308,6 +308,7 @@ export function BulkUploadDialog({
       const text = await file.text();
       const parsedJson = JSON.parse(text) as {
         kind?: string;
+        name?: string;
         fields?: Record<string, string | null>;
       };
       if (parsedJson.kind !== "salgon.property-csv-mapping" || !parsedJson.fields) {
