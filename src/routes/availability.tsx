@@ -104,6 +104,17 @@ function AvailabilityPage() {
     }
   }
 
+  function quickMarkSold(r: AvailabilityRow) {
+    if (r.status === "Sold") return;
+    const { syncedPropertyIds } = updateAvailabilityRow(r.id, { status: "Sold" });
+    const propsNote = syncedPropertyIds.length > 0
+      ? ` · propiedad ${syncedPropertyIds.join(", ")} sincronizada`
+      : "";
+    toast.success(`Lote ${r.lot} marcado como Vendido`, {
+      description: `availability_master · UPDATE status='Sold'${propsNote}`,
+    });
+  }
+
   function toggleRow(id: string, on: boolean) {
     setSelected(prev => {
       const next = new Set(prev);
