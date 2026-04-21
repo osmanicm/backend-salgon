@@ -226,6 +226,17 @@ $ grep -n "fieldset" src/routes/properties.tsx
               ))}
             </div>
           </div>
+          <Input
+            value={historyQuery}
+            onChange={(e) => setHistoryQuery(e.target.value)}
+            placeholder='Buscar (p. ej. "tsc" o "ERROR")'
+            className="h-7 mb-2 text-xs"
+          />
+          {historyQuery && (
+            <div className="text-[10px] text-muted-foreground mb-1">
+              {filteredRuns.length} de {compileRuns.length} resultados
+            </div>
+          )}
           <ul className="divide-y divide-border text-xs">
             {filteredRuns.length === 0 && (
               <li className="py-2 text-xs text-muted-foreground text-center">Sin resultados para este filtro.</li>
