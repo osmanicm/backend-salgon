@@ -184,7 +184,7 @@ function PropertiesPage() {
           <>
             {/* Mobile: card list */}
             <ul className="md:hidden space-y-3">
-              {filtered.map((p) => (
+              {paged.map((p) => (
                 <li key={p.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-[var(--shadow-soft)]">
                   <div className="relative">
                     {p.image_url ? (
@@ -256,7 +256,7 @@ function PropertiesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
+                  {paged.map((p) => (
                     <tr key={p.id} className="border-b border-border/60 hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
