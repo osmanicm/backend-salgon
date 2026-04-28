@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarCheck, Users as UsersIcon, ArrowRight, ShieldAlert, X } from "lucide-react";
+import { Building2, CalendarCheck, ArrowRight, ShieldAlert, X } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { useAuth } from "@/hooks/useAuth";
-import { appointments, leads } from "@/data/mock";
-import { useProperties } from "@/data/store";
+import { appointments } from "@/data/mock";
+import { useProperties } from "@/data/propertiesApi";
 import {
   type BlockedAttempt,
   clearBlockedAttempt,
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/agent")({
 
 function AgentDashboard() {
   const { user, profile } = useAuth();
-  const properties = useProperties();
+  const { data: properties = [] } = useProperties();
   const [blocked, setBlocked] = useState<BlockedAttempt | null>(null);
 
   // Read once on mount; don't auto-clear so a hard refresh keeps the hint
@@ -37,16 +37,14 @@ function AgentDashboard() {
   }
 
   const mine = useMemo(() => {
-    const myProps = properties.filter((p) => p.agentId === user?.id);
-    const myLeads = leads.filter((l) => l.agentId === user?.id);
-    return { myProps, myLeads, myAppts: appointments };
+    const myProps = properties.filter((p) => p.agent_id === user?.id);
+    return { myProps, myAppts: appointments };
   }, [properties, user?.id]);
 
   const name = profile?.full_name || user?.email?.split("@")[0] || "Agente";
 
   const kpis = [
     { label: "Mis propiedades", value: String(mine.myProps.length), icon: Building2, to: "/properties" as const },
-    { label: "Mis prospectos", value: String(mine.myLeads.length), icon: UsersIcon, to: "/leads" as const },
     { label: "Mis citas", value: String(mine.myAppts.length), icon: CalendarCheck, to: "/appointments" as const },
   ];
 
@@ -78,7 +76,7 @@ function AgentDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {kpis.map((k) => {
           const Icon = k.icon;
           return (
@@ -104,11 +102,7 @@ function AgentDashboard() {
         <div className="flex flex-wrap gap-2">
           <Link to="/properties" className="text-sm text-primary hover:underline">Ver propiedades</Link>
           <span className="text-muted-foreground">·</span>
-          <Link to="/leads" className="text-sm text-primary hover:underline">Mis prospectos</Link>
-          <span className="text-muted-foreground">·</span>
           <Link to="/appointments" className="text-sm text-primary hover:underline">Agenda</Link>
-          <span className="text-muted-foreground">·</span>
-          <Link to="/whatsapp" className="text-sm text-primary hover:underline">WhatsApp</Link>
         </div>
       </PageCard>
     </AppShell>
