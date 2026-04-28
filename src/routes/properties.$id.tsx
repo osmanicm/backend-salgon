@@ -537,40 +537,6 @@ function PropertyDetailPage() {
                 <VideoGallery items={videos} />
               )}
             </TabsContent>
-
-            <TabsContent value="files" className="mt-4 space-y-2">
-              {filesQuery.isLoading ? (
-                <FilesTabSkeleton />
-              ) : files.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
-                  No hay archivos cargados.
-                  {canManage && (
-                    <>
-                      {" "}
-                      <Link to="/properties" className="text-primary hover:underline">
-                        Súbelos desde Editar propiedad
-                      </Link>
-                      .
-                    </>
-                  )}
-                </div>
-              ) : (
-                files.map((f) => (
-                  <a
-                    key={f.id}
-                    href={f.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted transition-colors"
-                  >
-                    <span className="truncate flex items-center gap-1.5">
-                      <Download className="h-3.5 w-3.5 text-primary" /> {f.label}
-                    </span>
-                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  </a>
-                ))
-              )}
-            </TabsContent>
           </Tabs>
         </PageCard>
 
