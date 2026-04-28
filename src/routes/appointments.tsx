@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { appointments, leads, properties } from "@/data/mock";
+import { appointments, leads } from "@/data/mock";
+import { useProperties } from "@/data/propertiesApi";
 import { cn } from "@/lib/utils";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
