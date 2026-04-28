@@ -78,7 +78,7 @@ function ChangePasswordPage() {
       return;
     }
     if (userId) {
-      await clearMustChangePassword({ data: { user_id: userId } });
+      await clearMustChangePassword({ data: { user_id: userId }, headers: await getAuthHeaders() });
     }
     setLoading(false);
     toast.success("Contraseña actualizada");
