@@ -88,6 +88,7 @@ const propertySchema = z.object({
   agent_id: z.string().uuid().nullable(),
   model: z.string().trim().max(80).optional().or(z.literal("")),
   lot: z.string().trim().max(40).optional().or(z.literal("")),
+  delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida").or(z.literal("")),
 });
 
 function PropertiesPage() {
@@ -484,6 +485,7 @@ export function PropertyFormDialog({
     agent_id: "none",
     model: "",
     lot: "",
+    delivery_date: "",
   });
 
   React.useEffect(() => {
@@ -502,6 +504,7 @@ export function PropertyFormDialog({
         agent_id: initial.agent_id ?? "none",
         model: initial.model ?? "",
         lot: initial.lot ?? "",
+        delivery_date: initial.delivery_date ?? "",
       });
     } else {
       setForm({
@@ -517,6 +520,7 @@ export function PropertyFormDialog({
         agent_id: "none",
         model: "",
         lot: "",
+        delivery_date: "",
       });
     }
   }, [open, initial, existing]);
@@ -540,6 +544,7 @@ export function PropertyFormDialog({
       agent_id: form.agent_id === "none" ? null : form.agent_id,
       model: form.model,
       lot: form.lot,
+      delivery_date: form.delivery_date,
     });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -550,6 +555,7 @@ export function PropertyFormDialog({
       image_url: parsed.data.image_url || null,
       model: parsed.data.model || null,
       lot: parsed.data.lot || null,
+      delivery_date: parsed.data.delivery_date || null,
     };
     try {
       if (isEdit && initial) {
@@ -638,6 +644,11 @@ export function PropertyFormDialog({
             <Label># Lote</Label>
             <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="L-12, Mz 3 Lt 7…" maxLength={40} />
             <p className="text-xs text-muted-foreground">Identificador del lote</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Fecha de entrega</Label>
+            <Input type="date" value={form.delivery_date} onChange={(e) => setForm({ ...form, delivery_date: e.target.value })} />
+            <p className="text-xs text-muted-foreground">Opcional. Déjalo vacío si está por definir</p>
           </div>
           <div className="space-y-1.5">
             <Label>Agente Asignado</Label>
