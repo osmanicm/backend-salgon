@@ -491,10 +491,6 @@ function PropertyDetailPage() {
                 <VideoIcon className="h-3.5 w-3.5" /> Videos
                 <span className="text-[10px] text-muted-foreground">({videos.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="files" className="gap-1.5">
-                <Download className="h-3.5 w-3.5" /> Archivos
-                <span className="text-[10px] text-muted-foreground">({files.length})</span>
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="ficha" className="mt-4">
