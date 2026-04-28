@@ -38,15 +38,13 @@ function AgentDashboard() {
 
   const mine = useMemo(() => {
     const myProps = properties.filter((p) => p.agentId === user?.id);
-    const myLeads = leads.filter((l) => l.agentId === user?.id);
-    return { myProps, myLeads, myAppts: appointments };
+    return { myProps, myAppts: appointments };
   }, [properties, user?.id]);
 
   const name = profile?.full_name || user?.email?.split("@")[0] || "Agente";
 
   const kpis = [
     { label: "Mis propiedades", value: String(mine.myProps.length), icon: Building2, to: "/properties" as const },
-    { label: "Mis prospectos", value: String(mine.myLeads.length), icon: UsersIcon, to: "/leads" as const },
     { label: "Mis citas", value: String(mine.myAppts.length), icon: CalendarCheck, to: "/appointments" as const },
   ];
 
