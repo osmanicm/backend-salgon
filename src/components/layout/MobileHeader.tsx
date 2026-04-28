@@ -1,7 +1,26 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 export function MobileHeader({ title, subtitle }: { title: string; subtitle?: string }) {
+  const { profile, user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const initials = displayName
+    .split(" ")
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  async function handleSignOut() {
+    await signOut();
+    toast.success("Sesión cerrada");
+    navigate({ to: "/auth" });
+  }
+
   return (
     <header
       className="md:hidden sticky top-0 z-30 bg-background/90 backdrop-blur border-b border-border"
@@ -26,8 +45,18 @@ export function MobileHeader({ title, subtitle }: { title: string; subtitle?: st
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
         </button>
         <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-primary text-primary-foreground text-[11px]">LH</AvatarFallback>
+          <AvatarFallback className="bg-primary text-primary-foreground text-[11px]">
+            {initials}
+          </AvatarFallback>
         </Avatar>
+        <button
+          onClick={handleSignOut}
+          className="h-9 w-9 grid place-items-center rounded-full hover:bg-muted active:scale-95 transition text-muted-foreground"
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
+        >
+          <LogOut className="h-4.5 w-4.5" />
+        </button>
       </div>
     </header>
   );
