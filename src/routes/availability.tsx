@@ -49,6 +49,8 @@ const STATUS_DOT: Record<AvailabilityStatus, string> = {
 };
 
 function AvailabilityPage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
   const rows = useAvailability();
   const [model, setModel] = useState<string>("all");
   const [cluster, setCluster] = useState<string>("all");
