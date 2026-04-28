@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { adminResetUserPassword } from "@/utils/users-admin.functions";
+import { getAuthHeaders } from "@/lib/serverFnAuth";
 
 interface Props {
   user: { id: string; email: string | null; full_name: string | null } | null;
