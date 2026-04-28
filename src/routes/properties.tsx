@@ -813,7 +813,7 @@ function TrashDialog({
               {items.map((p) => (
                 <li key={p.id} className="px-2 py-3 flex items-center gap-3">
                   {p.image_url ? (
-                    <img src={p.image_url} alt={p.title} className="h-12 w-16 rounded-md object-cover shrink-0" />
+                    <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-12 w-16 rounded-md object-cover shrink-0" />
                   ) : (
                     <div className="h-12 w-16 rounded-md bg-muted shrink-0" />
                   )}
