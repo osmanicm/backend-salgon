@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { useAuth } from "@/hooks/useAuth";
 import { appointments } from "@/data/mock";
-import { useProperties } from "@/data/store";
+import { useProperties } from "@/data/propertiesApi";
 import {
   type BlockedAttempt,
   clearBlockedAttempt,
