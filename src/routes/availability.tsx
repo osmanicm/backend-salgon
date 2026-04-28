@@ -265,7 +265,7 @@ function AvailabilityPage() {
                 <th className="px-2 py-2.5 font-medium">Estatus</th>
                 <th className="px-2 py-2.5 font-medium">Notas</th>
                 <th className="px-2 py-2.5 font-medium">Propiedad</th>
-                <th className="px-5 py-2.5 font-medium text-right">Acciones</th>
+                {isAdmin && <th className="px-5 py-2.5 font-medium text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -274,6 +274,7 @@ function AvailabilityPage() {
                   key={modelName}
                   model={modelName}
                   items={items}
+                  isAdmin={isAdmin}
                   editingId={editingId}
                   draft={draft}
                   setDraft={setDraft}
