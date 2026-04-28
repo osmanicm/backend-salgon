@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Building2, Users, CalendarDays, MoreHorizontal, ClipboardList } from "lucide-react";
+import { Home, Building2, Users, CalendarDays, MoreHorizontal } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
