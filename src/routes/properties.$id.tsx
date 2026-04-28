@@ -498,6 +498,7 @@ function PropertyDetailPage() {
                 <FichaPdfTabSkeleton />
               ) : (
                 <FichaPdfTab
+                  property={property}
                   files={files}
                   onGenerate={() => handleGeneratePdf()}
                   onRetry={handleRetryPdf}
@@ -913,6 +914,7 @@ function PdfStatusIndicator({
 }
 
 function FichaPdfTab({
+  property,
   files,
   onGenerate,
   onRetry,
@@ -926,6 +928,7 @@ function FichaPdfTab({
   elapsedMs,
   durationMs,
 }: {
+  property: PropertyRow;
   files: PropertyFileRow[];
   onGenerate: () => void;
   onRetry: () => void;
@@ -939,6 +942,18 @@ function FichaPdfTab({
   elapsedMs: number;
   durationMs: number | null;
 }) {
+  const [printing, setPrinting] = useState(false);
+
+  async function handlePrintable() {
+    setPrinting(true);
+    try {
+      await generatePropertyPdf(property);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo abrir la versión imprimible");
+    } finally {
+      setPrinting(false);
+    }
+  }
   const pdfs = files.filter(
     (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
   );
@@ -974,9 +989,21 @@ function FichaPdfTab({
             download
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-muted transition-colors"
           >
-            <Download className="h-4 w-4 text-primary" /> Descargar PDF cargado
+            <Download className="h-4 w-4 text-primary" /> Descargar ficha actual
           </a>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={handlePrintable}
+          disabled={printing}
+          title="Abre una versión lista para imprimir o guardar como PDF desde el navegador"
+        >
+          {printing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+          Versión imprimible
+        </Button>
         {ficha && (
           <a
             href={ficha.url}
