@@ -482,6 +482,8 @@ export function PropertyFormDialog({
     area: "0",
     image_url: "",
     agent_id: "none",
+    model: "",
+    lot: "",
   });
 
   React.useEffect(() => {
@@ -498,6 +500,8 @@ export function PropertyFormDialog({
         area: String(initial.area ?? 0),
         image_url: initial.image_url ?? "",
         agent_id: initial.agent_id ?? "none",
+        model: initial.model ?? "",
+        lot: initial.lot ?? "",
       });
     } else {
       setForm({
@@ -511,6 +515,8 @@ export function PropertyFormDialog({
         area: "0",
         image_url: "",
         agent_id: "none",
+        model: "",
+        lot: "",
       });
     }
   }, [open, initial, existing]);
