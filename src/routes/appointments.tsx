@@ -187,6 +187,7 @@ type ApptForm = { clientName: string; clientPhone: string; propertyId: string; d
 const emptyAppt: ApptForm = { clientName: "", clientPhone: "", propertyId: "", date: "", time: "", notes: "" };
 
 function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
+  const { data: properties = [] } = useProperties();
   const [form, setForm] = useState<ApptForm>(emptyAppt);
   const [errors, setErrors] = useState<Partial<Record<keyof ApptForm, string>>>({});
 
