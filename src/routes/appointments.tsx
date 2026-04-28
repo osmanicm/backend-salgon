@@ -154,9 +154,17 @@ function NewAppointmentDialog() {
   );
 }
 
+const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
+
 const appointmentSchema = z
   .object({
-    leadId: z.string().min(1, "Selecciona un prospecto"),
+    clientName: z.string().trim().min(2, "Nombre del cliente requerido").max(100, "Máx. 100 caracteres"),
+    clientPhone: z
+      .string()
+      .trim()
+      .min(7, "Teléfono requerido")
+      .max(20, "Teléfono inválido")
+      .regex(phoneRegex, "Teléfono inválido (usa dígitos, espacios, +, -, ())"),
     propertyId: z.string().min(1, "Selecciona una propiedad"),
     date: z.string().min(1, "Fecha requerida").regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
     time: z.string().min(1, "Hora requerida").regex(/^\d{2}:\d{2}$/, "Hora inválida"),
@@ -173,8 +181,8 @@ const appointmentSchema = z
     }
   });
 
-type ApptForm = { leadId: string; propertyId: string; date: string; time: string; notes: string };
-const emptyAppt: ApptForm = { leadId: "", propertyId: "", date: "", time: "", notes: "" };
+type ApptForm = { clientName: string; clientPhone: string; propertyId: string; date: string; time: string; notes: string };
+const emptyAppt: ApptForm = { clientName: "", clientPhone: "", propertyId: "", date: "", time: "", notes: "" };
 
 function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
   const [form, setForm] = useState<ApptForm>(emptyAppt);
