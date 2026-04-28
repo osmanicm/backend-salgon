@@ -102,11 +102,7 @@ function AgentDashboard() {
         <div className="flex flex-wrap gap-2">
           <Link to="/properties" className="text-sm text-primary hover:underline">Ver propiedades</Link>
           <span className="text-muted-foreground">·</span>
-          <Link to="/leads" className="text-sm text-primary hover:underline">Mis prospectos</Link>
-          <span className="text-muted-foreground">·</span>
           <Link to="/appointments" className="text-sm text-primary hover:underline">Agenda</Link>
-          <span className="text-muted-foreground">·</span>
-          <Link to="/whatsapp" className="text-sm text-primary hover:underline">WhatsApp</Link>
         </div>
       </PageCard>
     </AppShell>
