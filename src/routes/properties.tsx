@@ -485,6 +485,7 @@ export function PropertyFormDialog({
     agent_id: "none",
     model: "",
     lot: "",
+    delivery_date: "",
   });
 
   React.useEffect(() => {
