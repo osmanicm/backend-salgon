@@ -27,6 +27,7 @@ export const Route = createFileRoute("/appointments")({
 
 function AppointmentsPage() {
   const [month, setMonth] = useState(new Date(2025, 3, 1));
+  const { data: properties = [] } = useProperties();
 
   return (
     <AppShell title="Citas" subtitle="Agenda y administra las visitas a propiedades">
