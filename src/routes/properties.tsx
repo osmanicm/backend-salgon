@@ -169,6 +169,47 @@ function PropertiesIndex() {
     navigate({ to: "/whatsapp" });
   }
 
+  async function shareNative(p: PropertyRow) {
+    const text =
+      `🏠 *${p.title}*\n` +
+      `📍 ${p.location}\n` +
+      `💰 ${fmtMoney(Number(p.price))}\n` +
+      `🛏️ ${p.bedrooms} recámaras · 🛁 ${p.bathrooms} baños · 📐 ${p.area} m²\n` +
+      `Folio: ${p.code}`;
+    const shareData: ShareData = { title: p.title, text };
+
+    try {
+      if (p.image_url && typeof navigator !== "undefined" && "canShare" in navigator) {
+        try {
+          const res = await fetch(p.image_url);
+          if (res.ok) {
+            const blob = await res.blob();
+            const mimeType = blob.type || "image/jpeg";
+            const ext = mimeType.split("/")[1]?.split("+")[0] || "jpg";
+            const file = new File([blob], `${p.code}.${ext}`, { type: mimeType });
+            if (navigator.canShare?.({ files: [file] })) {
+              shareData.files = [file];
+            }
+          }
+        } catch (e) {
+          console.error("No se pudo adjuntar la imagen", e);
+        }
+      }
+
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(text);
+      toast.success("Información copiada al portapapeles");
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
+      toast.error("No se pudo compartir");
+    }
+  }
+
   async function confirmDelete() {
     if (!deleting) return;
     if (!canManage(deleting)) {
@@ -285,14 +326,14 @@ function PropertiesIndex() {
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                       )}
-                      <LeadPickerPopover
-                        onPick={(lead) => shareOnWhatsapp(p, lead)}
-                        trigger={
-                          <Button size="sm" className="gap-1.5 bg-success text-success-foreground hover:bg-success/90" aria-label="WhatsApp">
-                            <Share2 className="h-3.5 w-3.5" />
-                          </Button>
-                        }
-                      />
+                      <Button
+                        size="sm"
+                        className="gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+                        aria-label="Compartir"
+                        onClick={() => shareNative(p)}
+                      >
+                        <Share2 className="h-3.5 w-3.5" />
+                      </Button>
                       {canManage(p) && (
                         <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar" onClick={() => setDeleting(p)}>
                           <Trash2 className="h-4 w-4" />
