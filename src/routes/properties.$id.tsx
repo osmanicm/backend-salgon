@@ -63,6 +63,60 @@ import { supabase } from "@/integrations/supabase/client";
 import { normalizeImageUrl } from "@/lib/imageUrl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import JSZip from "jszip";
+
+function filenameFromUrl(url: string, fallback = "archivo"): string {
+  try {
+    const u = new URL(url);
+    const last = u.pathname.split("/").filter(Boolean).pop();
+    return last ? decodeURIComponent(last) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function triggerDownload(url: string, filename: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`No se pudo descargar (${res.status})`);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+async function downloadAsZip(
+  items: { url: string; title?: string | null }[],
+  zipName: string,
+) {
+  if (items.length === 0) return;
+  const zip = new JSZip();
+  let i = 0;
+  for (const it of items) {
+    try {
+      const res = await fetch(it.url);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const base = (it.title?.trim() || filenameFromUrl(it.url, `archivo-${++i}`)).replace(/[\\/:*?"<>|]+/g, "-");
+      zip.file(base, blob);
+    } catch {
+      // skip failed item
+    }
+  }
+  const out = await zip.generateAsync({ type: "blob" });
+  const objectUrl = URL.createObjectURL(out);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = zipName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
 
 export const Route = createFileRoute("/properties/$id")({
   component: PropertyDetailPage,
@@ -437,10 +491,6 @@ function PropertyDetailPage() {
                 <VideoIcon className="h-3.5 w-3.5" /> Videos
                 <span className="text-[10px] text-muted-foreground">({videos.length})</span>
               </TabsTrigger>
-              <TabsTrigger value="files" className="gap-1.5">
-                <Download className="h-3.5 w-3.5" /> Archivos
-                <span className="text-[10px] text-muted-foreground">({files.length})</span>
-              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="ficha" className="mt-4">
@@ -468,7 +518,7 @@ function PropertyDetailPage() {
               {mediaQuery.isLoading ? (
                 <GalleryTabSkeleton kind="photos" />
               ) : (
-                <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} />
+                <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} zipBaseName={property.code} />
               )}
             </TabsContent>
 
@@ -476,7 +526,7 @@ function PropertyDetailPage() {
               {mediaQuery.isLoading ? (
                 <GalleryTabSkeleton kind="renders" />
               ) : (
-                <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} />
+                <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} zipBaseName={property.code} />
               )}
             </TabsContent>
 
@@ -484,41 +534,7 @@ function PropertyDetailPage() {
               {mediaQuery.isLoading ? (
                 <VideosTabSkeleton />
               ) : (
-                <VideoGallery items={videos} />
-              )}
-            </TabsContent>
-
-            <TabsContent value="files" className="mt-4 space-y-2">
-              {filesQuery.isLoading ? (
-                <FilesTabSkeleton />
-              ) : files.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
-                  No hay archivos cargados.
-                  {canManage && (
-                    <>
-                      {" "}
-                      <Link to="/properties" className="text-primary hover:underline">
-                        Súbelos desde Editar propiedad
-                      </Link>
-                      .
-                    </>
-                  )}
-                </div>
-              ) : (
-                files.map((f) => (
-                  <a
-                    key={f.id}
-                    href={f.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted transition-colors"
-                  >
-                    <span className="truncate flex items-center gap-1.5">
-                      <Download className="h-3.5 w-3.5 text-primary" /> {f.label}
-                    </span>
-                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                  </a>
-                ))
+                <VideoGallery items={videos} zipBaseName={property.code} />
               )}
             </TabsContent>
           </Tabs>
@@ -661,16 +677,57 @@ function Gallery({
   title,
   icon,
   items,
+  zipBaseName,
 }: {
   title: string;
   icon: React.ReactNode;
   items: PropertyMediaRow[];
+  zipBaseName: string;
 }) {
+  const [zipping, setZipping] = useState(false);
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+  async function handleZip() {
+    setZipping(true);
+    const t = toast.loading(`Preparando ${title.toLowerCase()}…`);
+    try {
+      await downloadAsZip(items, `${zipBaseName}-${slug}.zip`);
+      toast.success(`${title} descargados`, { id: t });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al descargar", { id: t });
+    } finally {
+      setZipping(false);
+    }
+  }
+
+  async function handleOne(m: PropertyMediaRow) {
+    try {
+      await triggerDownload(m.url, m.title || filenameFromUrl(m.url, `${slug}.jpg`));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al descargar");
+    }
+  }
+
   return (
     <div>
-      <div className="flex items-center gap-1.5 text-sm font-medium mb-2">
-        {icon} {title}
-        <span className="text-xs text-muted-foreground font-normal">({items.length})</span>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-1.5 text-sm font-medium">
+          {icon} {title}
+          <span className="text-xs text-muted-foreground font-normal">({items.length})</span>
+        </div>
+        {items.length > 0 && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={handleZip}
+            disabled={zipping}
+          >
+            {zipping ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            Descargar todas (.zip)
+          </Button>
+        )}
       </div>
       {items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
@@ -679,15 +736,28 @@ function Gallery({
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
           {items.map((m) => (
-            <a
+            <div
               key={m.id}
-              href={m.url}
-              target="_blank"
-              rel="noreferrer"
-              className="snap-start shrink-0 w-40 h-28 rounded-lg overflow-hidden border border-border bg-muted hover:opacity-90 transition-opacity"
+              className="snap-start shrink-0 w-40 relative group"
             >
-              <img src={m.url} alt={m.title || title} className="w-full h-full object-cover" loading="lazy" />
-            </a>
+              <a
+                href={m.url}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-40 h-28 rounded-lg overflow-hidden border border-border bg-muted hover:opacity-90 transition-opacity"
+              >
+                <img src={m.url} alt={m.title || title} className="w-full h-full object-cover" loading="lazy" />
+              </a>
+              <button
+                type="button"
+                onClick={() => handleOne(m)}
+                className="absolute top-1 right-1 h-7 w-7 rounded-md bg-background/90 border border-border grid place-items-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                aria-label="Descargar"
+                title="Descargar"
+              >
+                <Download className="h-3.5 w-3.5" />
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -695,12 +765,50 @@ function Gallery({
   );
 }
 
-function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
+function VideoGallery({ items, zipBaseName }: { items: PropertyMediaRow[]; zipBaseName: string }) {
+  const [zipping, setZipping] = useState(false);
+
+  async function handleZip() {
+    setZipping(true);
+    const t = toast.loading("Preparando videos…");
+    try {
+      await downloadAsZip(items, `${zipBaseName}-videos.zip`);
+      toast.success("Videos descargados", { id: t });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al descargar", { id: t });
+    } finally {
+      setZipping(false);
+    }
+  }
+
+  async function handleOne(m: PropertyMediaRow) {
+    try {
+      await triggerDownload(m.url, m.title || filenameFromUrl(m.url, "video.mp4"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al descargar");
+    }
+  }
+
   return (
     <div>
-      <div className="flex items-center gap-1.5 text-sm font-medium mb-2">
-        <VideoIcon className="h-4 w-4" /> Videos
-        <span className="text-xs text-muted-foreground font-normal">({items.length})</span>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-1.5 text-sm font-medium">
+          <VideoIcon className="h-4 w-4" /> Videos
+          <span className="text-xs text-muted-foreground font-normal">({items.length})</span>
+        </div>
+        {items.length > 0 && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={handleZip}
+            disabled={zipping}
+          >
+            {zipping ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+            Descargar todos (.zip)
+          </Button>
+        )}
       </div>
       {items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
@@ -709,16 +817,26 @@ function VideoGallery({ items }: { items: PropertyMediaRow[] }) {
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
           {items.map((m) => (
-            <a
-              key={m.id}
-              href={m.url}
-              target="_blank"
-              rel="noreferrer"
-              className="snap-start shrink-0 w-48 h-28 rounded-lg overflow-hidden border border-border bg-black/80 grid place-items-center text-white text-xs gap-1 hover:opacity-90 transition-opacity"
-            >
-              <VideoIcon className="h-6 w-6" />
-              <span className="truncate max-w-[10rem] px-2">{m.title || "Video"}</span>
-            </a>
+            <div key={m.id} className="snap-start shrink-0 w-48 relative group">
+              <a
+                href={m.url}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-48 h-28 rounded-lg overflow-hidden border border-border bg-black/80 grid place-items-center text-white text-xs gap-1 hover:opacity-90 transition-opacity"
+              >
+                <VideoIcon className="h-6 w-6" />
+                <span className="truncate max-w-[10rem] px-2">{m.title || "Video"}</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => handleOne(m)}
+                className="absolute top-1 right-1 h-7 w-7 rounded-md bg-background/90 border border-border grid place-items-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                aria-label="Descargar"
+                title="Descargar"
+              >
+                <Download className="h-3.5 w-3.5" />
+              </button>
+            </div>
           ))}
         </div>
       )}
