@@ -50,10 +50,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/t2Vw5GFTphgxpGSxkvHJKqBLfMo1/social-images/social-1776724155353-1000383238.webp" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/salgon-logo.png" },
+      { rel: "apple-touch-icon", href: "/salgon-logo.png" },
     ],
   }),
   shellComponent: RootShell,
