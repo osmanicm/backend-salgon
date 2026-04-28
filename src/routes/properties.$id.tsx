@@ -498,6 +498,7 @@ function PropertyDetailPage() {
                 <FichaPdfTabSkeleton />
               ) : (
                 <FichaPdfTab
+                  property={property}
                   files={files}
                   onGenerate={() => handleGeneratePdf()}
                   onRetry={handleRetryPdf}
