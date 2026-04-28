@@ -538,6 +538,8 @@ export function PropertyFormDialog({
       area: Number(form.area),
       image_url: form.image_url,
       agent_id: form.agent_id === "none" ? null : form.agent_id,
+      model: form.model,
+      lot: form.lot,
     });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -546,6 +548,8 @@ export function PropertyFormDialog({
     const payload = {
       ...parsed.data,
       image_url: parsed.data.image_url || null,
+      model: parsed.data.model || null,
+      lot: parsed.data.lot || null,
     };
     try {
       if (isEdit && initial) {
