@@ -625,10 +625,13 @@ export function PropertyFormDialog({
             </Select>
             <p className="text-xs text-muted-foreground">Solo el agente asignado o un admin podrán editarla</p>
           </div>
-          <div className="space-y-1.5">
-            <Label>URL de imagen de portada</Label>
-            <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" maxLength={500} />
-            <p className="text-xs text-muted-foreground">Opcional · debe iniciar con http(s)://</p>
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label>Imagen de portada</Label>
+            <PropertyCoverInput
+              value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              propertyId={initial?.id}
+            />
           </div>
 
           {isEdit && initial && !locked && (
