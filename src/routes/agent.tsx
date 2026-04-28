@@ -22,7 +22,7 @@ export const Route = createFileRoute("/agent")({
 
 function AgentDashboard() {
   const { user, profile } = useAuth();
-  const properties = useProperties();
+  const { data: properties = [] } = useProperties();
   const [blocked, setBlocked] = useState<BlockedAttempt | null>(null);
 
   // Read once on mount; don't auto-clear so a hard refresh keeps the hint
@@ -37,7 +37,7 @@ function AgentDashboard() {
   }
 
   const mine = useMemo(() => {
-    const myProps = properties.filter((p) => p.agentId === user?.id);
+    const myProps = properties.filter((p) => p.agent_id === user?.id);
     return { myProps, myAppts: appointments };
   }, [properties, user?.id]);
 
