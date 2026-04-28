@@ -326,14 +326,14 @@ function PropertiesIndex() {
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
                       )}
-                      <LeadPickerPopover
-                        onPick={(lead) => shareOnWhatsapp(p, lead)}
-                        trigger={
-                          <Button size="sm" className="gap-1.5 bg-success text-success-foreground hover:bg-success/90" aria-label="WhatsApp">
-                            <Share2 className="h-3.5 w-3.5" />
-                          </Button>
-                        }
-                      />
+                      <Button
+                        size="sm"
+                        className="gap-1.5 bg-success text-success-foreground hover:bg-success/90"
+                        aria-label="Compartir"
+                        onClick={() => shareNative(p)}
+                      >
+                        <Share2 className="h-3.5 w-3.5" />
+                      </Button>
                       {canManage(p) && (
                         <Button size="icon" variant="ghost" className="h-9 w-9 text-destructive shrink-0" aria-label="Eliminar" onClick={() => setDeleting(p)}>
                           <Trash2 className="h-4 w-4" />
