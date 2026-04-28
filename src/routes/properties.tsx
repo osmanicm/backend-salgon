@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, Share2, Loader2, FileSpreadsheet, RotateCcw, Archive } from "lucide-react";
 import { BulkUploadDialog } from "@/components/properties/BulkUploadDialog";
 import { PropertyMediaManager } from "@/components/properties/PropertyMediaManager";
+import { PropertyCoverInput } from "@/components/properties/PropertyCoverInput";
+import { normalizeImageUrl } from "@/lib/imageUrl";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
