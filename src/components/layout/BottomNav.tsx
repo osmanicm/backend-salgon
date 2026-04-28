@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
 type Tab = {
-  to: "/" | "/agent" | "/properties" | "/leads" | "/appointments" | "/whatsapp" | "/more";
+  to: "/" | "/agent" | "/properties" | "/availability" | "/leads" | "/appointments" | "/whatsapp" | "/more";
   label: string;
   icon: typeof Home;
   exact?: boolean;
@@ -21,9 +21,8 @@ const adminTabs: Tab[] = [
 const agentTabs: Tab[] = [
   { to: "/agent", label: "Inicio", icon: Home, exact: true },
   { to: "/properties", label: "Propiedades", icon: Building2 },
-  { to: "/leads", label: "Prospectos", icon: Users },
+  { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
-  { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
 ];
 
 export function BottomNav() {

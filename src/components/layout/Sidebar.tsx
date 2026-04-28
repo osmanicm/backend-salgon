@@ -29,9 +29,8 @@ const adminNav = [
 const agentNav = [
   { to: "/agent", label: "Inicio", icon: LayoutDashboard },
   { to: "/properties", label: "Propiedades", icon: Building2 },
-  { to: "/leads", label: "Prospectos", icon: Users },
+  { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
-  { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
 ] as const;
 
 export function Sidebar() {
