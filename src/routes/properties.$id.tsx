@@ -60,6 +60,7 @@ import { fmtMoney } from "@/data/mock";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeImageUrl } from "@/lib/imageUrl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
