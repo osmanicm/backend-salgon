@@ -86,6 +86,8 @@ const propertySchema = z.object({
   area: z.number().min(0).max(99_999),
   image_url: z.string().trim().url("URL inválida").max(500).or(z.literal("")),
   agent_id: z.string().uuid().nullable(),
+  model: z.string().trim().max(80).optional().or(z.literal("")),
+  lot: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
 function PropertiesPage() {
