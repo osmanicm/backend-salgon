@@ -65,7 +65,7 @@ function UsersPage() {
   const usersQuery = useQuery({
     queryKey: ["managed-users"],
     queryFn: async () => {
-      const res = await listManagedUsers();
+      const res = await listManagedUsers({ headers: await getAuthHeaders() });
       if (res.error) throw new Error(res.error);
       return res.users;
     },
