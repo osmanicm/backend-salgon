@@ -630,6 +630,16 @@ export function PropertyFormDialog({
             <p className="text-xs text-muted-foreground">Ciudad y zona, máx. 200 caracteres</p>
           </div>
           <div className="space-y-1.5">
+            <Label>Modelo</Label>
+            <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="Modelo A, Tipo Premium…" maxLength={80} />
+            <p className="text-xs text-muted-foreground">Nombre/tipo del modelo</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label># Lote</Label>
+            <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="L-12, Mz 3 Lt 7…" maxLength={40} />
+            <p className="text-xs text-muted-foreground">Identificador del lote</p>
+          </div>
+          <div className="space-y-1.5">
             <Label>Agente Asignado</Label>
             <Select value={form.agent_id} onValueChange={(v) => setForm({ ...form, agent_id: v })}>
               <SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
