@@ -369,11 +369,12 @@ function FilterSelect({
 }
 
 function ModelGroup({
-  model, items, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
+  model, items, isAdmin, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
   selected, toggleRow, quickMarkSold, expanded, toggleExpand,
 }: {
   model: string;
   items: AvailabilityRow[];
+  isAdmin: boolean;
   editingId: string | null;
   draft: Partial<AvailabilityRow>;
   setDraft: (d: Partial<AvailabilityRow>) => void;
