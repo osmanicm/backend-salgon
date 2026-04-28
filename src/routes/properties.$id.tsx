@@ -914,6 +914,7 @@ function PdfStatusIndicator({
 }
 
 function FichaPdfTab({
+  property,
   files,
   onGenerate,
   onRetry,
@@ -927,6 +928,7 @@ function FichaPdfTab({
   elapsedMs,
   durationMs,
 }: {
+  property: PropertyRow;
   files: PropertyFileRow[];
   onGenerate: () => void;
   onRetry: () => void;
@@ -940,6 +942,18 @@ function FichaPdfTab({
   elapsedMs: number;
   durationMs: number | null;
 }) {
+  const [printing, setPrinting] = useState(false);
+
+  async function handlePrintable() {
+    setPrinting(true);
+    try {
+      await generatePropertyPdf(property);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo abrir la versión imprimible");
+    } finally {
+      setPrinting(false);
+    }
+  }
   const pdfs = files.filter(
     (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
   );
