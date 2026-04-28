@@ -1024,7 +1024,7 @@ function generatePropertyPdf(property: PropertyRow): Promise<void> {
 </style></head><body>
   <h1>${escapeHtml(property.title)} <span class="badge">${escapeHtml(property.status)}</span></h1>
   <div class="muted">Folio ${escapeHtml(property.code)} · ${escapeHtml(property.location)}</div>
-  ${property.image_url ? `<img class="cover" src="${escapeHtml(property.image_url)}" />` : ""}
+  ${property.image_url ? `<img class="cover" src="${escapeHtml(normalizeImageUrl(property.image_url))}" />` : ""}
   <div class="grid">
     <div class="cell"><div class="label">Modelo</div><div class="value">${escapeHtml(property.model || "—")}</div></div>
     <div class="cell"><div class="label">Lote</div><div class="value">${escapeHtml(property.lot || "—")}</div></div>
