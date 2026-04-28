@@ -63,6 +63,60 @@ import { supabase } from "@/integrations/supabase/client";
 import { normalizeImageUrl } from "@/lib/imageUrl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import JSZip from "jszip";
+
+function filenameFromUrl(url: string, fallback = "archivo"): string {
+  try {
+    const u = new URL(url);
+    const last = u.pathname.split("/").filter(Boolean).pop();
+    return last ? decodeURIComponent(last) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function triggerDownload(url: string, filename: string) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`No se pudo descargar (${res.status})`);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+async function downloadAsZip(
+  items: { url: string; title?: string | null }[],
+  zipName: string,
+) {
+  if (items.length === 0) return;
+  const zip = new JSZip();
+  let i = 0;
+  for (const it of items) {
+    try {
+      const res = await fetch(it.url);
+      if (!res.ok) continue;
+      const blob = await res.blob();
+      const base = (it.title?.trim() || filenameFromUrl(it.url, `archivo-${++i}`)).replace(/[\\/:*?"<>|]+/g, "-");
+      zip.file(base, blob);
+    } catch {
+      // skip failed item
+    }
+  }
+  const out = await zip.generateAsync({ type: "blob" });
+  const objectUrl = URL.createObjectURL(out);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = zipName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
 
 export const Route = createFileRoute("/properties/$id")({
   component: PropertyDetailPage,
