@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ResetPasswordDialog } from "@/components/users/ResetPasswordDialog";
 import { listManagedUsers, type ManagedUser } from "@/utils/users-admin.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/lib/serverFnAuth";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
 export const Route = createFileRoute("/users")({
@@ -64,7 +65,7 @@ function UsersPage() {
   const usersQuery = useQuery({
     queryKey: ["managed-users"],
     queryFn: async () => {
-      const res = await listManagedUsers();
+      const res = await listManagedUsers({ headers: await getAuthHeaders() });
       if (res.error) throw new Error(res.error);
       return res.users;
     },

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { clearMustChangePassword } from "@/utils/users-admin.functions";
+import { getAuthHeaders } from "@/lib/serverFnAuth";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
 export const Route = createFileRoute("/change-password")({
@@ -77,7 +78,7 @@ function ChangePasswordPage() {
       return;
     }
     if (userId) {
-      await clearMustChangePassword({ data: { user_id: userId } });
+      await clearMustChangePassword({ data: { user_id: userId }, headers: await getAuthHeaders() });
     }
     setLoading(false);
     toast.success("Contraseña actualizada");
