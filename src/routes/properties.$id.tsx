@@ -204,7 +204,7 @@ function PropertyDetailPage() {
       `¿Te gustaría agendar una visita?`;
 
     let image: { filename: string; dataUrl: string; sizeBytes: number; mimeType: string } | undefined;
-    const cover = property.image_url || photos[0]?.url;
+    const cover = normalizeImageUrl(property.image_url) || photos[0]?.url;
     if (cover) {
       try {
         const res = await fetch(cover);
