@@ -27,23 +27,24 @@ function isSameMonth(a: Date, b: Date) {
 
 function DashboardPage() {
   const availability = useAvailability();
-  const properties = useProperties();
+  const { data: propertiesData = [] } = useProperties();
+  const properties = useStoreProperties();
 
   const stats = useMemo(() => {
     const now = new Date();
-    const disponibles = availability.filter((r) => r.status === "Available").length;
-    const vendidasMes = availability.filter(
-      (r) => r.status === "Sold" && isSameMonth(new Date(r.updatedAt), now),
+    const disponibles = propertiesData.filter((p) => p.status === "Available").length;
+    const vendidasMes = propertiesData.filter(
+      (p) => p.status === "Sold" && isSameMonth(new Date(p.updated_at), now),
     ).length;
     const prospectosActivos = leads.filter((l) => l.status !== "Closed").length;
     const citasHoy = appointments.filter((a) => isSameDay(new Date(a.date), now));
     const ventasCerradas = availability.filter((r) => r.status === "Sold");
     return { disponibles, vendidasMes, prospectosActivos, citasHoy, ventasCerradas };
-  }, [availability]);
+  }, [availability, propertiesData]);
 
   const kpis = [
-    { label: "Propiedades disponibles", value: String(stats.disponibles), icon: Home, tint: "text-success bg-success/10", to: "/availability" as const },
-    { label: "Vendidas este mes", value: String(stats.vendidasMes), icon: BadgeDollarSign, tint: "text-gold-foreground bg-gold/20", to: "/availability" as const },
+    { label: "Propiedades disponibles", value: String(stats.disponibles), icon: Home, tint: "text-success bg-success/10", to: "/properties" as const },
+    { label: "Vendidas este mes", value: String(stats.vendidasMes), icon: BadgeDollarSign, tint: "text-gold-foreground bg-gold/20", to: "/properties" as const },
     { label: "Prospectos activos", value: String(stats.prospectosActivos), icon: UsersIcon, tint: "text-info bg-info/10", to: "/leads" as const },
     { label: "Citas hoy", value: String(stats.citasHoy.length), icon: CalendarCheck, tint: "text-primary bg-primary/10", to: "/appointments" as const },
     { label: "Ventas cerradas", value: String(stats.ventasCerradas.length), icon: CheckCircle2, tint: "text-success bg-success/10", to: "/pipeline" as const },
