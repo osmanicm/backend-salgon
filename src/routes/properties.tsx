@@ -670,7 +670,7 @@ function ViewDialog({ property, onClose }: { property: PropertyRow | null; onClo
               <DialogDescription>Folio {property.code}</DialogDescription>
             </DialogHeader>
             {property.image_url && (
-              <img src={property.image_url} alt={property.title} className="w-full h-56 object-cover rounded-lg" />
+              <img src={normalizeImageUrl(property.image_url)} alt={property.title} className="w-full h-56 object-cover rounded-lg" />
             )}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Field label="Precio">{fmtMoney(Number(property.price))}</Field>
