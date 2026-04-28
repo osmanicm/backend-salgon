@@ -15,6 +15,7 @@ import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
@@ -50,6 +51,11 @@ const MoreRoute = MoreRouteImport.update({
 const LeadsRoute = LeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangePasswordRoute = ChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AvailabilityRoute = AvailabilityRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
+  '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/pipeline': typeof PipelineRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
+  '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/pipeline': typeof PipelineRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
+  '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/pipeline': typeof PipelineRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/auth'
     | '/availability'
+    | '/change-password'
     | '/leads'
     | '/more'
     | '/pipeline'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/auth'
     | '/availability'
+    | '/change-password'
     | '/leads'
     | '/more'
     | '/pipeline'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/auth'
     | '/availability'
+    | '/change-password'
     | '/leads'
     | '/more'
     | '/pipeline'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   AppointmentsRoute: typeof AppointmentsRoute
   AuthRoute: typeof AuthRoute
   AvailabilityRoute: typeof AvailabilityRoute
+  ChangePasswordRoute: typeof ChangePasswordRoute
   LeadsRoute: typeof LeadsRoute
   MoreRoute: typeof MoreRoute
   PipelineRoute: typeof PipelineRoute
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/leads'
       preLoaderRoute: typeof LeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-password': {
+      id: '/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/availability': {
@@ -292,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppointmentsRoute: AppointmentsRoute,
   AuthRoute: AuthRoute,
   AvailabilityRoute: AvailabilityRoute,
+  ChangePasswordRoute: ChangePasswordRoute,
   LeadsRoute: LeadsRoute,
   MoreRoute: MoreRoute,
   PipelineRoute: PipelineRoute,
