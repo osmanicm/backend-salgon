@@ -112,7 +112,7 @@ function AuthPage() {
     <div className="min-h-screen grid place-items-center bg-background px-4">
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center gap-2 justify-center mb-8">
-          <img src={salgonLogo} alt="Salgon" className="h-10 w-10 rounded-lg object-cover" />
+          <img src="/salgon-logo.png" alt="Salgon" className="h-10 w-10 rounded-lg object-cover" />
           <div>
             <div className="font-semibold tracking-tight text-lg">Salgon</div>
             <div className="text-xs text-muted-foreground -mt-0.5">Suite Inmobiliaria</div>

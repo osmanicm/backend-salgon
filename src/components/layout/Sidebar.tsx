@@ -12,7 +12,6 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import salgonLogo from "@/assets/salgon-logo.png";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
@@ -46,7 +45,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex h-screen w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground sticky top-0">
       <div className="flex items-center gap-2 px-6 h-16 border-b border-sidebar-border">
-        <img src={salgonLogo} alt="Salgon" className="h-9 w-9 rounded-lg object-cover" />
+        <img src="/salgon-logo.png" alt="Salgon" className="h-9 w-9 rounded-lg object-cover" />
         <div className="leading-tight">
           <div className="font-semibold tracking-tight">Salgon</div>
           <div className="text-[11px] text-sidebar-foreground/60">Suite Inmobiliaria</div>
