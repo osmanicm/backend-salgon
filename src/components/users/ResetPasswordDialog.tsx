@@ -89,6 +89,7 @@ export function ResetPasswordDialog({ user, open, onOpenChange, onSuccess }: Pro
           new_password: password,
           force_change_on_next_login: forceChange,
         },
+        headers: await getAuthHeaders(),
       });
       if (!res.ok) {
         toast.error(res.error ?? "No se pudo restablecer la contraseña");
