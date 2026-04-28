@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ResetPasswordDialog } from "@/components/users/ResetPasswordDialog";
 import { listManagedUsers, type ManagedUser } from "@/utils/users-admin.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthHeaders } from "@/lib/serverFnAuth";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
 export const Route = createFileRoute("/users")({
