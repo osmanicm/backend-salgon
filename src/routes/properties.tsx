@@ -86,6 +86,8 @@ const propertySchema = z.object({
   area: z.number().min(0).max(99_999),
   image_url: z.string().trim().url("URL inválida").max(500).or(z.literal("")),
   agent_id: z.string().uuid().nullable(),
+  model: z.string().trim().max(80).optional().or(z.literal("")),
+  lot: z.string().trim().max(40).optional().or(z.literal("")),
 });
 
 function PropertiesPage() {
@@ -480,6 +482,8 @@ export function PropertyFormDialog({
     area: "0",
     image_url: "",
     agent_id: "none",
+    model: "",
+    lot: "",
   });
 
   React.useEffect(() => {
@@ -496,6 +500,8 @@ export function PropertyFormDialog({
         area: String(initial.area ?? 0),
         image_url: initial.image_url ?? "",
         agent_id: initial.agent_id ?? "none",
+        model: initial.model ?? "",
+        lot: initial.lot ?? "",
       });
     } else {
       setForm({
@@ -509,6 +515,8 @@ export function PropertyFormDialog({
         area: "0",
         image_url: "",
         agent_id: "none",
+        model: "",
+        lot: "",
       });
     }
   }, [open, initial, existing]);
@@ -530,6 +538,8 @@ export function PropertyFormDialog({
       area: Number(form.area),
       image_url: form.image_url,
       agent_id: form.agent_id === "none" ? null : form.agent_id,
+      model: form.model,
+      lot: form.lot,
     });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -538,6 +548,8 @@ export function PropertyFormDialog({
     const payload = {
       ...parsed.data,
       image_url: parsed.data.image_url || null,
+      model: parsed.data.model || null,
+      lot: parsed.data.lot || null,
     };
     try {
       if (isEdit && initial) {
@@ -616,6 +628,16 @@ export function PropertyFormDialog({
             <Label>Ubicación *</Label>
             <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="CDMX, Polanco" required maxLength={200} />
             <p className="text-xs text-muted-foreground">Ciudad y zona, máx. 200 caracteres</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Modelo</Label>
+            <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="Modelo A, Tipo Premium…" maxLength={80} />
+            <p className="text-xs text-muted-foreground">Nombre/tipo del modelo</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label># Lote</Label>
+            <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="L-12, Mz 3 Lt 7…" maxLength={40} />
+            <p className="text-xs text-muted-foreground">Identificador del lote</p>
           </div>
           <div className="space-y-1.5">
             <Label>Agente Asignado</Label>
