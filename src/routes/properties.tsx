@@ -319,7 +319,7 @@ function PropertiesIndex() {
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           {p.image_url ? (
-                            <img src={p.image_url} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
+                            <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
                           ) : (
                             <div className="h-11 w-14 rounded-md bg-muted grid place-items-center text-[10px] text-muted-foreground">—</div>
                           )}
