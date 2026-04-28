@@ -475,34 +475,36 @@ function ModelGroup({
                   ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
                   : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
               </td>
-              <td className="px-5 py-2.5 text-right">
-                {editing ? (
-                  <div className="inline-flex gap-1">
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
-                      <Save className="h-3.5 w-3.5" /> Guardar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-1">
-                    {r.status !== "Sold" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                        onClick={() => quickMarkSold(r)}
-                        aria-label={`Marcar lote ${r.lot} como vendido`}
-                      >
-                        <CircleDollarSign className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Marcar Vendido</span>
+              {isAdmin && (
+                <td className="px-5 py-2.5 text-right">
+                  {editing ? (
+                    <div className="inline-flex gap-1">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
+                      <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
+                        <Save className="h-3.5 w-3.5" /> Guardar
                       </Button>
-                    )}
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )}
-              </td>
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1">
+                      {r.status !== "Sold" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                          onClick={() => quickMarkSold(r)}
+                          aria-label={`Marcar lote ${r.lot} como vendido`}
+                        >
+                          <CircleDollarSign className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Marcar Vendido</span>
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                </td>
+              )}
             </tr>
             {isOpen && (
               <tr className="border-b border-border/60 bg-muted/10">
