@@ -102,9 +102,10 @@ function PropertiesIndex() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = useHasRole("admin");
+  // Only admins can edit/delete. Agents only view & share.
   const canManage = React.useCallback(
-    (p: PropertyRow) => isAdmin || (!!user && p.agent_id === user.id),
-    [isAdmin, user]
+    (_p: PropertyRow) => isAdmin,
+    [isAdmin]
   );
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string>("all");

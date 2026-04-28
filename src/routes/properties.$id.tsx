@@ -155,7 +155,8 @@ function PropertyDetailPage() {
   const media = mediaQuery.data ?? [];
   const files = filesQuery.data ?? [];
 
-  const canManage = !!property && (isAdmin || (!!user && property.agent_id === user.id));
+  // Only admins can edit/delete. Agents only view & share.
+  const canManage = !!property && isAdmin;
 
   // CRUD dialogs
   const allPropertiesQuery = useProperties();
