@@ -166,6 +166,12 @@ function AuthPage() {
       return;
     }
     toast.success("¡Bienvenido!");
+    // If an admin flagged this user to change their password, force the flow.
+    const meta = (signInData.user?.user_metadata ?? {}) as { must_change_password?: boolean };
+    if (meta.must_change_password) {
+      navigate({ to: "/change-password" });
+      return;
+    }
     const to = signInData.user ? await resolveLandingForUser(signInData.user.id) : "/";
     navigate({ to });
   }
