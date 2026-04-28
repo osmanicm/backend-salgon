@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarCheck, Users as UsersIcon, ArrowRight, ShieldAlert, X } from "lucide-react";
+import { Building2, CalendarCheck, ArrowRight, ShieldAlert, X } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { useAuth } from "@/hooks/useAuth";
-import { appointments, leads } from "@/data/mock";
+import { appointments } from "@/data/mock";
 import { useProperties } from "@/data/store";
 import {
   type BlockedAttempt,
