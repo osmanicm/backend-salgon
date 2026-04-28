@@ -544,6 +544,7 @@ export function PropertyFormDialog({
       agent_id: form.agent_id === "none" ? null : form.agent_id,
       model: form.model,
       lot: form.lot,
+      delivery_date: form.delivery_date,
     });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -554,6 +555,7 @@ export function PropertyFormDialog({
       image_url: parsed.data.image_url || null,
       model: parsed.data.model || null,
       lot: parsed.data.lot || null,
+      delivery_date: parsed.data.delivery_date || null,
     };
     try {
       if (isEdit && initial) {
