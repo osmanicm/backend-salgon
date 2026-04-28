@@ -397,7 +397,7 @@ function PropertyDetailPage() {
         {(property.image_url || photos[0]) && (
           <div className="rounded-xl overflow-hidden border border-border bg-muted">
             <img
-              src={property.image_url || photos[0].url}
+              src={normalizeImageUrl(property.image_url) || photos[0].url}
               alt={property.title}
               className="w-full h-56 sm:h-72 object-cover"
               loading="lazy"
