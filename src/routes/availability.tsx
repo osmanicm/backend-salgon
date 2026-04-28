@@ -410,9 +410,11 @@ function ModelGroup({
         return (
           <Fragment key={r.id}>
             <tr className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]", isOpen && "bg-muted/20")}>
-              <td className="pl-5 pr-2 py-2.5">
-                <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
-              </td>
+              {isAdmin && (
+                <td className="pl-5 pr-2 py-2.5">
+                  <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
+                </td>
+              )}
               <td className="px-2 py-2.5 font-mono text-xs">
                 <button
                   type="button"
