@@ -518,7 +518,7 @@ function PropertyDetailPage() {
               {mediaQuery.isLoading ? (
                 <GalleryTabSkeleton kind="photos" />
               ) : (
-                <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} />
+                <Gallery title="Fotos" icon={<ImageIcon className="h-4 w-4" />} items={photos} zipBaseName={property.code} />
               )}
             </TabsContent>
 
@@ -526,7 +526,7 @@ function PropertyDetailPage() {
               {mediaQuery.isLoading ? (
                 <GalleryTabSkeleton kind="renders" />
               ) : (
-                <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} />
+                <Gallery title="Renders" icon={<Sparkles className="h-4 w-4" />} items={renders} zipBaseName={property.code} />
               )}
             </TabsContent>
 
@@ -534,7 +534,7 @@ function PropertyDetailPage() {
               {mediaQuery.isLoading ? (
                 <VideosTabSkeleton />
               ) : (
-                <VideoGallery items={videos} />
+                <VideoGallery items={videos} zipBaseName={property.code} />
               )}
             </TabsContent>
           </Tabs>
