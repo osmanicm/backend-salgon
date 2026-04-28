@@ -25,6 +25,10 @@ export const Route = createFileRoute("/auth")({
   beforeLoad: async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
+      const meta = (session.user.user_metadata ?? {}) as { must_change_password?: boolean };
+      if (meta.must_change_password) {
+        throw redirect({ to: "/change-password" });
+      }
       const to = await resolveLandingForUser(session.user.id);
       throw redirect({ to });
     }
