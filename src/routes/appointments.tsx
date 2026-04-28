@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { appointments, leads, properties } from "@/data/mock";
+import { appointments, leads } from "@/data/mock";
+import { useProperties } from "@/data/propertiesApi";
 import { cn } from "@/lib/utils";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/appointments")({
 
 function AppointmentsPage() {
   const [month, setMonth] = useState(new Date(2025, 3, 1));
+  const { data: properties = [] } = useProperties();
 
   return (
     <AppShell title="Citas" subtitle="Agenda y administra las visitas a propiedades">
@@ -185,6 +187,7 @@ type ApptForm = { clientName: string; clientPhone: string; propertyId: string; d
 const emptyAppt: ApptForm = { clientName: "", clientPhone: "", propertyId: "", date: "", time: "", notes: "" };
 
 function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
+  const { data: properties = [] } = useProperties();
   const [form, setForm] = useState<ApptForm>(emptyAppt);
   const [errors, setErrors] = useState<Partial<Record<keyof ApptForm, string>>>({});
 
