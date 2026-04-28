@@ -27,6 +27,7 @@ import {
 } from "@/data/store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
@@ -48,6 +49,8 @@ const STATUS_DOT: Record<AvailabilityStatus, string> = {
 };
 
 function AvailabilityPage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
   const rows = useAvailability();
   const [model, setModel] = useState<string>("all");
   const [cluster, setCluster] = useState<string>("all");
@@ -215,12 +218,14 @@ function AvailabilityPage() {
         description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo · clic en ✏️ para editar`}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5"
-              disabled={selected.size === 0}
-              onClick={() => setBulkOpen(true)}>
-              <RefreshCw className="h-3.5 w-3.5" />
-              Actualizar en lote {selected.size > 0 && `(${selected.size})`}
-            </Button>
+            {isAdmin && (
+              <Button variant="outline" size="sm" className="gap-1.5"
+                disabled={selected.size === 0}
+                onClick={() => setBulkOpen(true)}>
+                <RefreshCw className="h-3.5 w-3.5" />
+                Actualizar en lote {selected.size > 0 && `(${selected.size})`}
+              </Button>
+            )}
             <Button size="sm" className="gap-1.5" onClick={() => setPdfOpen(true)}>
               <FileText className="h-3.5 w-3.5" /> Generar PDF de Disponibilidad
             </Button>
@@ -245,12 +250,14 @@ function AvailabilityPage() {
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-muted/40">
               <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                <th className="pl-5 pr-2 py-2.5 w-10">
-                  <Checkbox
-                    checked={filtered.length > 0 && filtered.every(r => selected.has(r.id))}
-                    onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
-                  />
-                </th>
+                {isAdmin && (
+                  <th className="pl-5 pr-2 py-2.5 w-10">
+                    <Checkbox
+                      checked={filtered.length > 0 && filtered.every(r => selected.has(r.id))}
+                      onCheckedChange={(v) => toggleAllVisible(Boolean(v))}
+                    />
+                  </th>
+                )}
                 <th className="px-2 py-2.5 font-medium">Lote</th>
                 <th className="px-2 py-2.5 font-medium">Cluster</th>
                 <th className="px-2 py-2.5 font-medium text-right">Precio (MXN)</th>
@@ -258,7 +265,7 @@ function AvailabilityPage() {
                 <th className="px-2 py-2.5 font-medium">Estatus</th>
                 <th className="px-2 py-2.5 font-medium">Notas</th>
                 <th className="px-2 py-2.5 font-medium">Propiedad</th>
-                <th className="px-5 py-2.5 font-medium text-right">Acciones</th>
+                {isAdmin && <th className="px-5 py-2.5 font-medium text-right">Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -267,6 +274,7 @@ function AvailabilityPage() {
                   key={modelName}
                   model={modelName}
                   items={items}
+                  isAdmin={isAdmin}
                   editingId={editingId}
                   draft={draft}
                   setDraft={setDraft}
@@ -361,11 +369,12 @@ function FilterSelect({
 }
 
 function ModelGroup({
-  model, items, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
+  model, items, isAdmin, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
   selected, toggleRow, quickMarkSold, expanded, toggleExpand,
 }: {
   model: string;
   items: AvailabilityRow[];
+  isAdmin: boolean;
   editingId: string | null;
   draft: Partial<AvailabilityRow>;
   setDraft: (d: Partial<AvailabilityRow>) => void;
@@ -401,9 +410,11 @@ function ModelGroup({
         return (
           <Fragment key={r.id}>
             <tr className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]", isOpen && "bg-muted/20")}>
-              <td className="pl-5 pr-2 py-2.5">
-                <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
-              </td>
+              {isAdmin && (
+                <td className="pl-5 pr-2 py-2.5">
+                  <Checkbox checked={isSel} onCheckedChange={(v) => toggleRow(r.id, Boolean(v))} />
+                </td>
+              )}
               <td className="px-2 py-2.5 font-mono text-xs">
                 <button
                   type="button"
@@ -464,34 +475,36 @@ function ModelGroup({
                   ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
                   : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
               </td>
-              <td className="px-5 py-2.5 text-right">
-                {editing ? (
-                  <div className="inline-flex gap-1">
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
-                    <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
-                      <Save className="h-3.5 w-3.5" /> Guardar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-1">
-                    {r.status !== "Sold" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                        onClick={() => quickMarkSold(r)}
-                        aria-label={`Marcar lote ${r.lot} como vendido`}
-                      >
-                        <CircleDollarSign className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline">Marcar Vendido</span>
+              {isAdmin && (
+                <td className="px-5 py-2.5 text-right">
+                  {editing ? (
+                    <div className="inline-flex gap-1">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={cancelEdit} aria-label="Cancelar"><X className="h-3.5 w-3.5" /></Button>
+                      <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(r.id)}>
+                        <Save className="h-3.5 w-3.5" /> Guardar
                       </Button>
-                    )}
-                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                )}
-              </td>
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1">
+                      {r.status !== "Sold" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 gap-1 text-[11px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                          onClick={() => quickMarkSold(r)}
+                          aria-label={`Marcar lote ${r.lot} como vendido`}
+                        >
+                          <CircleDollarSign className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Marcar Vendido</span>
+                        </Button>
+                      )}
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                </td>
+              )}
             </tr>
             {isOpen && (
               <tr className="border-b border-border/60 bg-muted/10">

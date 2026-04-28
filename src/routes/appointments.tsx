@@ -154,9 +154,17 @@ function NewAppointmentDialog() {
   );
 }
 
+const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
+
 const appointmentSchema = z
   .object({
-    leadId: z.string().min(1, "Selecciona un prospecto"),
+    clientName: z.string().trim().min(2, "Nombre del cliente requerido").max(100, "Máx. 100 caracteres"),
+    clientPhone: z
+      .string()
+      .trim()
+      .min(7, "Teléfono requerido")
+      .max(20, "Teléfono inválido")
+      .regex(phoneRegex, "Teléfono inválido (usa dígitos, espacios, +, -, ())"),
     propertyId: z.string().min(1, "Selecciona una propiedad"),
     date: z.string().min(1, "Fecha requerida").regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
     time: z.string().min(1, "Hora requerida").regex(/^\d{2}:\d{2}$/, "Hora inválida"),
@@ -173,8 +181,8 @@ const appointmentSchema = z
     }
   });
 
-type ApptForm = { leadId: string; propertyId: string; date: string; time: string; notes: string };
-const emptyAppt: ApptForm = { leadId: "", propertyId: "", date: "", time: "", notes: "" };
+type ApptForm = { clientName: string; clientPhone: string; propertyId: string; date: string; time: string; notes: string };
+const emptyAppt: ApptForm = { clientName: "", clientPhone: "", propertyId: "", date: "", time: "", notes: "" };
 
 function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
   const [form, setForm] = useState<ApptForm>(emptyAppt);
@@ -209,11 +217,25 @@ function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
     <DialogContent>
       <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
       <form onSubmit={handleSubmit} noValidate className="grid gap-4">
-        <ApptField label="Cliente (Prospecto) *" hint="Prospecto que asistirá a la visita" error={errors.leadId}>
-          <Select value={form.leadId} onValueChange={(v) => update("leadId", v)}>
-            <SelectTrigger aria-invalid={!!errors.leadId}><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
-            <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
-          </Select>
+        <ApptField label="Cliente *" hint="Nombre del cliente que asistirá a la visita" error={errors.clientName}>
+          <Input
+            value={form.clientName}
+            onChange={(e) => update("clientName", e.target.value)}
+            placeholder="Ej. Juan Pérez"
+            maxLength={100}
+            aria-invalid={!!errors.clientName}
+          />
+        </ApptField>
+        <ApptField label="Teléfono (WhatsApp) *" hint="Se usará para enviar recordatorios automáticos por WhatsApp" error={errors.clientPhone}>
+          <Input
+            type="tel"
+            inputMode="tel"
+            value={form.clientPhone}
+            onChange={(e) => update("clientPhone", e.target.value)}
+            placeholder="+52 55 1234 5678"
+            maxLength={20}
+            aria-invalid={!!errors.clientPhone}
+          />
         </ApptField>
         <ApptField label="Propiedad *" hint="Inmueble a mostrar" error={errors.propertyId}>
           <Select value={form.propertyId} onValueChange={(v) => update("propertyId", v)}>
