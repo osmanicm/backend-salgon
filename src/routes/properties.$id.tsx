@@ -60,6 +60,7 @@ import { fmtMoney } from "@/data/mock";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeImageUrl } from "@/lib/imageUrl";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -203,7 +204,7 @@ function PropertyDetailPage() {
       `¿Te gustaría agendar una visita?`;
 
     let image: { filename: string; dataUrl: string; sizeBytes: number; mimeType: string } | undefined;
-    const cover = property.image_url || photos[0]?.url;
+    const cover = normalizeImageUrl(property.image_url) || photos[0]?.url;
     if (cover) {
       try {
         const res = await fetch(cover);
@@ -396,7 +397,7 @@ function PropertyDetailPage() {
         {(property.image_url || photos[0]) && (
           <div className="rounded-xl overflow-hidden border border-border bg-muted">
             <img
-              src={property.image_url || photos[0].url}
+              src={normalizeImageUrl(property.image_url) || photos[0].url}
               alt={property.title}
               className="w-full h-56 sm:h-72 object-cover"
               loading="lazy"
@@ -1023,7 +1024,7 @@ function generatePropertyPdf(property: PropertyRow): Promise<void> {
 </style></head><body>
   <h1>${escapeHtml(property.title)} <span class="badge">${escapeHtml(property.status)}</span></h1>
   <div class="muted">Folio ${escapeHtml(property.code)} · ${escapeHtml(property.location)}</div>
-  ${property.image_url ? `<img class="cover" src="${escapeHtml(property.image_url)}" />` : ""}
+  ${property.image_url ? `<img class="cover" src="${escapeHtml(normalizeImageUrl(property.image_url))}" />` : ""}
   <div class="grid">
     <div class="cell"><div class="label">Modelo</div><div class="value">${escapeHtml(property.model || "—")}</div></div>
     <div class="cell"><div class="label">Lote</div><div class="value">${escapeHtml(property.lot || "—")}</div></div>

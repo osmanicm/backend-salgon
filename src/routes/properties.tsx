@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Plus, Search, Pencil, Trash2, Eye, MapPin, Upload, Share2, Loader2, FileSpreadsheet, RotateCcw, Archive } from "lucide-react";
 import { BulkUploadDialog } from "@/components/properties/BulkUploadDialog";
 import { PropertyMediaManager } from "@/components/properties/PropertyMediaManager";
+import { PropertyCoverInput } from "@/components/properties/PropertyCoverInput";
+import { normalizeImageUrl } from "@/lib/imageUrl";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -244,7 +246,7 @@ function PropertiesIndex() {
                 <li key={p.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-[var(--shadow-soft)]">
                   <div className="relative">
                     {p.image_url ? (
-                      <img src={p.image_url} alt={p.title} className="h-40 w-full object-cover" />
+                      <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-40 w-full object-cover" />
                     ) : (
                       <div className="h-40 w-full bg-muted grid place-items-center text-xs text-muted-foreground">Sin imagen</div>
                     )}
@@ -317,7 +319,7 @@ function PropertiesIndex() {
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           {p.image_url ? (
-                            <img src={p.image_url} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
+                            <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
                           ) : (
                             <div className="h-11 w-14 rounded-md bg-muted grid place-items-center text-[10px] text-muted-foreground">—</div>
                           )}
@@ -623,10 +625,13 @@ export function PropertyFormDialog({
             </Select>
             <p className="text-xs text-muted-foreground">Solo el agente asignado o un admin podrán editarla</p>
           </div>
-          <div className="space-y-1.5">
-            <Label>URL de imagen de portada</Label>
-            <Input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…" maxLength={500} />
-            <p className="text-xs text-muted-foreground">Opcional · debe iniciar con http(s)://</p>
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label>Imagen de portada</Label>
+            <PropertyCoverInput
+              value={form.image_url}
+              onChange={(url) => setForm({ ...form, image_url: url })}
+              propertyId={initial?.id}
+            />
           </div>
 
           {isEdit && initial && !locked && (
@@ -665,7 +670,7 @@ function ViewDialog({ property, onClose }: { property: PropertyRow | null; onClo
               <DialogDescription>Folio {property.code}</DialogDescription>
             </DialogHeader>
             {property.image_url && (
-              <img src={property.image_url} alt={property.title} className="w-full h-56 object-cover rounded-lg" />
+              <img src={normalizeImageUrl(property.image_url)} alt={property.title} className="w-full h-56 object-cover rounded-lg" />
             )}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Field label="Precio">{fmtMoney(Number(property.price))}</Field>
@@ -808,7 +813,7 @@ function TrashDialog({
               {items.map((p) => (
                 <li key={p.id} className="px-2 py-3 flex items-center gap-3">
                   {p.image_url ? (
-                    <img src={p.image_url} alt={p.title} className="h-12 w-16 rounded-md object-cover shrink-0" />
+                    <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-12 w-16 rounded-md object-cover shrink-0" />
                   ) : (
                     <div className="h-12 w-16 rounded-md bg-muted shrink-0" />
                   )}
