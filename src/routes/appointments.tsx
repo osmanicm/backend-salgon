@@ -217,11 +217,25 @@ function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
     <DialogContent>
       <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
       <form onSubmit={handleSubmit} noValidate className="grid gap-4">
-        <ApptField label="Cliente (Prospecto) *" hint="Prospecto que asistirá a la visita" error={errors.leadId}>
-          <Select value={form.leadId} onValueChange={(v) => update("leadId", v)}>
-            <SelectTrigger aria-invalid={!!errors.leadId}><SelectValue placeholder="Selecciona prospecto" /></SelectTrigger>
-            <SelectContent>{leads.map(l => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}</SelectContent>
-          </Select>
+        <ApptField label="Cliente *" hint="Nombre del cliente que asistirá a la visita" error={errors.clientName}>
+          <Input
+            value={form.clientName}
+            onChange={(e) => update("clientName", e.target.value)}
+            placeholder="Ej. Juan Pérez"
+            maxLength={100}
+            aria-invalid={!!errors.clientName}
+          />
+        </ApptField>
+        <ApptField label="Teléfono (WhatsApp) *" hint="Se usará para enviar recordatorios automáticos por WhatsApp" error={errors.clientPhone}>
+          <Input
+            type="tel"
+            inputMode="tel"
+            value={form.clientPhone}
+            onChange={(e) => update("clientPhone", e.target.value)}
+            placeholder="+52 55 1234 5678"
+            maxLength={20}
+            aria-invalid={!!errors.clientPhone}
+          />
         </ApptField>
         <ApptField label="Propiedad *" hint="Inmueble a mostrar" error={errors.propertyId}>
           <Select value={form.propertyId} onValueChange={(v) => update("propertyId", v)}>
