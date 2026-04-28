@@ -8,7 +8,8 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { appointments, leads, fmtMXN } from "@/data/mock";
-import { useAvailability, useProperties } from "@/data/store";
+import { useAvailability, useProperties as useStoreProperties } from "@/data/store";
+import { useProperties } from "@/data/propertiesApi";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
