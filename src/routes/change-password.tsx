@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { clearMustChangePassword } from "@/utils/users-admin.functions";
 import { getAuthHeaders } from "@/lib/serverFnAuth";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+import salgonLogo from "@/assets/salgon-logo.png";
 
 export const Route = createFileRoute("/change-password")({
   beforeLoad: async () => {
