@@ -389,14 +389,16 @@ function PropertiesIndex() {
                           {canManage(p) && (
                             <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Editar" onClick={() => setEditing(p)}><Pencil className="h-4 w-4" /></Button>
                           )}
-                          <LeadPickerPopover
-                            onPick={(lead) => shareOnWhatsapp(p, lead)}
-                            trigger={
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-success" aria-label="WhatsApp" title="Compartir por WhatsApp">
-                                <Share2 className="h-4 w-4" />
-                              </Button>
-                            }
-                          />
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 text-success"
+                            aria-label="Compartir"
+                            title="Compartir"
+                            onClick={() => shareNative(p)}
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
                           {canManage(p) && (
                             <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" aria-label="Eliminar" onClick={() => setDeleting(p)}><Trash2 className="h-4 w-4" /></Button>
                           )}
