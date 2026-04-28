@@ -155,7 +155,8 @@ function PropertyDetailPage() {
   const media = mediaQuery.data ?? [];
   const files = filesQuery.data ?? [];
 
-  const canManage = !!property && (isAdmin || (!!user && property.agent_id === user.id));
+  // Only admins can edit/delete. Agents only view & share.
+  const canManage = !!property && isAdmin;
 
   // CRUD dialogs
   const allPropertiesQuery = useProperties();
@@ -414,24 +415,24 @@ function PropertyDetailPage() {
             {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
             {generatingPdf ? "Generando…" : "Generar PDF"}
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => setEditing(true)}
-            disabled={!canManage}
-            className="gap-1.5"
-            title={!canManage ? "Solo el agente asignado o un admin puede editar" : undefined}
-          >
-            <Pencil className="h-4 w-4" /> Editar
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setDeleting(true)}
-            disabled={!canManage}
-            className="gap-1.5 text-destructive hover:text-destructive"
-            title={!canManage ? "Solo el agente asignado o un admin puede eliminar" : undefined}
-          >
-            <Trash2 className="h-4 w-4" /> Eliminar
-          </Button>
+          {canManage && (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setEditing(true)}
+                className="gap-1.5"
+              >
+                <Pencil className="h-4 w-4" /> Editar
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setDeleting(true)}
+                className="gap-1.5 text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" /> Eliminar
+              </Button>
+            </>
+          )}
           <Button
             variant="outline"
             onClick={() => {
