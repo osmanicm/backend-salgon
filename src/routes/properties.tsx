@@ -246,7 +246,7 @@ function PropertiesIndex() {
                 <li key={p.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-[var(--shadow-soft)]">
                   <div className="relative">
                     {p.image_url ? (
-                      <img src={p.image_url} alt={p.title} className="h-40 w-full object-cover" />
+                      <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-40 w-full object-cover" />
                     ) : (
                       <div className="h-40 w-full bg-muted grid place-items-center text-xs text-muted-foreground">Sin imagen</div>
                     )}
