@@ -504,6 +504,7 @@ export function PropertyFormDialog({
         agent_id: initial.agent_id ?? "none",
         model: initial.model ?? "",
         lot: initial.lot ?? "",
+        delivery_date: initial.delivery_date ?? "",
       });
     } else {
       setForm({
