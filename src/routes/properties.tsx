@@ -646,6 +646,11 @@ export function PropertyFormDialog({
             <p className="text-xs text-muted-foreground">Identificador del lote</p>
           </div>
           <div className="space-y-1.5">
+            <Label>Fecha de entrega</Label>
+            <Input type="date" value={form.delivery_date} onChange={(e) => setForm({ ...form, delivery_date: e.target.value })} />
+            <p className="text-xs text-muted-foreground">Opcional. Déjalo vacío si está por definir</p>
+          </div>
+          <div className="space-y-1.5">
             <Label>Agente Asignado</Label>
             <Select value={form.agent_id} onValueChange={(v) => setForm({ ...form, agent_id: v })}>
               <SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
