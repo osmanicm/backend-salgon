@@ -989,9 +989,21 @@ function FichaPdfTab({
             download
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-muted transition-colors"
           >
-            <Download className="h-4 w-4 text-primary" /> Descargar PDF cargado
+            <Download className="h-4 w-4 text-primary" /> Descargar ficha actual
           </a>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={handlePrintable}
+          disabled={printing}
+          title="Abre una versión lista para imprimir o guardar como PDF desde el navegador"
+        >
+          {printing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+          Versión imprimible
+        </Button>
         {ficha && (
           <a
             href={ficha.url}
