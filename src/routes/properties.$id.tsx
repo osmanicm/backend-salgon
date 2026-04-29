@@ -581,6 +581,8 @@ function PropertyDetailPage() {
                 </div>
               )}
             </PageCard>
+
+            <CommissionCalculator model={property.model} price={Number(property.price)} />
           </div>
 
           <div className="space-y-4">
