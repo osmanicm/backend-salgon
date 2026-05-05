@@ -1225,7 +1225,8 @@ function escapeHtml(s: string) {
 }
 
 function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
-  const { data: units, isLoading } = useAvailabilityUnits(model ?? undefined);
+  const { data: units, isLoading: loadingUnits } = useAvailabilityUnits(model ?? undefined);
+  const { data: allProps, isLoading: loadingProps } = useProperties();
   const [downloading, setDownloading] = useState(false);
 
   if (!model) {
@@ -1236,9 +1237,41 @@ function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
     );
   }
 
+  const isLoading = loadingUnits || loadingProps;
+
+  // Combine: prefer availability_units rows; fall back to properties of the same model
+  // so the PDF always reflects the real inventory shown in the app.
+  const propsOfModel = (allProps ?? []).filter(
+    (p) => (p.model ?? "").toLowerCase() === model.toLowerCase(),
+  );
+
+  const items = units.length > 0
+    ? units.map((u) => ({
+        id: u.id,
+        model: u.model,
+        lot: u.lot,
+        cluster: u.cluster,
+        price: Number(u.price),
+        delivery: u.delivery ?? "",
+        status: u.status as "Available" | "Reserved" | "Sold",
+        notes: u.notes ?? "",
+        updatedAt: u.updated_at,
+      }))
+    : propsOfModel.map((p) => ({
+        id: p.id,
+        model: p.model ?? model,
+        lot: p.lot ?? p.code,
+        cluster: p.location ?? "",
+        price: Number(p.price),
+        delivery: p.delivery_date ?? "",
+        status: p.status as "Available" | "Reserved" | "Sold",
+        notes: p.notes ?? "",
+        updatedAt: p.updated_at,
+      }));
+
   async function handleDownload() {
-    if (units.length === 0) {
-      toast.info("No hay unidades de este modelo en disponibilidad.");
+    if (items.length === 0) {
+      toast.info("No hay unidades de este modelo en el inventario.");
       return;
     }
     try {
@@ -1251,19 +1284,6 @@ function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
       const folio = `SAL-${new Date().getFullYear()}-${String(
         Math.floor(Math.random() * 900) + 100,
       )}`;
-
-      // Map Supabase rows to PDF doc shape
-      const items = units.map((u) => ({
-        id: u.id,
-        model: u.model,
-        lot: u.lot,
-        cluster: u.cluster,
-        price: Number(u.price),
-        delivery: u.delivery ?? "",
-        status: u.status as "Available" | "Reserved" | "Sold",
-        notes: u.notes ?? "",
-        updatedAt: u.updated_at,
-      }));
 
       const [{ pdf }, { AvailabilityPdfDoc }] = await Promise.all([
         import("@react-pdf/renderer"),
@@ -1307,8 +1327,8 @@ function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
       {downloading
         ? "Generando…"
         : isLoading
-          ? "Cargando disponibilidad…"
-          : `Descargar PDF · Modelo ${model} (${units.length})`}
+          ? "Cargando inventario…"
+          : `Descargar PDF · Modelo ${model} (${items.length})`}
     </Button>
   );
 }
