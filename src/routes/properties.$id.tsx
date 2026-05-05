@@ -65,7 +65,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { CommissionCalculator } from "@/components/properties/CommissionCalculator";
-import { useAvailability } from "@/data/store";
+import { useAvailabilityUnits } from "@/data/availabilityApi";
 
 function filenameFromUrl(url: string, fallback = "archivo"): string {
   try {
@@ -1225,13 +1225,8 @@ function escapeHtml(s: string) {
 }
 
 function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
-  const rows = useAvailability();
+  const { data: units, isLoading } = useAvailabilityUnits(model ?? undefined);
   const [downloading, setDownloading] = useState(false);
-
-  const items = useMemo(
-    () => (model ? rows.filter((r) => r.model === model) : []),
-    [rows, model],
-  );
 
   if (!model) {
     return (
@@ -1242,7 +1237,7 @@ function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
   }
 
   async function handleDownload() {
-    if (items.length === 0) {
+    if (units.length === 0) {
       toast.info("No hay unidades de este modelo en disponibilidad.");
       return;
     }
@@ -1256,13 +1251,27 @@ function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
       const folio = `SAL-${new Date().getFullYear()}-${String(
         Math.floor(Math.random() * 900) + 100,
       )}`;
+
+      // Map Supabase rows to PDF doc shape
+      const items = units.map((u) => ({
+        id: u.id,
+        model: u.model,
+        lot: u.lot,
+        cluster: u.cluster,
+        price: Number(u.price),
+        delivery: u.delivery ?? "",
+        status: u.status as "Available" | "Reserved" | "Sold",
+        notes: u.notes ?? "",
+        updatedAt: u.updated_at,
+      }));
+
       const [{ pdf }, { AvailabilityPdfDoc }] = await Promise.all([
         import("@react-pdf/renderer"),
         import("@/components/availability/AvailabilityPdfDoc"),
       ]);
       const blob = await pdf(
         <AvailabilityPdfDoc
-          groups={[[model!, items]]}
+          groups={[[model!, items as never]]}
           folio={folio}
           dateLabel={today}
         />,
@@ -1292,12 +1301,14 @@ function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
       variant="outline"
       className="w-full gap-1.5"
       onClick={handleDownload}
-      disabled={downloading}
+      disabled={downloading || isLoading}
     >
       <FileDown className="h-3.5 w-3.5" />
       {downloading
         ? "Generando…"
-        : `Descargar PDF · Modelo ${model} (${items.length})`}
+        : isLoading
+          ? "Cargando disponibilidad…"
+          : `Descargar PDF · Modelo ${model} (${units.length})`}
     </Button>
   );
 }
