@@ -65,6 +65,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { CommissionCalculator } from "@/components/properties/CommissionCalculator";
+import { useAvailability } from "@/data/store";
 
 function filenameFromUrl(url: string, fallback = "archivo"): string {
   try {
