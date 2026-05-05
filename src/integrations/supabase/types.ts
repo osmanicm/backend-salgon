@@ -14,6 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          from_status: Database["public"]["Enums"]["availability_status"]
+          id: string
+          to_status: Database["public"]["Enums"]["availability_status"]
+          unit_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          from_status: Database["public"]["Enums"]["availability_status"]
+          id?: string
+          to_status: Database["public"]["Enums"]["availability_status"]
+          unit_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          from_status?: Database["public"]["Enums"]["availability_status"]
+          id?: string
+          to_status?: Database["public"]["Enums"]["availability_status"]
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_history_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "availability_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      availability_units: {
+        Row: {
+          cluster: string
+          created_at: string
+          delivery: string | null
+          id: string
+          lot: string
+          model: string
+          notes: string
+          price: number
+          property_id: string | null
+          status: Database["public"]["Enums"]["availability_status"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cluster?: string
+          created_at?: string
+          delivery?: string | null
+          id?: string
+          lot: string
+          model: string
+          notes?: string
+          price?: number
+          property_id?: string | null
+          status?: Database["public"]["Enums"]["availability_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cluster?: string
+          created_at?: string
+          delivery?: string | null
+          id?: string
+          lot?: string
+          model?: string
+          notes?: string
+          price?: number
+          property_id?: string | null
+          status?: Database["public"]["Enums"]["availability_status"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_units_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -230,6 +318,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent"
+      availability_status: "Available" | "Reserved" | "Sold"
       media_kind: "photo" | "render" | "video"
       property_status: "Available" | "Reserved" | "Sold"
     }
@@ -360,6 +449,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent"],
+      availability_status: ["Available", "Reserved", "Sold"],
       media_kind: ["photo", "render", "video"],
       property_status: ["Available", "Reserved", "Sold"],
     },
