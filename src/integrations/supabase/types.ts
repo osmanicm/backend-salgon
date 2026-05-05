@@ -96,7 +96,7 @@ export type Database = {
           {
             foreignKeyName: "availability_units_property_id_fkey"
             columns: ["property_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "properties"
             referencedColumns: ["id"]
           },
