@@ -65,6 +65,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import JSZip from "jszip";
 import { CommissionCalculator } from "@/components/properties/CommissionCalculator";
+import { useAvailability } from "@/data/store";
 
 function filenameFromUrl(url: string, fallback = "archivo"): string {
   try {
@@ -617,6 +618,9 @@ function PropertyDetailPage() {
                     <span className="text-foreground font-medium">{lastSync.toLocaleTimeString("es-MX")}</span>
                   </div>
                 </div>
+
+                <ModelAvailabilityPdfButton model={property.model} />
+
                 <div className="flex items-start gap-2 rounded-md border border-border bg-background px-2.5 py-2 text-[11px] text-muted-foreground">
                   <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
                   <span>
@@ -1218,4 +1222,82 @@ function escapeHtml(s: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
+  const rows = useAvailability();
+  const [downloading, setDownloading] = useState(false);
+
+  const items = useMemo(
+    () => (model ? rows.filter((r) => r.model === model) : []),
+    [rows, model],
+  );
+
+  if (!model) {
+    return (
+      <div className="text-[11px] text-muted-foreground italic">
+        Asigna un modelo a la propiedad para descargar el PDF de disponibilidad.
+      </div>
+    );
+  }
+
+  async function handleDownload() {
+    if (items.length === 0) {
+      toast.info("No hay unidades de este modelo en disponibilidad.");
+      return;
+    }
+    try {
+      setDownloading(true);
+      const today = new Date().toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+      const folio = `SAL-${new Date().getFullYear()}-${String(
+        Math.floor(Math.random() * 900) + 100,
+      )}`;
+      const [{ pdf }, { AvailabilityPdfDoc }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/components/availability/AvailabilityPdfDoc"),
+      ]);
+      const blob = await pdf(
+        <AvailabilityPdfDoc
+          groups={[[model!, items]]}
+          folio={folio}
+          dateLabel={today}
+        />,
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Salgon_Disponibilidad_${model}_${folio}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("PDF descargado", { description: a.download });
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo generar el PDF", {
+        description: err instanceof Error ? err.message : "Intenta nuevamente.",
+      });
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      className="w-full gap-1.5"
+      onClick={handleDownload}
+      disabled={downloading}
+    >
+      <FileDown className="h-3.5 w-3.5" />
+      {downloading
+        ? "Generando…"
+        : `Descargar PDF · Modelo ${model} (${items.length})`}
+    </Button>
+  );
 }
