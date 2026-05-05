@@ -618,6 +618,9 @@ function PropertyDetailPage() {
                     <span className="text-foreground font-medium">{lastSync.toLocaleTimeString("es-MX")}</span>
                   </div>
                 </div>
+
+                <ModelAvailabilityPdfButton model={property.model} />
+
                 <div className="flex items-start gap-2 rounded-md border border-border bg-background px-2.5 py-2 text-[11px] text-muted-foreground">
                   <Lock className="h-3.5 w-3.5 mt-0.5 shrink-0 text-primary" />
                   <span>
