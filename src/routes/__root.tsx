@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
+import { SplashScreen } from "@/components/layout/SplashScreen";
 
 import appCss from "../styles.css?url";
 
@@ -79,7 +80,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
+        <SplashScreen>
+          <Outlet />
+        </SplashScreen>
         <Toaster richColors position="top-right" />
       </AuthProvider>
     </QueryClientProvider>
