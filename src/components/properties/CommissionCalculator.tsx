@@ -15,23 +15,23 @@ const COMMISSION_POLICY: Record<string, Tier[]> = {
     { downPct: 10, commissionPct: 3 },
     { downPct: 30, commissionPct: 3.5 },
     { downPct: 50, commissionPct: 4 },
-    { downPct: 90, commissionPct: 4.5 },
+    { downPct: 60, commissionPct: 4.5 },
   ],
   BUGAMBILIA: [
     { downPct: 10, commissionPct: 3 },
     { downPct: 30, commissionPct: 3.5 },
     { downPct: 50, commissionPct: 4 },
-    { downPct: 90, commissionPct: 4.5 },
+    { downPct: 60, commissionPct: 4.5 },
   ],
   JAZMIN: [
     { downPct: 20, commissionPct: 3 },
     { downPct: 50, commissionPct: 4 },
-    { downPct: 90, commissionPct: 4.5 },
+    { downPct: 60, commissionPct: 4.5 },
   ],
   MAGNOLIA: [
     { downPct: 30, commissionPct: 3 },
     { downPct: 50, commissionPct: 4 },
-    { downPct: 90, commissionPct: 4.5 },
+    { downPct: 60, commissionPct: 4.5 },
   ],
 };
 
