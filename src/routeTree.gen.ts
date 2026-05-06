@@ -19,6 +19,7 @@ import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
@@ -73,6 +74,11 @@ const AppointmentsRoute = AppointmentsRouteImport.update({
   path: '/appointments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentRoute = AgentRouteImport.update({
   id: '/agent',
   path: '/agent',
@@ -92,6 +98,7 @@ const PropertiesIdRoute = PropertiesIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
+  '/analytics': typeof AnalyticsRoute
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
+  '/analytics': typeof AnalyticsRoute
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/agent': typeof AgentRoute
+  '/analytics': typeof AnalyticsRoute
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/agent'
+    | '/analytics'
     | '/appointments'
     | '/auth'
     | '/availability'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/agent'
+    | '/analytics'
     | '/appointments'
     | '/auth'
     | '/availability'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/agent'
+    | '/analytics'
     | '/appointments'
     | '/auth'
     | '/availability'
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentRoute: typeof AgentRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   AppointmentsRoute: typeof AppointmentsRoute
   AuthRoute: typeof AuthRoute
   AvailabilityRoute: typeof AvailabilityRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppointmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agent': {
       id: '/agent'
       path: '/agent'
@@ -309,6 +329,7 @@ const PropertiesRouteWithChildren = PropertiesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentRoute: AgentRoute,
+  AnalyticsRoute: AnalyticsRoute,
   AppointmentsRoute: AppointmentsRoute,
   AuthRoute: AuthRoute,
   AvailabilityRoute: AvailabilityRoute,

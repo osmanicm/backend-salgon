@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   ClipboardList,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +24,7 @@ const adminNav = [
   { to: "/appointments", label: "Citas", icon: CalendarDays },
   { to: "/pipeline", label: "Embudo de Ventas", icon: KanbanSquare },
   { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { to: "/analytics", label: "Analítica de agentes", icon: BarChart3 },
   { to: "/users", label: "Usuarios", icon: UserCog },
 ] as const;
 
