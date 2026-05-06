@@ -534,6 +534,7 @@ export function PropertyFormDialog({
 
   React.useEffect(() => {
     if (!open) return;
+    setApiError(null);
     if (initial) {
       setForm({
         title: initial.title,
