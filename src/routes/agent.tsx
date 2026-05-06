@@ -37,12 +37,9 @@ function AgentDashboard() {
   }
 
   const mine = useMemo(() => {
-    // Show properties assigned to this agent; if none assigned, fall back to
-    // all properties the agent can see (matches the /properties list).
-    const assigned = properties.filter((p) => p.agent_id === user?.id);
-    const myProps = assigned.length > 0 ? assigned : properties;
-    return { myProps, myAppts: appointments };
-  }, [properties, user?.id]);
+    // Mirror what the agent actually sees in /properties (RLS-filtered list).
+    return { myProps: properties, myAppts: appointments };
+  }, [properties]);
 
   const name = profile?.full_name || user?.email?.split("@")[0] || "Agente";
 
