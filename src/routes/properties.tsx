@@ -568,8 +568,7 @@ export function PropertyFormDialog({
     }
   }, [open, initial, existing]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function doSave() {
     if (locked) {
       toast.error("No tienes permisos para editar esta propiedad");
       return;
@@ -590,18 +589,31 @@ export function PropertyFormDialog({
       delivery_date: form.delivery_date,
     });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0].message);
+      console.error("[properties] validation failed", parsed.error.issues);
+      const msg = parsed.error.issues
+        .map((i) => `${i.path.join(".") || "campo"}: ${i.message}`)
+        .join(" · ");
+      toast.error(msg || "Datos inválidos");
       return;
     }
     const payload = {
-      ...parsed.data,
-      image_url: parsed.data.image_url || null,
-      model: parsed.data.model || null,
-      lot: parsed.data.lot || null,
-      delivery_date: parsed.data.delivery_date || null,
+      title: parsed.data.title,
+      code: parsed.data.code,
+      price: parsed.data.price,
+      location: parsed.data.location,
+      status: parsed.data.status,
+      bedrooms: parsed.data.bedrooms,
+      bathrooms: parsed.data.bathrooms,
+      area: parsed.data.area,
+      image_url: parsed.data.image_url ? parsed.data.image_url : null,
+      agent_id: parsed.data.agent_id,
+      model: parsed.data.model ? parsed.data.model : null,
+      lot: parsed.data.lot ? parsed.data.lot : null,
+      delivery_date: parsed.data.delivery_date ? parsed.data.delivery_date : null,
     };
     try {
       if (isEdit && initial) {
+        console.log("[properties] PATCH", initial.id, payload);
         await update.mutateAsync({ id: initial.id, patch: payload });
         toast.success("Propiedad actualizada");
       } else {
@@ -610,8 +622,14 @@ export function PropertyFormDialog({
       }
       onOpenChange(false);
     } catch (e: unknown) {
+      console.error("[properties] save error", e);
       toast.error(e instanceof Error ? e.message : "Error al guardar");
     }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void doSave();
   }
 
   const pending = create.isPending || update.isPending;
