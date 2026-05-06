@@ -20,6 +20,7 @@ const sections = [
       { to: "/availability" as const, label: "Disponibilidad", description: "Inventario centralizado", icon: ClipboardList },
       { to: "/pipeline" as const,     label: "Embudo de Ventas", description: "Tablero de etapas", icon: KanbanSquare },
       { to: "/whatsapp" as const,     label: "WhatsApp", description: "Plantillas y envíos", icon: MessageCircle },
+      { to: "/analytics" as const,    label: "Analítica de agentes", description: "Métricas y actividad", icon: BarChart3 },
     ],
   },
   {
