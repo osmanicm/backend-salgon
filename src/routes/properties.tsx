@@ -661,6 +661,12 @@ export function PropertyFormDialog({
             Solo el agente asignado o un admin pueden editar esta propiedad.
           </div>
         )}
+        {apiError && !locked && (
+          <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <div className="font-medium mb-0.5">No se pudo guardar</div>
+            <div className="break-words">{apiError}</div>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${locked ? "opacity-60 pointer-events-none" : ""}`}>
           <div className="sm:col-span-2 space-y-1.5">
             <Label>Título *</Label>
