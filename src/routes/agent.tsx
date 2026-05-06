@@ -37,7 +37,10 @@ function AgentDashboard() {
   }
 
   const mine = useMemo(() => {
-    const myProps = properties.filter((p) => p.agent_id === user?.id);
+    // Show properties assigned to this agent; if none assigned, fall back to
+    // all properties the agent can see (matches the /properties list).
+    const assigned = properties.filter((p) => p.agent_id === user?.id);
+    const myProps = assigned.length > 0 ? assigned : properties;
     return { myProps, myAppts: appointments };
   }, [properties, user?.id]);
 
