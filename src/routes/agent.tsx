@@ -37,14 +37,14 @@ function AgentDashboard() {
   }
 
   const mine = useMemo(() => {
-    const myProps = properties.filter((p) => p.agent_id === user?.id);
-    return { myProps, myAppts: appointments };
-  }, [properties, user?.id]);
+    // Mirror what the agent actually sees in /properties (RLS-filtered list).
+    return { myProps: properties, myAppts: appointments };
+  }, [properties]);
 
   const name = profile?.full_name || user?.email?.split("@")[0] || "Agente";
 
   const kpis = [
-    { label: "Mis propiedades", value: String(mine.myProps.length), icon: Building2, to: "/properties" as const },
+    { label: "Propiedades", value: String(mine.myProps.length), icon: Building2, to: "/properties" as const },
     { label: "Mis citas", value: String(mine.myAppts.length), icon: CalendarCheck, to: "/appointments" as const },
   ];
 
