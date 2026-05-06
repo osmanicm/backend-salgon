@@ -14,6 +14,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { AppShell } from "@/components/layout/AppShell";
@@ -156,6 +159,8 @@ function AnalyticsPage() {
 
   const [preset, setPreset] = useState<Preset>("all");
   const [range, setRange] = useState<DateRange | undefined>(undefined);
+  const [agentFilter, setAgentFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<AgentEventType | "all">("all");
 
   const activeRange = useMemo<DateRange | undefined>(() => {
     const now = new Date();
@@ -176,14 +181,18 @@ function AnalyticsPage() {
   }, [preset, range]);
 
   const events = useMemo(() => {
-    if (!activeRange?.from) return allEvents;
-    const fromMs = activeRange.from.getTime();
-    const toMs = (activeRange.to ?? activeRange.from).getTime();
+    const fromMs = activeRange?.from?.getTime();
+    const toMs = activeRange ? (activeRange.to ?? activeRange.from)?.getTime() : undefined;
     return allEvents.filter((e) => {
-      const t = new Date(e.created_at).getTime();
-      return t >= fromMs && t <= toMs;
+      if (fromMs !== undefined && toMs !== undefined) {
+        const t = new Date(e.created_at).getTime();
+        if (t < fromMs || t > toMs) return false;
+      }
+      if (agentFilter !== "all" && e.agent_id !== agentFilter) return false;
+      if (typeFilter !== "all" && e.event_type !== typeFilter) return false;
+      return true;
     });
-  }, [allEvents, activeRange]);
+  }, [allEvents, activeRange, agentFilter, typeFilter]);
 
   const metrics = useMemo(() => aggregate(events, profiles), [events, profiles]);
 
@@ -264,11 +273,54 @@ function AnalyticsPage() {
             />
           </PopoverContent>
         </Popover>
-        {activeRange?.from && (
-          <span className="ml-auto text-[11px] text-muted-foreground">
-            {events.length} eventos · {fmtRange(activeRange)}
-          </span>
+
+        <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+
+        <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <SelectTrigger className="h-8 text-xs w-[160px]">
+            <SelectValue placeholder="Agente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los agentes</SelectItem>
+            {profiles.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.full_name || p.email || "Agente"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as AgentEventType | "all")}>
+          <SelectTrigger className="h-8 text-xs w-[170px]">
+            <SelectValue placeholder="Tipo de evento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los eventos</SelectItem>
+            {(Object.keys(EVENT_LABEL) as AgentEventType[]).map((t) => (
+              <SelectItem key={t} value={t}>{EVENT_LABEL[t]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {(agentFilter !== "all" || typeFilter !== "all" || activeRange?.from) && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs"
+            onClick={() => {
+              setPreset("all");
+              setRange(undefined);
+              setAgentFilter("all");
+              setTypeFilter("all");
+            }}
+          >
+            Limpiar
+          </Button>
         )}
+
+        <span className="ml-auto text-[11px] text-muted-foreground">
+          {events.length} eventos{activeRange?.from ? ` · ${fmtRange(activeRange)}` : ""}
+        </span>
       </div>
 
       {/* KPIs */}
