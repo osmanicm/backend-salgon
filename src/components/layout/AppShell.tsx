@@ -6,6 +6,7 @@ import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
 import { ForbiddenScreen } from "./ForbiddenScreen";
 import { useAuth } from "@/hooks/useAuth";
+import { useSessionLogger } from "@/data/agentEvents";
 import { Loader2 } from "lucide-react";
 
 // Routes that only admins should access. Agents see a 403 screen.
@@ -24,6 +25,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
   const { pathname } = useLocation();
   const isAdmin = roles.includes("admin");
   const blocked = !loading && !!user && !isAdmin && isAdminOnly(pathname);
+  useSessionLogger(user?.id);
 
   useEffect(() => {
     if (loading) return;
