@@ -514,6 +514,7 @@ export function PropertyFormDialog({
   const create = useCreateProperty();
   const update = useUpdateProperty();
   const agentsQuery = useAgentsList();
+  const [apiError, setApiError] = React.useState<string | null>(null);
 
   const [form, setForm] = useState({
     title: "",
