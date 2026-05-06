@@ -747,7 +747,7 @@ export function PropertyFormDialog({
 
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>Cancelar</Button>
-            <Button type="submit" disabled={pending || locked}>
+            <Button type="submit" disabled={pending || locked} onClick={(e) => { e.preventDefault(); void doSave(); }}>
               {pending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
               {isEdit ? "Guardar cambios" : "Crear propiedad"}
             </Button>
