@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useDroppable, useSensor, useSensors, useDraggable } from "@dnd-kit/core";
 import { GripVertical, Phone } from "lucide-react";
+import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
-import { leads as initialLeads, agents, fmtMoney, type Lead, type LeadStatus } from "@/data/mock";
+import { useLeads, useUpdateLead, type LeadRow, type LeadStatus } from "@/data/leadsApi";
+import { fmtMoney } from "@/data/mock";
 import { cn } from "@/lib/utils";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
@@ -22,29 +24,35 @@ const columns: { id: LeadStatus; label: string; tint: string }[] = [
 ];
 
 function PipelinePage() {
-  const [items, setItems] = useState<Lead[]>(initialLeads);
+  const { data: leads = [] } = useLeads();
+  const update = useUpdateLead();
   const [activeId, setActiveId] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const grouped = useMemo(() => {
-    const g: Record<LeadStatus, Lead[]> = { New: [], Contacted: [], Visit: [], Negotiation: [], Closed: [] };
-    items.forEach(l => g[l.status].push(l));
+    const g: Record<LeadStatus, LeadRow[]> = { New: [], Contacted: [], Visit: [], Negotiation: [], Closed: [] };
+    leads.forEach(l => g[l.status].push(l));
     return g;
-  }, [items]);
+  }, [leads]);
 
   function onDragEnd(e: DragEndEvent) {
     setActiveId(null);
     const overId = e.over?.id as LeadStatus | undefined;
+    const id = e.active.id as string;
     if (!overId) return;
-    setItems(prev => prev.map(l => l.id === e.active.id ? { ...l, status: overId } : l));
+    const lead = leads.find(l => l.id === id);
+    if (!lead || lead.status === overId) return;
+    update.mutate(
+      { id, patch: { status: overId } },
+      { onError: (err) => toast.error((err as { message?: string }).message ?? "No se pudo mover") }
+    );
   }
 
-  const active = items.find(i => i.id === activeId);
+  const active = leads.find(i => i.id === activeId);
 
   return (
     <AppShell title="Embudo de Ventas" subtitle="Arrastra los prospectos entre etapas para actualizar su estatus">
       <DndContext sensors={sensors} onDragStart={(e) => setActiveId(e.active.id as string)} onDragEnd={onDragEnd}>
-        {/* Horizontal scroll on mobile, grid on desktop */}
         <div className="md:hidden -mx-4 px-4 overflow-x-auto snap-x snap-mandatory pb-2">
           <div className="flex gap-3" style={{ width: "max-content" }}>
             {columns.map(col => (
@@ -82,10 +90,9 @@ function Column({ id, label, tint, count, children }: { id: LeadStatus; label: s
   );
 }
 
-function LeadCard({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
+function LeadCard({ lead, dragging }: { lead: LeadRow; dragging?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: lead.id });
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined;
-  const agent = agents.find(a => a.id === lead.agentId);
   return (
     <div
       ref={setNodeRef}
@@ -100,8 +107,8 @@ function LeadCard({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
           <div className="text-sm font-medium">{lead.name}</div>
           <div className="text-xs text-muted-foreground truncate">{lead.interest}</div>
           <div className="mt-2 flex items-center justify-between text-xs">
-            <span className="font-semibold text-primary">{fmtMoney(lead.budget)}</span>
-            <span className="text-muted-foreground">{agent?.name.split(" ")[0]}</span>
+            <span className="font-semibold text-primary">{fmtMoney(Number(lead.budget))}</span>
+            <span className="text-muted-foreground">{lead.agent?.full_name?.split(" ")[0] ?? ""}</span>
           </div>
           <div className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
             <Phone className="h-3 w-3" />{lead.phone}

@@ -44,6 +44,67 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          agent_id: string
+          client_name: string
+          client_phone: string
+          created_at: string
+          id: string
+          lead_id: string | null
+          notes: string
+          property_id: string | null
+          scheduled_at: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string
+          property_id?: string | null
+          scheduled_at: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          client_name?: string
+          client_phone?: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string
+          property_id?: string | null
+          scheduled_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability_history: {
         Row: {
           changed_at: string
@@ -128,6 +189,59 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: true
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          agent_id: string
+          budget: number
+          created_at: string
+          email: string
+          id: string
+          interest: string
+          name: string
+          notes: string
+          phone: string
+          source: Database["public"]["Enums"]["lead_source"]
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          budget?: number
+          created_at?: string
+          email?: string
+          id?: string
+          interest?: string
+          name: string
+          notes?: string
+          phone?: string
+          source?: Database["public"]["Enums"]["lead_source"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          budget?: number
+          created_at?: string
+          email?: string
+          id?: string
+          interest?: string
+          name?: string
+          notes?: string
+          phone?: string
+          source?: Database["public"]["Enums"]["lead_source"]
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -356,6 +470,8 @@ export type Database = {
         | "appointment_created"
       app_role: "admin" | "agent"
       availability_status: "Available" | "Reserved" | "Sold"
+      lead_source: "Website" | "WhatsApp" | "Referral" | "Walk-in" | "Facebook"
+      lead_status: "New" | "Contacted" | "Visit" | "Negotiation" | "Closed"
       media_kind: "photo" | "render" | "video"
       property_status: "Available" | "Reserved" | "Sold"
     }
@@ -495,6 +611,8 @@ export const Constants = {
       ],
       app_role: ["admin", "agent"],
       availability_status: ["Available", "Reserved", "Sold"],
+      lead_source: ["Website", "WhatsApp", "Referral", "Walk-in", "Facebook"],
+      lead_status: ["New", "Contacted", "Visit", "Negotiation", "Closed"],
       media_kind: ["photo", "render", "video"],
       property_status: ["Available", "Reserved", "Sold"],
     },
