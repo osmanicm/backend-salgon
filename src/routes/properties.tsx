@@ -514,6 +514,7 @@ export function PropertyFormDialog({
   const create = useCreateProperty();
   const update = useUpdateProperty();
   const agentsQuery = useAgentsList();
+  const [apiError, setApiError] = React.useState<string | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -533,6 +534,7 @@ export function PropertyFormDialog({
 
   React.useEffect(() => {
     if (!open) return;
+    setApiError(null);
     if (initial) {
       setForm({
         title: initial.title,
@@ -569,6 +571,7 @@ export function PropertyFormDialog({
   }, [open, initial, existing]);
 
   async function doSave() {
+    setApiError(null);
     if (locked) {
       toast.error("No tienes permisos para editar esta propiedad");
       return;
@@ -593,6 +596,7 @@ export function PropertyFormDialog({
       const msg = parsed.error.issues
         .map((i) => `${i.path.join(".") || "campo"}: ${i.message}`)
         .join(" · ");
+      setApiError(msg || "Datos inválidos");
       toast.error(msg || "Datos inválidos");
       return;
     }
@@ -623,7 +627,16 @@ export function PropertyFormDialog({
       onOpenChange(false);
     } catch (e: unknown) {
       console.error("[properties] save error", e);
-      toast.error(e instanceof Error ? e.message : "Error al guardar");
+      const err = e as { message?: string; details?: string; hint?: string; code?: string } | Error;
+      const parts = [
+        (err as { message?: string }).message,
+        (err as { details?: string }).details,
+        (err as { hint?: string }).hint,
+        (err as { code?: string }).code ? `(${(err as { code?: string }).code})` : null,
+      ].filter(Boolean);
+      const msg = parts.length ? parts.join(" — ") : "Error al guardar";
+      setApiError(msg);
+      toast.error(msg);
     }
   }
 
@@ -646,6 +659,12 @@ export function PropertyFormDialog({
         {locked && (
           <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
             Solo el agente asignado o un admin pueden editar esta propiedad.
+          </div>
+        )}
+        {apiError && !locked && (
+          <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            <div className="font-medium mb-0.5">No se pudo guardar</div>
+            <div className="break-words">{apiError}</div>
           </div>
         )}
         <form onSubmit={handleSubmit} className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${locked ? "opacity-60 pointer-events-none" : ""}`}>
@@ -747,9 +766,11 @@ export function PropertyFormDialog({
 
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>Cancelar</Button>
-            <Button type="submit" disabled={pending || locked} onClick={(e) => { e.preventDefault(); void doSave(); }}>
-              {pending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-              {isEdit ? "Guardar cambios" : "Crear propiedad"}
+            <Button type="submit" disabled={pending || locked} onClick={(e) => { e.preventDefault(); void doSave(); }} aria-busy={pending}>
+              {pending && <Loader2 className="h-4 w-4 animate-spin mr-1.5" aria-hidden="true" />}
+              {pending
+                ? (isEdit ? "Guardando…" : "Creando…")
+                : (isEdit ? "Guardar cambios" : "Crear propiedad")}
             </Button>
           </DialogFooter>
         </form>
