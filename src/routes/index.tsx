@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import {
-  Home, BadgeDollarSign, Users as UsersIcon,
-  CalendarCheck, CheckCircle2, ArrowRight, Phone, MapPin,
+  Home, BadgeDollarSign, CheckCircle2, ArrowRight, MapPin,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { appointments, leads, fmtMXN } from "@/data/mock";
-import { useAvailability, useProperties as useStoreProperties } from "@/data/store";
+import { fmtMoney } from "@/data/mock";
+import { useAvailabilityUnits } from "@/data/availabilityApi";
 import { useProperties } from "@/data/propertiesApi";
+import { useHasRole } from "@/hooks/useAuth";
+import { Navigate } from "@tanstack/react-router";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
@@ -18,17 +19,21 @@ export const Route = createFileRoute("/")({
   errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Dashboard" error={error} reset={reset} />,
 });
 
-function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
 function isSameMonth(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
 }
 
 function DashboardPage() {
-  const availability = useAvailability();
+  const isAdmin = useHasRole("admin");
+  const isAgent = useHasRole("agent");
+
+  // Agent has its own dashboard at /agent
+  if (isAgent && !isAdmin) {
+    return <Navigate to="/agent" />;
+  }
+
   const { data: propertiesData = [] } = useProperties();
-  const properties = useStoreProperties();
+  const { data: availability = [] } = useAvailabilityUnits();
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -36,36 +41,25 @@ function DashboardPage() {
     const vendidasMes = propertiesData.filter(
       (p) => p.status === "Sold" && isSameMonth(new Date(p.updated_at), now),
     ).length;
-    const prospectosActivos = leads.filter((l) => l.status !== "Closed").length;
-    const citasHoy = appointments.filter((a) => isSameDay(new Date(a.date), now));
     const ventasCerradas = availability.filter((r) => r.status === "Sold");
-    return { disponibles, vendidasMes, prospectosActivos, citasHoy, ventasCerradas };
+    return { disponibles, vendidasMes, ventasCerradas };
   }, [availability, propertiesData]);
 
   const kpis = [
     { label: "Propiedades disponibles", value: String(stats.disponibles), icon: Home, tint: "text-success bg-success/10", to: "/properties" as const },
     { label: "Vendidas este mes", value: String(stats.vendidasMes), icon: BadgeDollarSign, tint: "text-gold-foreground bg-gold/20", to: "/properties" as const },
-    { label: "Prospectos activos", value: String(stats.prospectosActivos), icon: UsersIcon, tint: "text-info bg-info/10", to: "/leads" as const },
-    { label: "Citas hoy", value: String(stats.citasHoy.length), icon: CalendarCheck, tint: "text-primary bg-primary/10", to: "/appointments" as const },
-    { label: "Ventas cerradas", value: String(stats.ventasCerradas.length), icon: CheckCircle2, tint: "text-success bg-success/10", to: "/pipeline" as const },
+    { label: "Ventas cerradas (inventario)", value: String(stats.ventasCerradas.length), icon: CheckCircle2, tint: "text-success bg-success/10", to: "/availability" as const },
   ];
-
-  const propsById = useMemo(() => Object.fromEntries(properties.map((p) => [p.id, p])), [properties]);
-  const leadsById = useMemo(() => Object.fromEntries(leads.map((l) => [l.id, l])), []);
-
-  const todayAppointments = stats.citasHoy
-    .slice()
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const recentSales = stats.ventasCerradas
     .slice()
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    .sort((a, b) => (b.updated_at ?? "").localeCompare(a.updated_at ?? ""))
     .slice(0, 5);
 
   return (
     <AppShell title="Panel de Control" subtitle="Resumen operativo de Salgon Bienes Raíces">
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
+      {/* KPIs reales (DB) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
         {kpis.map((k) => {
           const Icon = k.icon;
           return (
@@ -84,89 +78,50 @@ function DashboardPage() {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Citas hoy */}
-        <PageCard
-          className="min-w-0"
-          title="Citas de hoy"
-          description={todayAppointments.length === 0 ? "Sin citas programadas" : `${todayAppointments.length} cita(s) programada(s)`}
-          action={
-            <Link to="/appointments" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
-              Ver todas <ArrowRight className="h-3 w-3" />
-            </Link>
-          }
-        >
-          {todayAppointments.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">No hay citas para hoy.</div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {todayAppointments.map((a) => {
-                const lead = leadsById[a.leadId];
-                const prop = propsById[a.propertyId];
-                const time = new Date(a.date).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
-                return (
-                  <li key={a.id} className="flex items-center gap-3 py-3">
-                    <div className="h-10 w-12 rounded-lg bg-primary/10 text-primary grid place-items-center text-sm font-semibold tabular-nums">
-                      {time}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{lead?.name ?? a.leadId}</p>
-                      <p className="text-xs text-muted-foreground truncate">{prop?.title ?? a.propertyId}</p>
-                    </div>
-                    {lead?.phone && (
-                      <a
-                        href={`tel:${lead.phone}`}
-                        className="h-8 w-8 rounded-full grid place-items-center text-muted-foreground hover:text-primary hover:bg-accent"
-                        aria-label="Llamar"
-                      >
-                        <Phone className="h-4 w-4" />
-                      </a>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </PageCard>
-
-        {/* Ventas recientes */}
-        <PageCard
-          className="min-w-0"
-          title="Ventas cerradas recientes"
-          description="Últimas unidades vendidas"
-          action={
-            <Link to="/availability" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
-              Ver inventario <ArrowRight className="h-3 w-3" />
-            </Link>
-          }
-        >
-          {recentSales.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">Aún no hay ventas registradas.</div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {recentSales.map((r) => (
-                <li key={r.id} className="flex items-center gap-3 py-3">
-                  <div className="h-9 w-9 rounded-lg bg-gold/20 text-gold-foreground grid place-items-center">
-                    <BadgeDollarSign className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {r.model} · Lote {r.lot}
-                    </p>
+      {/* Ventas recientes (DB: availability_units) */}
+      <PageCard
+        className="min-w-0"
+        title="Ventas cerradas recientes"
+        description="Últimas unidades vendidas del inventario"
+        action={
+          <Link to="/availability" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
+            Ver inventario <ArrowRight className="h-3 w-3" />
+          </Link>
+        }
+      >
+        {recentSales.length === 0 ? (
+          <div className="py-8 text-center text-sm text-muted-foreground">Aún no hay ventas registradas.</div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {recentSales.map((r) => (
+              <li key={r.id} className="flex items-center gap-3 py-3">
+                <div className="h-9 w-9 rounded-lg bg-gold/20 text-gold-foreground grid place-items-center">
+                  <BadgeDollarSign className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {r.model} · Lote {r.lot}
+                  </p>
+                  {r.cluster && (
                     <p className="text-xs text-muted-foreground truncate inline-flex items-center gap-1">
                       <MapPin className="h-3 w-3" /> {r.cluster}
                     </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-semibold tabular-nums">{fmtMXN(r.price)}</div>
-                    <div className="mt-0.5"><StatusBadge status={r.status} /></div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </PageCard>
-      </div>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-semibold tabular-nums">{fmtMoney(Number(r.price))}</div>
+                  <div className="mt-0.5"><StatusBadge status={r.status} /></div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </PageCard>
+
+      <p className="text-[11px] text-muted-foreground text-center">
+        Los KPIs y listados muestran únicamente datos sincronizados con la base de datos.
+        Módulos como Prospectos, Citas y Pipeline aparecerán aquí cuando tengan persistencia.
+      </p>
     </AppShell>
   );
 }
