@@ -159,6 +159,8 @@ function AnalyticsPage() {
 
   const [preset, setPreset] = useState<Preset>("all");
   const [range, setRange] = useState<DateRange | undefined>(undefined);
+  const [agentFilter, setAgentFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<AgentEventType | "all">("all");
 
   const activeRange = useMemo<DateRange | undefined>(() => {
     const now = new Date();
@@ -179,14 +181,18 @@ function AnalyticsPage() {
   }, [preset, range]);
 
   const events = useMemo(() => {
-    if (!activeRange?.from) return allEvents;
-    const fromMs = activeRange.from.getTime();
-    const toMs = (activeRange.to ?? activeRange.from).getTime();
+    const fromMs = activeRange?.from?.getTime();
+    const toMs = activeRange ? (activeRange.to ?? activeRange.from)?.getTime() : undefined;
     return allEvents.filter((e) => {
-      const t = new Date(e.created_at).getTime();
-      return t >= fromMs && t <= toMs;
+      if (fromMs !== undefined && toMs !== undefined) {
+        const t = new Date(e.created_at).getTime();
+        if (t < fromMs || t > toMs) return false;
+      }
+      if (agentFilter !== "all" && e.agent_id !== agentFilter) return false;
+      if (typeFilter !== "all" && e.event_type !== typeFilter) return false;
+      return true;
     });
-  }, [allEvents, activeRange]);
+  }, [allEvents, activeRange, agentFilter, typeFilter]);
 
   const metrics = useMemo(() => aggregate(events, profiles), [events, profiles]);
 
