@@ -127,12 +127,63 @@ function fmtDate(iso: string | null) {
   });
 }
 
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function endOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+function fmtRange(r: DateRange | undefined) {
+  if (!r?.from) return "Todo el tiempo";
+  const f = r.from.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+  if (!r.to) return f;
+  const t = r.to.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+  return `${f} – ${t}`;
+}
+
+type Preset = "all" | "week" | "month" | "custom";
+
 function AnalyticsPage() {
   const { roles, loading } = useAuth();
   const isAdmin = roles.includes("admin");
 
-  const { data: events = [], isLoading: lE } = useAgentEvents();
+  const { data: allEvents = [], isLoading: lE } = useAgentEvents();
   const { data: profiles = [], isLoading: lP } = useAgentProfiles();
+
+  const [preset, setPreset] = useState<Preset>("all");
+  const [range, setRange] = useState<DateRange | undefined>(undefined);
+
+  const activeRange = useMemo<DateRange | undefined>(() => {
+    const now = new Date();
+    if (preset === "week") {
+      const from = new Date(now);
+      from.setDate(from.getDate() - 6);
+      return { from: startOfDay(from), to: endOfDay(now) };
+    }
+    if (preset === "month") {
+      const from = new Date(now);
+      from.setDate(from.getDate() - 29);
+      return { from: startOfDay(from), to: endOfDay(now) };
+    }
+    if (preset === "custom" && range?.from) {
+      return { from: startOfDay(range.from), to: endOfDay(range.to ?? range.from) };
+    }
+    return undefined;
+  }, [preset, range]);
+
+  const events = useMemo(() => {
+    if (!activeRange?.from) return allEvents;
+    const fromMs = activeRange.from.getTime();
+    const toMs = (activeRange.to ?? activeRange.from).getTime();
+    return allEvents.filter((e) => {
+      const t = new Date(e.created_at).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+  }, [allEvents, activeRange]);
 
   const metrics = useMemo(() => aggregate(events, profiles), [events, profiles]);
 
