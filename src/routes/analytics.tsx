@@ -219,6 +219,58 @@ function AnalyticsPage() {
       title="Analítica de agentes"
       subtitle="Actividad operativa de los usuarios con rol de agente"
     >
+      {/* Date range filter */}
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)]">
+        <span className="text-xs text-muted-foreground mr-1">Periodo:</span>
+        {([
+          { id: "all", label: "Todo" },
+          { id: "week", label: "Semana" },
+          { id: "month", label: "Mes" },
+        ] as const).map((p) => (
+          <Button
+            key={p.id}
+            size="sm"
+            variant={preset === p.id ? "default" : "outline"}
+            className="h-8 text-xs"
+            onClick={() => {
+              setPreset(p.id);
+              setRange(undefined);
+            }}
+          >
+            {p.label}
+          </Button>
+        ))}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              variant={preset === "custom" ? "default" : "outline"}
+              className="h-8 text-xs gap-1.5"
+            >
+              <CalendarIcon className="h-3.5 w-3.5" />
+              {preset === "custom" ? fmtRange(range) : "Personalizado"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={range}
+              onSelect={(r) => {
+                setRange(r);
+                setPreset("custom");
+              }}
+              numberOfMonths={1}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+        {activeRange?.from && (
+          <span className="ml-auto text-[11px] text-muted-foreground">
+            {events.length} eventos · {fmtRange(activeRange)}
+          </span>
+        )}
+      </div>
+
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {kpis.map((k) => {
