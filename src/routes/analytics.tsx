@@ -273,11 +273,54 @@ function AnalyticsPage() {
             />
           </PopoverContent>
         </Popover>
-        {activeRange?.from && (
-          <span className="ml-auto text-[11px] text-muted-foreground">
-            {events.length} eventos · {fmtRange(activeRange)}
-          </span>
+
+        <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+
+        <Select value={agentFilter} onValueChange={setAgentFilter}>
+          <SelectTrigger className="h-8 text-xs w-[160px]">
+            <SelectValue placeholder="Agente" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los agentes</SelectItem>
+            {profiles.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.full_name || p.email || "Agente"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as AgentEventType | "all")}>
+          <SelectTrigger className="h-8 text-xs w-[170px]">
+            <SelectValue placeholder="Tipo de evento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los eventos</SelectItem>
+            {(Object.keys(EVENT_LABEL) as AgentEventType[]).map((t) => (
+              <SelectItem key={t} value={t}>{EVENT_LABEL[t]}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {(agentFilter !== "all" || typeFilter !== "all" || activeRange?.from) && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-xs"
+            onClick={() => {
+              setPreset("all");
+              setRange(undefined);
+              setAgentFilter("all");
+              setTypeFilter("all");
+            }}
+          >
+            Limpiar
+          </Button>
         )}
+
+        <span className="ml-auto text-[11px] text-muted-foreground">
+          {events.length} eventos{activeRange?.from ? ` · ${fmtRange(activeRange)}` : ""}
+        </span>
       </div>
 
       {/* KPIs */}
