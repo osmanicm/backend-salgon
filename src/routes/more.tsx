@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ClipboardList, KanbanSquare, MessageCircle, UserCog,
-  Settings, LogOut, ChevronRight,
+  Settings, LogOut, ChevronRight, BarChart3,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
