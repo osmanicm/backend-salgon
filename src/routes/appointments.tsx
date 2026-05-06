@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { appointments, leads } from "@/data/mock";
 import { useProperties } from "@/data/propertiesApi";
+import { logAgentEvent } from "@/data/agentEvents";
 import { cn } from "@/lib/utils";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
@@ -210,6 +211,7 @@ function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
       return;
     }
     toast.success("Cita agendada");
+    void logAgentEvent({ type: "appointment_created", propertyId: parsed.data.propertyId, metadata: { date: parsed.data.date } });
     setForm(emptyAppt);
     setErrors({});
     onClose?.();

@@ -5,6 +5,7 @@ import {
   Pencil, Save, X, Printer, Search, ChevronDown, ChevronRight, Send, CircleDollarSign, History, User as UserIcon,
 } from "lucide-react";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
+import { logAgentEvent } from "@/data/agentEvents";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
@@ -665,6 +666,7 @@ function PdfPreviewDialog({
       a.remove();
       URL.revokeObjectURL(url);
       toast.success("PDF descargado", { description: `${a.download}` });
+      void logAgentEvent({ type: "availability_pdf_general", metadata: { folio, totalUnits } });
       onOpenChange(false);
     } catch (err) {
       console.error(err);

@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_events: {
+        Row: {
+          agent_id: string
+          created_at: string
+          event_type: Database["public"]["Enums"]["agent_event_type"]
+          id: string
+          metadata: Json
+          model: string | null
+          property_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          event_type: Database["public"]["Enums"]["agent_event_type"]
+          id?: string
+          metadata?: Json
+          model?: string | null
+          property_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["agent_event_type"]
+          id?: string
+          metadata?: Json
+          model?: string | null
+          property_id?: string | null
+        }
+        Relationships: []
+      }
       availability_history: {
         Row: {
           changed_at: string
@@ -317,6 +347,13 @@ export type Database = {
       }
     }
     Enums: {
+      agent_event_type:
+        | "session_start"
+        | "property_share"
+        | "property_pdf"
+        | "availability_pdf_general"
+        | "availability_pdf_model"
+        | "appointment_created"
       app_role: "admin" | "agent"
       availability_status: "Available" | "Reserved" | "Sold"
       media_kind: "photo" | "render" | "video"
@@ -448,6 +485,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agent_event_type: [
+        "session_start",
+        "property_share",
+        "property_pdf",
+        "availability_pdf_general",
+        "availability_pdf_model",
+        "appointment_created",
+      ],
       app_role: ["admin", "agent"],
       availability_status: ["Available", "Reserved", "Sold"],
       media_kind: ["photo", "render", "video"],
