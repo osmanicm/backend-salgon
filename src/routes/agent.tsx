@@ -44,7 +44,7 @@ function AgentDashboard() {
   const name = profile?.full_name || user?.email?.split("@")[0] || "Agente";
 
   const kpis = [
-    { label: "Mis propiedades", value: String(mine.myProps.length), icon: Building2, to: "/properties" as const },
+    { label: "Propiedades", value: String(mine.myProps.length), icon: Building2, to: "/properties" as const },
     { label: "Mis citas", value: String(mine.myAppts.length), icon: CalendarCheck, to: "/appointments" as const },
   ];
 
