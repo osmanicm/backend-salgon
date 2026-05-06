@@ -331,21 +331,21 @@ function AnalyticsPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {kpis.map((k) => {
           const Icon = k.icon;
           return (
             <div
               key={k.label}
-              className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)]"
+              className="rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-[var(--shadow-card)] min-w-0"
             >
-              <div className={`h-9 w-9 rounded-lg grid place-items-center ${k.tint}`}>
+              <div className={`h-8 w-8 sm:h-9 sm:w-9 rounded-lg grid place-items-center ${k.tint}`}>
                 <Icon className="h-4 w-4" />
               </div>
-              <div className="mt-3 text-2xl font-semibold tracking-tight tabular-nums">
+              <div className="mt-2 sm:mt-3 text-xl sm:text-2xl font-semibold tracking-tight tabular-nums truncate">
                 {isLoading ? "—" : k.value}
               </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+              <div className="text-[11px] text-muted-foreground mt-0.5 leading-tight break-words">
                 {k.label}
               </div>
             </div>
