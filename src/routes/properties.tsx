@@ -570,6 +570,7 @@ export function PropertyFormDialog({
   }, [open, initial, existing]);
 
   async function doSave() {
+    setApiError(null);
     if (locked) {
       toast.error("No tienes permisos para editar esta propiedad");
       return;
@@ -594,6 +595,7 @@ export function PropertyFormDialog({
       const msg = parsed.error.issues
         .map((i) => `${i.path.join(".") || "campo"}: ${i.message}`)
         .join(" · ");
+      setApiError(msg || "Datos inválidos");
       toast.error(msg || "Datos inválidos");
       return;
     }
@@ -624,7 +626,16 @@ export function PropertyFormDialog({
       onOpenChange(false);
     } catch (e: unknown) {
       console.error("[properties] save error", e);
-      toast.error(e instanceof Error ? e.message : "Error al guardar");
+      const err = e as { message?: string; details?: string; hint?: string; code?: string } | Error;
+      const parts = [
+        (err as { message?: string }).message,
+        (err as { details?: string }).details,
+        (err as { hint?: string }).hint,
+        (err as { code?: string }).code ? `(${(err as { code?: string }).code})` : null,
+      ].filter(Boolean);
+      const msg = parts.length ? parts.join(" — ") : "Error al guardar";
+      setApiError(msg);
+      toast.error(msg);
     }
   }
 
