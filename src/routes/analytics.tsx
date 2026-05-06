@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Users as UsersIcon,
@@ -9,7 +9,13 @@ import {
   CalendarCheck,
   Activity,
   TrendingUp,
+  Calendar as CalendarIcon,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { useAuth } from "@/hooks/useAuth";
@@ -121,12 +127,63 @@ function fmtDate(iso: string | null) {
   });
 }
 
+function startOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+function endOfDay(d: Date) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+function fmtRange(r: DateRange | undefined) {
+  if (!r?.from) return "Todo el tiempo";
+  const f = r.from.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+  if (!r.to) return f;
+  const t = r.to.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+  return `${f} – ${t}`;
+}
+
+type Preset = "all" | "week" | "month" | "custom";
+
 function AnalyticsPage() {
   const { roles, loading } = useAuth();
   const isAdmin = roles.includes("admin");
 
-  const { data: events = [], isLoading: lE } = useAgentEvents();
+  const { data: allEvents = [], isLoading: lE } = useAgentEvents();
   const { data: profiles = [], isLoading: lP } = useAgentProfiles();
+
+  const [preset, setPreset] = useState<Preset>("all");
+  const [range, setRange] = useState<DateRange | undefined>(undefined);
+
+  const activeRange = useMemo<DateRange | undefined>(() => {
+    const now = new Date();
+    if (preset === "week") {
+      const from = new Date(now);
+      from.setDate(from.getDate() - 6);
+      return { from: startOfDay(from), to: endOfDay(now) };
+    }
+    if (preset === "month") {
+      const from = new Date(now);
+      from.setDate(from.getDate() - 29);
+      return { from: startOfDay(from), to: endOfDay(now) };
+    }
+    if (preset === "custom" && range?.from) {
+      return { from: startOfDay(range.from), to: endOfDay(range.to ?? range.from) };
+    }
+    return undefined;
+  }, [preset, range]);
+
+  const events = useMemo(() => {
+    if (!activeRange?.from) return allEvents;
+    const fromMs = activeRange.from.getTime();
+    const toMs = (activeRange.to ?? activeRange.from).getTime();
+    return allEvents.filter((e) => {
+      const t = new Date(e.created_at).getTime();
+      return t >= fromMs && t <= toMs;
+    });
+  }, [allEvents, activeRange]);
 
   const metrics = useMemo(() => aggregate(events, profiles), [events, profiles]);
 
@@ -162,6 +219,58 @@ function AnalyticsPage() {
       title="Analítica de agentes"
       subtitle="Actividad operativa de los usuarios con rol de agente"
     >
+      {/* Date range filter */}
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)]">
+        <span className="text-xs text-muted-foreground mr-1">Periodo:</span>
+        {([
+          { id: "all", label: "Todo" },
+          { id: "week", label: "Semana" },
+          { id: "month", label: "Mes" },
+        ] as const).map((p) => (
+          <Button
+            key={p.id}
+            size="sm"
+            variant={preset === p.id ? "default" : "outline"}
+            className="h-8 text-xs"
+            onClick={() => {
+              setPreset(p.id);
+              setRange(undefined);
+            }}
+          >
+            {p.label}
+          </Button>
+        ))}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              size="sm"
+              variant={preset === "custom" ? "default" : "outline"}
+              className="h-8 text-xs gap-1.5"
+            >
+              <CalendarIcon className="h-3.5 w-3.5" />
+              {preset === "custom" ? fmtRange(range) : "Personalizado"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={range}
+              onSelect={(r) => {
+                setRange(r);
+                setPreset("custom");
+              }}
+              numberOfMonths={1}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+        {activeRange?.from && (
+          <span className="ml-auto text-[11px] text-muted-foreground">
+            {events.length} eventos · {fmtRange(activeRange)}
+          </span>
+        )}
+      </div>
+
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {kpis.map((k) => {
