@@ -58,6 +58,7 @@ import {
 } from "@/data/propertiesApi";
 import { fmtMoney } from "@/data/mock";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
+import { logAgentEvent } from "@/data/agentEvents";
 import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeImageUrl } from "@/lib/imageUrl";
@@ -278,6 +279,7 @@ function PropertyDetailPage() {
     }
 
     setWhatsappHandoff({ message, image, meta: { propertyId: property.id } });
+    void logAgentEvent({ type: "property_share", propertyId: property.id, model: property.model });
     navigate({ to: "/whatsapp" });
   }
 
@@ -327,6 +329,7 @@ function PropertyDetailPage() {
       toast.success(`Ficha PDF lista en ${(duration / 1000).toFixed(1)}s.`, { id: t });
       setPdfAttempt(0);
       setPdfError(null);
+      void logAgentEvent({ type: "property_pdf", propertyId: property.id, model: property.model });
     } catch (e) {
       if (token.cancelled) {
         toast.dismiss(t);
@@ -1305,6 +1308,7 @@ function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {
       a.remove();
       URL.revokeObjectURL(url);
       toast.success("PDF descargado", { description: a.download });
+      void logAgentEvent({ type: "availability_pdf_model", model, metadata: { count: items.length } });
     } catch (err) {
       console.error(err);
       toast.error("No se pudo generar el PDF", {
