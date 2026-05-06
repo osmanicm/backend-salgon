@@ -228,99 +228,106 @@ function AnalyticsPage() {
       title="Analítica de agentes"
       subtitle="Actividad operativa de los usuarios con rol de agente"
     >
-      {/* Date range filter */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)]">
-        <span className="text-xs text-muted-foreground mr-1">Periodo:</span>
-        {([
-          { id: "all", label: "Todo" },
-          { id: "week", label: "Semana" },
-          { id: "month", label: "Mes" },
-        ] as const).map((p) => (
-          <Button
-            key={p.id}
-            size="sm"
-            variant={preset === p.id ? "default" : "outline"}
-            className="h-8 text-xs"
-            onClick={() => {
-              setPreset(p.id);
-              setRange(undefined);
-            }}
-          >
-            {p.label}
-          </Button>
-        ))}
-        <Popover>
-          <PopoverTrigger asChild>
+      {/* Filters */}
+      <div className="rounded-2xl border border-border bg-card p-3 shadow-[var(--shadow-card)] space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-muted-foreground mr-1">Periodo:</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {([
+              { id: "all", label: "Todo" },
+              { id: "week", label: "Semana" },
+              { id: "month", label: "Mes" },
+            ] as const).map((p) => (
+              <Button
+                key={p.id}
+                size="sm"
+                variant={preset === p.id ? "default" : "outline"}
+                className="h-8 text-xs"
+                onClick={() => {
+                  setPreset(p.id);
+                  setRange(undefined);
+                }}
+              >
+                {p.label}
+              </Button>
+            ))}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  size="sm"
+                  variant={preset === "custom" ? "default" : "outline"}
+                  className="h-8 text-xs gap-1.5 max-w-[180px] truncate"
+                >
+                  <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">
+                    {preset === "custom" ? fmtRange(range) : "Personalizado"}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={range}
+                  onSelect={(r) => {
+                    setRange(r);
+                    setPreset("custom");
+                  }}
+                  numberOfMonths={1}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Select value={agentFilter} onValueChange={setAgentFilter}>
+            <SelectTrigger className="h-9 text-xs w-full">
+              <SelectValue placeholder="Agente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los agentes</SelectItem>
+              {profiles.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.full_name || p.email || "Agente"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as AgentEventType | "all")}>
+            <SelectTrigger className="h-9 text-xs w-full">
+              <SelectValue placeholder="Tipo de evento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los eventos</SelectItem>
+              {(Object.keys(EVENT_LABEL) as AgentEventType[]).map((t) => (
+                <SelectItem key={t} value={t}>{EVENT_LABEL[t]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50">
+          <span className="text-[11px] text-muted-foreground truncate">
+            {events.length} eventos{activeRange?.from ? ` · ${fmtRange(activeRange)}` : ""}
+          </span>
+          {(agentFilter !== "all" || typeFilter !== "all" || activeRange?.from) && (
             <Button
               size="sm"
-              variant={preset === "custom" ? "default" : "outline"}
-              className="h-8 text-xs gap-1.5"
-            >
-              <CalendarIcon className="h-3.5 w-3.5" />
-              {preset === "custom" ? fmtRange(range) : "Personalizado"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="range"
-              selected={range}
-              onSelect={(r) => {
-                setRange(r);
-                setPreset("custom");
+              variant="ghost"
+              className="h-7 text-xs shrink-0"
+              onClick={() => {
+                setPreset("all");
+                setRange(undefined);
+                setAgentFilter("all");
+                setTypeFilter("all");
               }}
-              numberOfMonths={1}
-              className={cn("p-3 pointer-events-auto")}
-            />
-          </PopoverContent>
-        </Popover>
-
-        <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
-
-        <Select value={agentFilter} onValueChange={setAgentFilter}>
-          <SelectTrigger className="h-8 text-xs w-[160px]">
-            <SelectValue placeholder="Agente" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los agentes</SelectItem>
-            {profiles.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.full_name || p.email || "Agente"}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as AgentEventType | "all")}>
-          <SelectTrigger className="h-8 text-xs w-[170px]">
-            <SelectValue placeholder="Tipo de evento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los eventos</SelectItem>
-            {(Object.keys(EVENT_LABEL) as AgentEventType[]).map((t) => (
-              <SelectItem key={t} value={t}>{EVENT_LABEL[t]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {(agentFilter !== "all" || typeFilter !== "all" || activeRange?.from) && (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 text-xs"
-            onClick={() => {
-              setPreset("all");
-              setRange(undefined);
-              setAgentFilter("all");
-              setTypeFilter("all");
-            }}
-          >
-            Limpiar
-          </Button>
-        )}
-
-        <span className="ml-auto text-[11px] text-muted-foreground">
-          {events.length} eventos{activeRange?.from ? ` · ${fmtRange(activeRange)}` : ""}
-        </span>
+            >
+              Limpiar
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* KPIs */}
