@@ -411,48 +411,6 @@ function PropertyDetailPage() {
           </div>
         </div>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-          <Button onClick={handleWhatsapp} className="gap-1.5">
-            <MessageCircle className="h-4 w-4" /> WhatsApp
-          </Button>
-          <Button variant="outline" onClick={() => handleGeneratePdf()} disabled={generatingPdf} className="gap-1.5">
-            {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-            {generatingPdf ? "Generando…" : "Generar PDF"}
-          </Button>
-          {canManage && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setEditing(true)}
-                className="gap-1.5"
-              >
-                <Pencil className="h-4 w-4" /> Editar
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setDeleting(true)}
-                className="gap-1.5 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" /> Eliminar
-              </Button>
-            </>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => {
-              qc.invalidateQueries({ queryKey: ["property", id] });
-              qc.invalidateQueries({ queryKey: ["property-media", id] });
-              qc.invalidateQueries({ queryKey: ["property-files", id] });
-              setLastSync(new Date());
-              toast.success("Datos actualizados");
-            }}
-            className="gap-1.5"
-          >
-            <RefreshCw className="h-4 w-4" /> Refrescar
-          </Button>
-        </div>
-
         {/* Cover */}
         {(property.image_url || photos[0]) && (
           <div className="rounded-xl overflow-hidden border border-border bg-muted">
