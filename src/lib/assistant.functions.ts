@@ -237,7 +237,7 @@ export const askAssistant = createServerFn({ method: "POST" })
     if (!apiKey) {
       return { reply: "El asistente no está configurado (falta LOVABLE_API_KEY)." };
     }
-    const { supabase } = context as { supabase: any };
+    const { supabase, userId } = context as { supabase: any; userId: string };
 
     const sys = data.context
       ? `${SYSTEM_PROMPT}\n\nContexto actual del usuario: módulo "${data.context}". Prioriza ese tipo de información.`
