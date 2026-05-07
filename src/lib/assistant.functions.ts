@@ -84,6 +84,46 @@ const TOOLS = [
       parameters: { type: "object", properties: {}, additionalProperties: false },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "resolve_property",
+      description:
+        "Resuelve una propiedad real a partir de modelo y lote. Devuelve property_id, title, status. Úsalo SIEMPRE antes de crear una cita.",
+      parameters: {
+        type: "object",
+        properties: {
+          model: { type: "string" },
+          lot: { type: "string" },
+        },
+        required: ["model", "lot"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_appointment",
+      description:
+        "Crea una cita real en la base de datos. Solo llamar tras confirmación explícita del usuario y con property_id válido.",
+      parameters: {
+        type: "object",
+        properties: {
+          property_id: { type: "string", description: "UUID de la propiedad" },
+          client_name: { type: "string" },
+          scheduled_at: {
+            type: "string",
+            description: "Fecha-hora ISO 8601 con offset, ej. 2026-05-11T10:00:00-06:00",
+          },
+          client_phone: { type: "string" },
+          notes: { type: "string" },
+        },
+        required: ["property_id", "client_name", "scheduled_at"],
+        additionalProperties: false,
+      },
+    },
+  },
 ];
 
 async function runTool(name: string, args: any, supabase: any) {
