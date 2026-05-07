@@ -32,6 +32,23 @@ export const Route = createFileRoute("/appointments")({
 function AppointmentsPage() {
   const [month, setMonth] = useState(new Date());
   const { data: appointments = [], isLoading } = useAppointments();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    const ch = supabase
+      .channel("appointments-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "appointments" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["appointments"] });
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(ch);
+    };
+  }, [qc]);
 
   return (
     <AppShell title="Citas" subtitle="Agenda y administra las visitas a propiedades">
