@@ -1,0 +1,1 @@
+ALTER TABLE public.availability_units RENAME COLUMN cluster TO desarrollo;

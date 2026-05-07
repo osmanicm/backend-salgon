@@ -142,9 +142,9 @@ export type Database = {
       }
       availability_units: {
         Row: {
-          cluster: string
           created_at: string
           delivery: string | null
+          desarrollo: string
           id: string
           lot: string
           model: string
@@ -156,9 +156,9 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
-          cluster?: string
           created_at?: string
           delivery?: string | null
+          desarrollo?: string
           id?: string
           lot: string
           model: string
@@ -170,9 +170,9 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
-          cluster?: string
           created_at?: string
           delivery?: string | null
+          desarrollo?: string
           id?: string
           lot?: string
           model?: string
