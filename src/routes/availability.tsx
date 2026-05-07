@@ -371,7 +371,139 @@ function AvailabilityPage() {
         onOpenChange={setPdfOpen}
         groups={grouped}
       />
+
+      <CreateLoteDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      <AlertDialog open={!!deletingRow} onOpenChange={(o) => !o && setDeletingRow(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar lote {deletingRow?.lot}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción elimina el lote del inventario y envía la propiedad vinculada a la papelera.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void confirmDelete(); }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUnit.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {isLoading && (
+        <div className="fixed bottom-4 right-4 rounded-full bg-card border border-border shadow px-3 py-1.5 text-xs text-muted-foreground flex items-center gap-2">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Cargando inventario…
+        </div>
+      )}
     </AppShell>
+  );
+}
+
+/* ───────────── Create lote dialog ───────────── */
+
+function CreateLoteDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const create = useCreateAvailabilityUnit();
+  const [form, setForm] = useState({
+    model: "",
+    lot: "",
+    cluster: "",
+    price: "",
+    delivery: "",
+    status: "Available" as AvailabilityStatus,
+    notes: "",
+  });
+
+  function reset() {
+    setForm({ model: "", lot: "", cluster: "", price: "", delivery: "", status: "Available", notes: "" });
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.model.trim() || !form.lot.trim()) {
+      toast.error("Modelo y lote son obligatorios");
+      return;
+    }
+    try {
+      await create.mutateAsync({
+        model: form.model.trim(),
+        lot: form.lot.trim(),
+        cluster: form.cluster.trim(),
+        price: Number(form.price) || 0,
+        delivery: form.delivery || null,
+        status: form.status,
+        notes: form.notes,
+      });
+      toast.success(`Lote ${form.lot} creado`, {
+        description: `Se generó automáticamente la propiedad ${form.model.toUpperCase()}-L${form.lot}.`,
+      });
+      reset();
+      onOpenChange(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error desconocido";
+      toast.error("No se pudo crear el lote", { description: msg });
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nuevo lote</DialogTitle>
+          <DialogDescription>
+            Cada lote es una unidad vendible. Se creará automáticamente como propiedad vinculada.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Modelo *</Label>
+            <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="Tulipán" required />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Lote *</Label>
+            <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="04" required />
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label>Cluster</Label>
+            <Input value={form.cluster} onChange={(e) => setForm({ ...form, cluster: e.target.value })} placeholder="Cluster Norte" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Precio (MXN)</Label>
+            <Input type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Entrega</Label>
+            <Input type="date" value={form.delivery} onChange={(e) => setForm({ ...form, delivery: e.target.value })} />
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label>Estatus</Label>
+            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as AvailabilityStatus })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Available">Disponible</SelectItem>
+                <SelectItem value="Reserved">Apartado</SelectItem>
+                <SelectItem value="Sold">Vendido</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label>Notas</Label>
+            <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+          </div>
+          <DialogFooter className="col-span-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Crear lote
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
