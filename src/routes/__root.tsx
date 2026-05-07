@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SplashScreen } from "@/components/layout/SplashScreen";
+import { AssistantWidget } from "@/components/assistant/AssistantWidget";
 
 import appCss from "../styles.css?url";
 
