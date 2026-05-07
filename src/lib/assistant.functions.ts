@@ -289,7 +289,7 @@ export const askAssistant = createServerFn({ method: "POST" })
         } catch {
           args = {};
         }
-        const result = await runTool(tc.function?.name, args, supabase);
+        const result = await runTool(tc.function?.name, args, supabase, userId);
         convo.push({
           role: "tool",
           tool_call_id: tc.id,
