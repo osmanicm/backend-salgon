@@ -60,9 +60,13 @@ const STATUS_DOT: Record<AvailabilityStatus, string> = {
 };
 
 function AvailabilityPage() {
-  const { roles } = useAuth();
-  const isAdmin = roles.includes("admin");
-  const rows = useAvailability();
+  const { user } = useAuth();
+  const isAuthed = !!user;
+  const { data: rows, isLoading } = useAvailabilityUnits();
+  const updateUnit = useUpdateAvailabilityUnit();
+  const bulkUpdate = useBulkUpdateAvailabilityStatus();
+  const deleteUnit = useDeleteAvailabilityUnit();
+
   const [model, setModel] = useState<string>("all");
   const [cluster, setCluster] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
@@ -74,6 +78,8 @@ function AvailabilityPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<AvailabilityStatus>("Available");
   const [pdfOpen, setPdfOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [deletingRow, setDeletingRow] = useState<AvailabilityRow | null>(null);
 
   function toggleExpand(id: string) {
     setExpanded((prev) => {
@@ -83,10 +89,10 @@ function AvailabilityPage() {
     });
   }
 
-  const models   = useMemo(() => Array.from(new Set(rows.map(r => r.model))), [rows]);
-  const clusters = useMemo(() => Array.from(new Set(rows.map(r => r.cluster))), [rows]);
+  const models   = useMemo(() => Array.from(new Set(rows.map((r) => r.model))), [rows]);
+  const clusters = useMemo(() => Array.from(new Set(rows.map((r) => r.cluster).filter(Boolean))), [rows]);
 
-  const filtered = useMemo(() => rows.filter(r =>
+  const filtered = useMemo(() => rows.filter((r) =>
     (model === "all" || r.model === model) &&
     (cluster === "all" || r.cluster === cluster) &&
     (status === "all" || r.status === status) &&
@@ -95,7 +101,7 @@ function AvailabilityPage() {
 
   const grouped = useMemo(() => {
     const map = new Map<string, AvailabilityRow[]>();
-    filtered.forEach(r => {
+    filtered.forEach((r) => {
       if (!map.has(r.model)) map.set(r.model, []);
       map.get(r.model)!.push(r);
     });
@@ -104,9 +110,9 @@ function AvailabilityPage() {
 
   const counts = useMemo(() => ({
     total: rows.length,
-    available: rows.filter(r => r.status === "Available").length,
-    reserved:  rows.filter(r => r.status === "Reserved").length,
-    sold:      rows.filter(r => r.status === "Sold").length,
+    available: rows.filter((r) => r.status === "Available").length,
+    reserved:  rows.filter((r) => r.status === "Reserved").length,
+    sold:      rows.filter((r) => r.status === "Sold").length,
   }), [rows]);
 
   function startEdit(r: AvailabilityRow) {
@@ -114,61 +120,85 @@ function AvailabilityPage() {
     setDraft({ price: r.price, delivery: r.delivery, status: r.status, notes: r.notes });
   }
   function cancelEdit() { setEditingId(null); setDraft({}); }
-  function saveEdit(id: string) {
-    const { syncedPropertyIds } = updateAvailabilityRow(id, {
-      price: draft.price,
-      delivery: draft.delivery,
-      status: draft.status,
-      notes: draft.notes,
-    });
-    cancelEdit();
-    if (syncedPropertyIds.length > 0) {
-      toast.success("Disponibilidad actualizada", {
-        description: `Estatus sincronizado a la propiedad ${syncedPropertyIds.join(", ")} · enviado al API móvil`,
+  async function saveEdit(id: string) {
+    try {
+      await updateUnit.mutateAsync({
+        id,
+        patch: {
+          price: draft.price,
+          delivery: draft.delivery ?? null,
+          status: draft.status,
+          notes: draft.notes,
+        },
       });
-    } else {
-      toast.success("Disponibilidad actualizada", {
-        description: "Sincronizado vía API REST · los clientes móviles se actualizarán",
+      cancelEdit();
+      toast.success("Lote actualizado", {
+        description: "Sincronizado con la propiedad correspondiente.",
+      });
+    } catch (e) {
+      toast.error("No se pudo guardar", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
       });
     }
   }
 
-  function quickMarkSold(r: AvailabilityRow) {
+  async function quickMarkSold(r: AvailabilityRow) {
     if (r.status === "Sold") return;
-    const { syncedPropertyIds } = updateAvailabilityRow(r.id, { status: "Sold" });
-    const propsNote = syncedPropertyIds.length > 0
-      ? ` · propiedad ${syncedPropertyIds.join(", ")} sincronizada`
-      : "";
-    toast.success(`Lote ${r.lot} marcado como Vendido`, {
-      description: `availability_master · UPDATE status='Sold'${propsNote}`,
-    });
+    try {
+      await updateUnit.mutateAsync({ id: r.id, patch: { status: "Sold" } });
+      toast.success(`Lote ${r.lot} marcado como Vendido`, {
+        description: "La propiedad vinculada se actualizó automáticamente.",
+      });
+    } catch (e) {
+      toast.error("No se pudo marcar como vendido", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
+      });
+    }
   }
 
   function toggleRow(id: string, on: boolean) {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
       if (on) next.add(id); else next.delete(id);
       return next;
     });
   }
   function toggleAllVisible(on: boolean) {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
-      filtered.forEach(r => { if (on) next.add(r.id); else next.delete(r.id); });
+      filtered.forEach((r) => { if (on) next.add(r.id); else next.delete(r.id); });
       return next;
     });
   }
-  function applyBulk() {
-    const { syncedPropertyIds } = bulkUpdateAvailabilityStatus(selected, bulkStatus);
-    const statusEs = bulkStatus === "Available" ? "Disponible" : bulkStatus === "Reserved" ? "Apartado" : "Vendido";
-    const propsNote = syncedPropertyIds.length > 0
-      ? ` · ${syncedPropertyIds.length} propiedad${syncedPropertyIds.length === 1 ? "" : "es"} sincronizada${syncedPropertyIds.length === 1 ? "" : "s"} (${syncedPropertyIds.join(", ")})`
-      : "";
-    toast.success(`${selected.size} unidad(es) marcadas como ${statusEs}`, {
-      description: `availability_master · UPDATE WHERE id IN (…) · sincronizado con /api/availability${propsNote}`,
-    });
-    setBulkOpen(false);
-    setSelected(new Set());
+  async function applyBulk() {
+    try {
+      await bulkUpdate.mutateAsync({ ids: Array.from(selected), status: bulkStatus });
+      const statusEs = bulkStatus === "Available" ? "Disponible" : bulkStatus === "Reserved" ? "Apartado" : "Vendido";
+      toast.success(`${selected.size} unidad(es) marcadas como ${statusEs}`, {
+        description: "Propiedades sincronizadas automáticamente.",
+      });
+      setBulkOpen(false);
+      setSelected(new Set());
+    } catch (e) {
+      toast.error("No se pudo actualizar el lote", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
+      });
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deletingRow) return;
+    try {
+      await deleteUnit.mutateAsync(deletingRow.id);
+      toast.success(`Lote ${deletingRow.lot} eliminado`, {
+        description: "La propiedad vinculada se envió a la papelera.",
+      });
+      setDeletingRow(null);
+    } catch (e) {
+      toast.error("No se pudo eliminar", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
+      });
+    }
   }
 
   return (
