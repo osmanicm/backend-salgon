@@ -92,7 +92,7 @@ function AvailabilityPage() {
   }
 
   const models   = useMemo(() => Array.from(new Set(rows.map((r) => r.model))), [rows]);
-  const clusters = useMemo(() => Array.from(new Set(rows.map((r) => r.desarrollo).filter(Boolean))), [rows]);
+  const desarrollos = useMemo(() => Array.from(new Set(rows.map((r) => r.desarrollo).filter(Boolean))), [rows]);
 
   const filtered = useMemo(() => rows.filter((r) =>
     (model === "all" || r.model === model) &&
@@ -289,7 +289,7 @@ function AvailabilityPage() {
           <FilterSelect icon={<Filter className="h-3.5 w-3.5" />} label="Modelo"
             value={model} onChange={setModel} options={[["all", "Todos los modelos"], ...models.map(m => [m, m] as [string, string])]} />
           <FilterSelect label="Desarrollo" value={desarrollo} onChange={setDesarrollo}
-            options={[["all", "Todos los clusters"], ...clusters.map(c => [c, c] as [string, string])]} />
+            options={[["all", "Todos los desarrollos"], ...desarrollos.map(c => [c, c] as [string, string])]} />
           <FilterSelect label="Estatus" value={status} onChange={setStatus}
             options={[["all","Todos los estatus"],["Available","Disponible"],["Reserved","Apartado"],["Sold","Vendido"]]} />
         </div>
