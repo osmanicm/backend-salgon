@@ -63,6 +63,7 @@ export function AssistantWidget() {
           messages: next.slice(-12).map((m) => ({ role: m.role, content: m.content })),
           context: moduleFromPath(pathname),
         },
+        headers: await getAuthHeaders(),
       });
       setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
     } catch (e) {
