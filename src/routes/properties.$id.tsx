@@ -250,39 +250,6 @@ function PropertyDetailPage() {
     );
   }
 
-  async function handleWhatsapp() {
-    if (!property) return;
-    const message =
-      `¡Hola! Te comparto esta propiedad:\n\n` +
-      `🏠 *${property.title}*\n` +
-      `📍 ${property.location}\n` +
-      `💰 ${fmtMoney(Number(property.price))}\n` +
-      `🛏️ ${property.bedrooms} rec · 🛁 ${property.bathrooms} baños · 📐 ${property.area} m²\n\n` +
-      `Folio: ${property.code}\n` +
-      `¿Te gustaría agendar una visita?`;
-
-    let image: { filename: string; dataUrl: string; sizeBytes: number; mimeType: string } | undefined;
-    const cover = normalizeImageUrl(property.image_url) || photos[0]?.url;
-    if (cover) {
-      try {
-        const res = await fetch(cover);
-        if (res.ok) {
-          const blob = await res.blob();
-          const mimeType = blob.type || "image/jpeg";
-          const ext = mimeType.split("/")[1]?.split("+")[0] || "jpg";
-          const dataUrl = await blobToDataUrl(blob);
-          image = { filename: `${property.code}.${ext}`, dataUrl, sizeBytes: blob.size, mimeType };
-        }
-      } catch (e) {
-        console.error("No se pudo adjuntar la imagen", e);
-      }
-    }
-
-    setWhatsappHandoff({ message, image, meta: { propertyId: property.id } });
-    void logAgentEvent({ type: "property_share", propertyId: property.id, model: property.model });
-    navigate({ to: "/whatsapp" });
-  }
-
   function cancelPdf() {
     if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
     setPdfStatus("cancelled");
