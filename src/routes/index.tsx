@@ -102,9 +102,9 @@ function DashboardPage() {
                   <p className="text-sm font-medium truncate">
                     {r.model} · Lote {r.lot}
                   </p>
-                  {r.cluster && (
+                  {r.desarrollo && (
                     <p className="text-xs text-muted-foreground truncate inline-flex items-center gap-1">
-                      <MapPin className="h-3 w-3" /> {r.cluster}
+                      <MapPin className="h-3 w-3" /> {r.desarrollo}
                     </p>
                   )}
                 </div>

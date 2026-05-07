@@ -70,7 +70,7 @@ function AvailabilityPage() {
   const deleteUnit = useDeleteAvailabilityUnit();
 
   const [model, setModel] = useState<string>("all");
-  const [cluster, setCluster] = useState<string>("all");
+  const [desarrollo, setDesarrollo] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
   const [q, setQ] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,14 +92,14 @@ function AvailabilityPage() {
   }
 
   const models   = useMemo(() => Array.from(new Set(rows.map((r) => r.model))), [rows]);
-  const clusters = useMemo(() => Array.from(new Set(rows.map((r) => r.cluster).filter(Boolean))), [rows]);
+  const clusters = useMemo(() => Array.from(new Set(rows.map((r) => r.desarrollo).filter(Boolean))), [rows]);
 
   const filtered = useMemo(() => rows.filter((r) =>
     (model === "all" || r.model === model) &&
-    (cluster === "all" || r.cluster === cluster) &&
+    (desarrollo === "all" || r.desarrollo === desarrollo) &&
     (status === "all" || r.status === status) &&
-    (q === "" || `${r.model} ${r.lot} ${r.cluster} ${r.notes}`.toLowerCase().includes(q.toLowerCase()))
-  ), [rows, model, cluster, status, q]);
+    (q === "" || `${r.model} ${r.lot} ${r.desarrollo} ${r.notes}`.toLowerCase().includes(q.toLowerCase()))
+  ), [rows, model, desarrollo, status, q]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, AvailabilityRow[]>();
@@ -288,7 +288,7 @@ function AvailabilityPage() {
           </div>
           <FilterSelect icon={<Filter className="h-3.5 w-3.5" />} label="Modelo"
             value={model} onChange={setModel} options={[["all", "Todos los modelos"], ...models.map(m => [m, m] as [string, string])]} />
-          <FilterSelect label="Cluster" value={cluster} onChange={setCluster}
+          <FilterSelect label="Desarrollo" value={desarrollo} onChange={setDesarrollo}
             options={[["all", "Todos los clusters"], ...clusters.map(c => [c, c] as [string, string])]} />
           <FilterSelect label="Estatus" value={status} onChange={setStatus}
             options={[["all","Todos los estatus"],["Available","Disponible"],["Reserved","Apartado"],["Sold","Vendido"]]} />
@@ -307,7 +307,7 @@ function AvailabilityPage() {
                   </th>
                 )}
                 <th className="px-2 py-2.5 font-medium">Lote</th>
-                <th className="px-2 py-2.5 font-medium">Cluster</th>
+                <th className="px-2 py-2.5 font-medium">Desarrollo</th>
                 <th className="px-2 py-2.5 font-medium text-right">Precio (MXN)</th>
                 <th className="px-2 py-2.5 font-medium">Entrega</th>
                 <th className="px-2 py-2.5 font-medium">Estatus</th>
@@ -411,7 +411,7 @@ function CreateLoteDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   const [form, setForm] = useState({
     model: "",
     lot: "",
-    cluster: "",
+    desarrollo: "",
     price: "",
     delivery: "",
     status: "Available" as AvailabilityStatus,
@@ -419,7 +419,7 @@ function CreateLoteDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
   });
 
   function reset() {
-    setForm({ model: "", lot: "", cluster: "", price: "", delivery: "", status: "Available", notes: "" });
+    setForm({ model: "", lot: "", desarrollo: "", price: "", delivery: "", status: "Available", notes: "" });
   }
 
   async function submit(e: React.FormEvent) {
@@ -432,7 +432,7 @@ function CreateLoteDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
       await create.mutateAsync({
         model: form.model.trim(),
         lot: form.lot.trim(),
-        cluster: form.cluster.trim(),
+        desarrollo: form.desarrollo.trim(),
         price: Number(form.price) || 0,
         delivery: form.delivery || null,
         status: form.status,
@@ -468,8 +468,8 @@ function CreateLoteDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
             <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="04" required />
           </div>
           <div className="space-y-1.5 col-span-2">
-            <Label>Cluster</Label>
-            <Input value={form.cluster} onChange={(e) => setForm({ ...form, cluster: e.target.value })} placeholder="Cluster Norte" />
+            <Label>Desarrollo</Label>
+            <Input value={form.desarrollo} onChange={(e) => setForm({ ...form, desarrollo: e.target.value })} placeholder="Desarrollo Norte" />
           </div>
           <div className="space-y-1.5">
             <Label>Precio (MXN)</Label>
@@ -610,7 +610,7 @@ function ModelGroup({
                   {r.lot}
                 </button>
               </td>
-              <td className="px-2 py-2.5 text-muted-foreground">{r.cluster}</td>
+              <td className="px-2 py-2.5 text-muted-foreground">{r.desarrollo}</td>
               <td className="px-2 py-2.5 text-right font-medium tabular-nums">
                 {editing ? (
                   <Input type="number" className="h-8 text-right tabular-nums"
@@ -952,7 +952,7 @@ function PdfPreviewDialog({
                     <thead>
                       <tr className="text-left text-neutral-500 uppercase tracking-wider text-[9px] border-b border-neutral-300">
                         <th className="py-1.5 pr-3 font-medium w-14">Lote</th>
-                        <th className="py-1.5 pr-3 font-medium">Cluster</th>
+                        <th className="py-1.5 pr-3 font-medium">Desarrollo</th>
                         <th className="py-1.5 pr-3 font-medium text-right whitespace-nowrap">Precio MXN</th>
                         <th className="py-1.5 pr-3 font-medium whitespace-nowrap">Entrega</th>
                         <th className="py-1.5 pr-3 font-medium w-24">Estatus</th>
@@ -963,7 +963,7 @@ function PdfPreviewDialog({
                       {items.map((r, i) => (
                         <tr key={r.id} className={i % 2 ? "bg-neutral-50" : ""}>
                           <td className="py-1.5 pr-3 font-mono">{r.lot}</td>
-                          <td className="py-1.5 pr-3">{r.cluster}</td>
+                          <td className="py-1.5 pr-3">{r.desarrollo}</td>
                           <td className="py-1.5 pr-3 text-right tabular-nums font-medium whitespace-nowrap">{fmtMXN(r.price)}</td>
                           <td className="py-1.5 pr-3 whitespace-nowrap">{r.delivery ? new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" }) : "—"}</td>
                           <td className="py-1.5 pr-3">

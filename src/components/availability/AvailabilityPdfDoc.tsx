@@ -103,7 +103,7 @@ export function AvailabilityPdfDoc({ groups, folio, dateLabel }: AvailabilityPdf
 
               <View style={styles.thead}>
                 <Text style={[styles.th, styles.cLot]}>Lote</Text>
-                <Text style={[styles.th, styles.cClus]}>Cluster</Text>
+                <Text style={[styles.th, styles.cClus]}>Desarrollo</Text>
                 <Text style={[styles.th, styles.cPrice]}>Precio MXN</Text>
                 <Text style={[styles.th, styles.cDel]}>Entrega</Text>
                 <Text style={[styles.th, styles.cStat]}>Estatus</Text>
@@ -113,7 +113,7 @@ export function AvailabilityPdfDoc({ groups, folio, dateLabel }: AvailabilityPdf
               {items.map((r, i) => (
                 <View key={r.id} style={[styles.tr, i % 2 ? styles.trAlt : {}]}>
                   <Text style={[styles.td, styles.cLot, { fontFamily: "Courier" }]}>{r.lot}</Text>
-                  <Text style={[styles.td, styles.cClus]}>{r.cluster}</Text>
+                  <Text style={[styles.td, styles.cClus]}>{r.desarrollo}</Text>
                   <Text style={[styles.td, styles.cPrice, { fontFamily: "Helvetica-Bold" }]}>{fmtMXN(r.price)}</Text>
                   <Text style={[styles.td, styles.cDel]}>
                     {r.delivery ? new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" }) : "—"}
