@@ -239,9 +239,11 @@ export const askAssistant = createServerFn({ method: "POST" })
     }
     const { supabase, userId } = context as { supabase: any; userId: string };
 
+    const nowIso = new Date().toISOString();
+    const baseSys = `${SYSTEM_PROMPT}\n\nFecha y hora actual (UTC): ${nowIso}. Zona horaria de operación: America/Mexico_City (offset -06:00).`;
     const sys = data.context
-      ? `${SYSTEM_PROMPT}\n\nContexto actual del usuario: módulo "${data.context}". Prioriza ese tipo de información.`
-      : SYSTEM_PROMPT;
+      ? `${baseSys}\n\nContexto actual del usuario: módulo "${data.context}". Prioriza ese tipo de información.`
+      : baseSys;
 
     const convo: any[] = [
       { role: "system", content: sys },
