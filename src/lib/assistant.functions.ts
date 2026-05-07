@@ -248,7 +248,7 @@ export const askAssistant = createServerFn({ method: "POST" })
       ...data.messages.map((m) => ({ role: m.role, content: m.content })),
     ];
 
-    for (let step = 0; step < 4; step++) {
+    for (let step = 0; step < 6; step++) {
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
