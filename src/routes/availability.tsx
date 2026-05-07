@@ -449,7 +449,6 @@ function ModelGroup({
         const editing = editingId === r.id;
         const isSel = selected.has(r.id);
         const isOpen = expanded.has(r.id);
-        const history = (r.history ?? []).slice(-5).reverse();
         return (
           <Fragment key={r.id}>
             <tr className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]", isOpen && "bg-muted/20")}>
@@ -483,10 +482,14 @@ function ModelGroup({
               <td className="px-2 py-2.5">
                 {editing ? (
                   <Input type="date" className="h-8"
-                    value={(draft.delivery ?? r.delivery).slice(0, 10)}
+                    value={(draft.delivery ?? r.delivery ?? "").slice(0, 10)}
                     onChange={(e) => setDraft({ ...draft, delivery: e.target.value })} />
                 ) : (
-                  <span className="text-xs">{new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                  <span className="text-xs">
+                    {r.delivery
+                      ? new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })
+                      : "—"}
+                  </span>
                 )}
               </td>
               <td className="px-2 py-2.5">
@@ -514,8 +517,8 @@ function ModelGroup({
                 ) : <span className="text-xs text-muted-foreground truncate block">{r.notes}</span>}
               </td>
               <td className="px-2 py-2.5">
-                {r.propertyId
-                  ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
+                {r.property_id
+                  ? <span className="font-mono text-[11px] text-primary">{r.property_id.slice(0, 8)}…</span>
                   : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
               </td>
               {isAdmin && (
@@ -544,6 +547,9 @@ function ModelGroup({
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => deletingRow !== r && undefined} aria-label="Eliminar lote">
+                        <Trash2 className="h-3.5 w-3.5" onClick={(e) => { e.stopPropagation(); (window as unknown as { __setDel?: (r: AvailabilityRow) => void }).__setDel?.(r); }} />
+                      </Button>
                     </div>
                   )}
                 </td>
@@ -552,7 +558,7 @@ function ModelGroup({
             {isOpen && (
               <tr className="border-b border-border/60 bg-muted/10">
                 <td colSpan={9} className="px-5 py-3">
-                  <HistoryLog entries={history} lot={r.lot} />
+                  <HistoryLog unitId={r.id} lot={r.lot} />
                 </td>
               </tr>
             )}
