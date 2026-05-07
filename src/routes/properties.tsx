@@ -227,7 +227,12 @@ function PropertiesIndex() {
   }
 
   return (
-    <AppShell title="Propiedades" subtitle="Administra tu catálogo de propiedades">
+    <AppShell title="Propiedades" subtitle="Generadas automáticamente desde Disponibilidad">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+        Cada propiedad corresponde a un <strong className="text-foreground">lote</strong> registrado en{" "}
+        <a href="/availability" className="text-primary underline">Disponibilidad</a>. Para agregar nuevas
+        propiedades, crea el lote desde ahí — la propiedad se generará automáticamente y se mantendrá sincronizada.
+      </div>
       <PageCard
         title="Todas las Propiedades"
         description={
