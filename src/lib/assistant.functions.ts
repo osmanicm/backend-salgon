@@ -206,6 +206,28 @@ async function runTool(name: string, args: any, supabase: any, userId: string) {
       .maybeSingle();
     if (pErr) return { error: pErr.message };
     if (!prop) return { error: "La propiedad no existe o fue eliminada." };
+
+    // Conflict check: same property within ±60 min of the requested slot.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const windowMs = 60 * 60 * 1000;
+    const fromIso = new Date(when.getTime() - windowMs).toISOString();
+    const toIso = new Date(when.getTime() + windowMs).toISOString();
+    const { data: conflicts, error: cErr } = await supabaseAdmin
+      .from("appointments")
+      .select("id, scheduled_at, client_name")
+      .eq("property_id", property_id)
+      .gte("scheduled_at", fromIso)
+      .lte("scheduled_at", toIso)
+      .limit(1);
+    if (cErr) return { error: cErr.message };
+    if (conflicts && conflicts.length > 0) {
+      return {
+        error: "conflict",
+        message: `Ya existe una cita para esta propiedad cerca de esa hora (${new Date(conflicts[0].scheduled_at).toLocaleString("es-MX", { timeZone: "America/Mexico_City" })}). Sugiere al usuario otro horario con al menos 1 hora de diferencia.`,
+        conflict: conflicts[0],
+      };
+    }
+
     const { data, error } = await supabase
       .from("appointments")
       .insert({
