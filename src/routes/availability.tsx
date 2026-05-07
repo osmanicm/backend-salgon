@@ -828,7 +828,7 @@ function PdfPreviewDialog({
                           <td className="py-1.5 pr-3 font-mono">{r.lot}</td>
                           <td className="py-1.5 pr-3">{r.cluster}</td>
                           <td className="py-1.5 pr-3 text-right tabular-nums font-medium whitespace-nowrap">{fmtMXN(r.price)}</td>
-                          <td className="py-1.5 pr-3 whitespace-nowrap">{new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" })}</td>
+                          <td className="py-1.5 pr-3 whitespace-nowrap">{r.delivery ? new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" }) : "—"}</td>
                           <td className="py-1.5 pr-3">
                             <span className={cn("inline-block px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider",
                               r.status === "Available" && "bg-emerald-100 text-emerald-800",
