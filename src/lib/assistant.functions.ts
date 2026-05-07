@@ -76,8 +76,6 @@ const TOOLS = [
   },
 ];
 
-type SupabaseClient = Parameters<Parameters<typeof requireSupabaseAuth.server>[0]>[0] extends infer _ ? any : any;
-
 async function runTool(name: string, args: any, supabase: any) {
   if (name === "search_availability") {
     let q = supabase
