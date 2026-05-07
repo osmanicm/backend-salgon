@@ -14,7 +14,7 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const SUGGESTIONS = [
   "Muéstrame propiedades disponibles",
-  "Agéndame una visita para Jazmín lote 15 mañana a las 10am",
+  "Agendame una cita para visitar alguna propiedad o visita en oficina",
   "Resumen del inventario",
 ];
 
