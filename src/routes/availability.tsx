@@ -262,12 +262,17 @@ function AvailabilityPage() {
         action={
           <div className="flex flex-wrap items-center gap-2">
             {isAdmin && (
-              <Button variant="outline" size="sm" className="gap-1.5"
-                disabled={selected.size === 0}
-                onClick={() => setBulkOpen(true)}>
-                <RefreshCw className="h-3.5 w-3.5" />
-                Actualizar en lote {selected.size > 0 && `(${selected.size})`}
-              </Button>
+              <>
+                <Button variant="outline" size="sm" className="gap-1.5"
+                  disabled={selected.size === 0}
+                  onClick={() => setBulkOpen(true)}>
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Actualizar en lote {selected.size > 0 && `(${selected.size})`}
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+                  <Plus className="h-3.5 w-3.5" /> Nuevo lote
+                </Button>
+              </>
             )}
             <Button size="sm" className="gap-1.5" onClick={() => setPdfOpen(true)}>
               <FileText className="h-3.5 w-3.5" /> Generar PDF de Disponibilidad
