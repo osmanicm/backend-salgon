@@ -39,12 +39,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
-// Compat alias so existing rendering code keeps working
-type AvailabilityRow = AvailabilityUnit & {
-  delivery: string;
-  propertyId: string | null;
-  updatedAt: string;
-};
+// Use the DB row type as the page's row type
+type AvailabilityRow = AvailabilityUnit;
 
 export const Route = createFileRoute("/availability")({
   component: AvailabilityPage,
