@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   Pencil,
-  MessageCircle,
+  
   FileDown,
   Image as ImageIcon,
   Video as VideoIcon,
@@ -57,7 +57,7 @@ import {
   useSoftDeleteProperty,
 } from "@/data/propertiesApi";
 import { fmtMoney } from "@/data/mock";
-import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
+
 import { logAgentEvent } from "@/data/agentEvents";
 import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -250,39 +250,6 @@ function PropertyDetailPage() {
     );
   }
 
-  async function handleWhatsapp() {
-    if (!property) return;
-    const message =
-      `¡Hola! Te comparto esta propiedad:\n\n` +
-      `🏠 *${property.title}*\n` +
-      `📍 ${property.location}\n` +
-      `💰 ${fmtMoney(Number(property.price))}\n` +
-      `🛏️ ${property.bedrooms} rec · 🛁 ${property.bathrooms} baños · 📐 ${property.area} m²\n\n` +
-      `Folio: ${property.code}\n` +
-      `¿Te gustaría agendar una visita?`;
-
-    let image: { filename: string; dataUrl: string; sizeBytes: number; mimeType: string } | undefined;
-    const cover = normalizeImageUrl(property.image_url) || photos[0]?.url;
-    if (cover) {
-      try {
-        const res = await fetch(cover);
-        if (res.ok) {
-          const blob = await res.blob();
-          const mimeType = blob.type || "image/jpeg";
-          const ext = mimeType.split("/")[1]?.split("+")[0] || "jpg";
-          const dataUrl = await blobToDataUrl(blob);
-          image = { filename: `${property.code}.${ext}`, dataUrl, sizeBytes: blob.size, mimeType };
-        }
-      } catch (e) {
-        console.error("No se pudo adjuntar la imagen", e);
-      }
-    }
-
-    setWhatsappHandoff({ message, image, meta: { propertyId: property.id } });
-    void logAgentEvent({ type: "property_share", propertyId: property.id, model: property.model });
-    navigate({ to: "/whatsapp" });
-  }
-
   function cancelPdf() {
     if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
     setPdfStatus("cancelled");
@@ -409,48 +376,6 @@ function PropertyDetailPage() {
               <Hash className="h-3.5 w-3.5" /> Folio {property.code}
             </div>
           </div>
-        </div>
-
-        {/* Quick actions */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-          <Button onClick={handleWhatsapp} className="gap-1.5">
-            <MessageCircle className="h-4 w-4" /> WhatsApp
-          </Button>
-          <Button variant="outline" onClick={() => handleGeneratePdf()} disabled={generatingPdf} className="gap-1.5">
-            {generatingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-            {generatingPdf ? "Generando…" : "Generar PDF"}
-          </Button>
-          {canManage && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setEditing(true)}
-                className="gap-1.5"
-              >
-                <Pencil className="h-4 w-4" /> Editar
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setDeleting(true)}
-                className="gap-1.5 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" /> Eliminar
-              </Button>
-            </>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => {
-              qc.invalidateQueries({ queryKey: ["property", id] });
-              qc.invalidateQueries({ queryKey: ["property-media", id] });
-              qc.invalidateQueries({ queryKey: ["property-files", id] });
-              setLastSync(new Date());
-              toast.success("Datos actualizados");
-            }}
-            className="gap-1.5"
-          >
-            <RefreshCw className="h-4 w-4" /> Refrescar
-          </Button>
         </div>
 
         {/* Cover */}
