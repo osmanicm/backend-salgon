@@ -361,11 +361,18 @@ function PropertiesIndex() {
                     <tr key={p.id} className="border-b border-border/60 hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          {p.image_url ? (
-                            <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
-                          ) : (
-                            <div className="h-11 w-14 rounded-md bg-muted grid place-items-center text-[10px] text-muted-foreground">—</div>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => navigate({ to: "/properties/$id", params: { id: p.id } })}
+                            className="shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+                            aria-label={`Ver ${p.title}`}
+                          >
+                            {p.image_url ? (
+                              <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-11 w-14 rounded-md object-cover hover:opacity-90 transition-opacity" />
+                            ) : (
+                              <div className="h-11 w-14 rounded-md bg-muted grid place-items-center text-[10px] text-muted-foreground">—</div>
+                            )}
+                          </button>
                           <div>
                             <div className="font-medium">{p.title}</div>
                             <div className="text-xs text-muted-foreground">{p.bedrooms} rec · {p.bathrooms} baños · {p.area} m²</div>
