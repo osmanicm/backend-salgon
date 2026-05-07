@@ -329,6 +329,7 @@ function AvailabilityPage() {
                   quickMarkSold={quickMarkSold}
                   expanded={expanded}
                   toggleExpand={toggleExpand}
+                  onDelete={setDeletingRow}
                 />
               ))}
               {grouped.length === 0 && (
