@@ -282,14 +282,19 @@ function PropertiesIndex() {
             <ul className="md:hidden space-y-3">
               {paged.map((p) => (
                 <li key={p.id} className="rounded-2xl border border-border bg-card overflow-hidden shadow-[var(--shadow-soft)]">
-                  <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => navigate({ to: "/properties/$id", params: { id: p.id } })}
+                    className="relative block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label={`Ver ${p.title}`}
+                  >
                     {p.image_url ? (
                       <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-40 w-full object-cover" />
                     ) : (
                       <div className="h-40 w-full bg-muted grid place-items-center text-xs text-muted-foreground">Sin imagen</div>
                     )}
                     <div className="absolute top-2 left-2"><StatusBadge status={p.status} /></div>
-                  </div>
+                  </button>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -356,11 +361,18 @@ function PropertiesIndex() {
                     <tr key={p.id} className="border-b border-border/60 hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          {p.image_url ? (
-                            <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-11 w-14 rounded-md object-cover" />
-                          ) : (
-                            <div className="h-11 w-14 rounded-md bg-muted grid place-items-center text-[10px] text-muted-foreground">—</div>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => navigate({ to: "/properties/$id", params: { id: p.id } })}
+                            className="shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+                            aria-label={`Ver ${p.title}`}
+                          >
+                            {p.image_url ? (
+                              <img src={normalizeImageUrl(p.image_url)} alt={p.title} className="h-11 w-14 rounded-md object-cover hover:opacity-90 transition-opacity" />
+                            ) : (
+                              <div className="h-11 w-14 rounded-md bg-muted grid place-items-center text-[10px] text-muted-foreground">—</div>
+                            )}
+                          </button>
                           <div>
                             <div className="font-medium">{p.title}</div>
                             <div className="text-xs text-muted-foreground">{p.bedrooms} rec · {p.bathrooms} baños · {p.area} m²</div>
