@@ -116,7 +116,7 @@ export function AvailabilityPdfDoc({ groups, folio, dateLabel }: AvailabilityPdf
                   <Text style={[styles.td, styles.cClus]}>{r.cluster}</Text>
                   <Text style={[styles.td, styles.cPrice, { fontFamily: "Helvetica-Bold" }]}>{fmtMXN(r.price)}</Text>
                   <Text style={[styles.td, styles.cDel]}>
-                    {new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" })}
+                    {r.delivery ? new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" }) : "—"}
                   </Text>
                   <View style={styles.cStat}>
                     <Text style={[styles.badge, statusBadge(r.status)]}>{statusEs(r.status)}</Text>
