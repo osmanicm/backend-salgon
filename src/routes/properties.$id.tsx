@@ -57,7 +57,7 @@ import {
   useSoftDeleteProperty,
 } from "@/data/propertiesApi";
 import { fmtMoney } from "@/data/mock";
-import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
+
 import { logAgentEvent } from "@/data/agentEvents";
 import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
