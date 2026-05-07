@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hooks/useAuth";
 import { askAssistant } from "@/lib/assistant.functions";
+import { getAuthHeaders } from "@/lib/serverFnAuth";
 import { cn } from "@/lib/utils";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -62,6 +63,7 @@ export function AssistantWidget() {
           messages: next.slice(-12).map((m) => ({ role: m.role, content: m.content })),
           context: moduleFromPath(pathname),
         },
+        headers: await getAuthHeaders(),
       });
       setMessages((prev) => [...prev, { role: "assistant", content: res.reply }]);
     } catch (e) {
