@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import {
   FileText, Filter, RefreshCw, Smartphone, Database, CheckCircle2,
-  Pencil, Save, X, Printer, Search, ChevronDown, ChevronRight, Send, CircleDollarSign, History, User as UserIcon,
+  Pencil, Save, X, Printer, Search, ChevronDown, ChevronRight, Send, CircleDollarSign, History, User as UserIcon, Plus, Loader2, Trash2,
 } from "lucide-react";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { logAgentEvent } from "@/data/agentEvents";
@@ -15,22 +15,32 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { fmtMXN } from "@/data/mock";
 import {
-  fmtMXN,
-  agents,
-  type AvailabilityRow, type AvailabilityStatus,
-} from "@/data/mock";
-import {
-  useAvailability, updateAvailabilityRow, bulkUpdateAvailabilityStatus,
-} from "@/data/store";
+  useAvailabilityUnits,
+  useUpdateAvailabilityUnit,
+  useBulkUpdateAvailabilityStatus,
+  useCreateAvailabilityUnit,
+  useDeleteAvailabilityUnit,
+  useAvailabilityHistory,
+  type AvailabilityUnit,
+  type AvailabilityStatus,
+} from "@/data/availabilityApi";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+// Use the DB row type as the page's row type
+type AvailabilityRow = AvailabilityUnit;
 
 export const Route = createFileRoute("/availability")({
   component: AvailabilityPage,
@@ -50,9 +60,15 @@ const STATUS_DOT: Record<AvailabilityStatus, string> = {
 };
 
 function AvailabilityPage() {
-  const { roles } = useAuth();
-  const isAdmin = roles.includes("admin");
-  const rows = useAvailability();
+  const { user } = useAuth();
+  const isAuthed = !!user;
+  // Any authenticated user can manage inventory now (admin gating removed at the data layer too)
+  const isAdmin = isAuthed;
+  const { data: rows, isLoading } = useAvailabilityUnits();
+  const updateUnit = useUpdateAvailabilityUnit();
+  const bulkUpdate = useBulkUpdateAvailabilityStatus();
+  const deleteUnit = useDeleteAvailabilityUnit();
+
   const [model, setModel] = useState<string>("all");
   const [cluster, setCluster] = useState<string>("all");
   const [status, setStatus] = useState<string>("all");
@@ -64,6 +80,8 @@ function AvailabilityPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState<AvailabilityStatus>("Available");
   const [pdfOpen, setPdfOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [deletingRow, setDeletingRow] = useState<AvailabilityRow | null>(null);
 
   function toggleExpand(id: string) {
     setExpanded((prev) => {
@@ -73,10 +91,10 @@ function AvailabilityPage() {
     });
   }
 
-  const models   = useMemo(() => Array.from(new Set(rows.map(r => r.model))), [rows]);
-  const clusters = useMemo(() => Array.from(new Set(rows.map(r => r.cluster))), [rows]);
+  const models   = useMemo(() => Array.from(new Set(rows.map((r) => r.model))), [rows]);
+  const clusters = useMemo(() => Array.from(new Set(rows.map((r) => r.cluster).filter(Boolean))), [rows]);
 
-  const filtered = useMemo(() => rows.filter(r =>
+  const filtered = useMemo(() => rows.filter((r) =>
     (model === "all" || r.model === model) &&
     (cluster === "all" || r.cluster === cluster) &&
     (status === "all" || r.status === status) &&
@@ -85,7 +103,7 @@ function AvailabilityPage() {
 
   const grouped = useMemo(() => {
     const map = new Map<string, AvailabilityRow[]>();
-    filtered.forEach(r => {
+    filtered.forEach((r) => {
       if (!map.has(r.model)) map.set(r.model, []);
       map.get(r.model)!.push(r);
     });
@@ -94,9 +112,9 @@ function AvailabilityPage() {
 
   const counts = useMemo(() => ({
     total: rows.length,
-    available: rows.filter(r => r.status === "Available").length,
-    reserved:  rows.filter(r => r.status === "Reserved").length,
-    sold:      rows.filter(r => r.status === "Sold").length,
+    available: rows.filter((r) => r.status === "Available").length,
+    reserved:  rows.filter((r) => r.status === "Reserved").length,
+    sold:      rows.filter((r) => r.status === "Sold").length,
   }), [rows]);
 
   function startEdit(r: AvailabilityRow) {
@@ -104,61 +122,85 @@ function AvailabilityPage() {
     setDraft({ price: r.price, delivery: r.delivery, status: r.status, notes: r.notes });
   }
   function cancelEdit() { setEditingId(null); setDraft({}); }
-  function saveEdit(id: string) {
-    const { syncedPropertyIds } = updateAvailabilityRow(id, {
-      price: draft.price,
-      delivery: draft.delivery,
-      status: draft.status,
-      notes: draft.notes,
-    });
-    cancelEdit();
-    if (syncedPropertyIds.length > 0) {
-      toast.success("Disponibilidad actualizada", {
-        description: `Estatus sincronizado a la propiedad ${syncedPropertyIds.join(", ")} · enviado al API móvil`,
+  async function saveEdit(id: string) {
+    try {
+      await updateUnit.mutateAsync({
+        id,
+        patch: {
+          price: draft.price,
+          delivery: draft.delivery ?? null,
+          status: draft.status,
+          notes: draft.notes,
+        },
       });
-    } else {
-      toast.success("Disponibilidad actualizada", {
-        description: "Sincronizado vía API REST · los clientes móviles se actualizarán",
+      cancelEdit();
+      toast.success("Lote actualizado", {
+        description: "Sincronizado con la propiedad correspondiente.",
+      });
+    } catch (e) {
+      toast.error("No se pudo guardar", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
       });
     }
   }
 
-  function quickMarkSold(r: AvailabilityRow) {
+  async function quickMarkSold(r: AvailabilityRow) {
     if (r.status === "Sold") return;
-    const { syncedPropertyIds } = updateAvailabilityRow(r.id, { status: "Sold" });
-    const propsNote = syncedPropertyIds.length > 0
-      ? ` · propiedad ${syncedPropertyIds.join(", ")} sincronizada`
-      : "";
-    toast.success(`Lote ${r.lot} marcado como Vendido`, {
-      description: `availability_master · UPDATE status='Sold'${propsNote}`,
-    });
+    try {
+      await updateUnit.mutateAsync({ id: r.id, patch: { status: "Sold" } });
+      toast.success(`Lote ${r.lot} marcado como Vendido`, {
+        description: "La propiedad vinculada se actualizó automáticamente.",
+      });
+    } catch (e) {
+      toast.error("No se pudo marcar como vendido", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
+      });
+    }
   }
 
   function toggleRow(id: string, on: boolean) {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
       if (on) next.add(id); else next.delete(id);
       return next;
     });
   }
   function toggleAllVisible(on: boolean) {
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = new Set(prev);
-      filtered.forEach(r => { if (on) next.add(r.id); else next.delete(r.id); });
+      filtered.forEach((r) => { if (on) next.add(r.id); else next.delete(r.id); });
       return next;
     });
   }
-  function applyBulk() {
-    const { syncedPropertyIds } = bulkUpdateAvailabilityStatus(selected, bulkStatus);
-    const statusEs = bulkStatus === "Available" ? "Disponible" : bulkStatus === "Reserved" ? "Apartado" : "Vendido";
-    const propsNote = syncedPropertyIds.length > 0
-      ? ` · ${syncedPropertyIds.length} propiedad${syncedPropertyIds.length === 1 ? "" : "es"} sincronizada${syncedPropertyIds.length === 1 ? "" : "s"} (${syncedPropertyIds.join(", ")})`
-      : "";
-    toast.success(`${selected.size} unidad(es) marcadas como ${statusEs}`, {
-      description: `availability_master · UPDATE WHERE id IN (…) · sincronizado con /api/availability${propsNote}`,
-    });
-    setBulkOpen(false);
-    setSelected(new Set());
+  async function applyBulk() {
+    try {
+      await bulkUpdate.mutateAsync({ ids: Array.from(selected), status: bulkStatus });
+      const statusEs = bulkStatus === "Available" ? "Disponible" : bulkStatus === "Reserved" ? "Apartado" : "Vendido";
+      toast.success(`${selected.size} unidad(es) marcadas como ${statusEs}`, {
+        description: "Propiedades sincronizadas automáticamente.",
+      });
+      setBulkOpen(false);
+      setSelected(new Set());
+    } catch (e) {
+      toast.error("No se pudo actualizar el lote", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
+      });
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deletingRow) return;
+    try {
+      await deleteUnit.mutateAsync(deletingRow.id);
+      toast.success(`Lote ${deletingRow.lot} eliminado`, {
+        description: "La propiedad vinculada se envió a la papelera.",
+      });
+      setDeletingRow(null);
+    } catch (e) {
+      toast.error("No se pudo eliminar", {
+        description: e instanceof Error ? e.message : "Intenta nuevamente.",
+      });
+    }
   }
 
   return (
@@ -220,12 +262,17 @@ function AvailabilityPage() {
         action={
           <div className="flex flex-wrap items-center gap-2">
             {isAdmin && (
-              <Button variant="outline" size="sm" className="gap-1.5"
-                disabled={selected.size === 0}
-                onClick={() => setBulkOpen(true)}>
-                <RefreshCw className="h-3.5 w-3.5" />
-                Actualizar en lote {selected.size > 0 && `(${selected.size})`}
-              </Button>
+              <>
+                <Button variant="outline" size="sm" className="gap-1.5"
+                  disabled={selected.size === 0}
+                  onClick={() => setBulkOpen(true)}>
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Actualizar en lote {selected.size > 0 && `(${selected.size})`}
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+                  <Plus className="h-3.5 w-3.5" /> Nuevo lote
+                </Button>
+              </>
             )}
             <Button size="sm" className="gap-1.5" onClick={() => setPdfOpen(true)}>
               <FileText className="h-3.5 w-3.5" /> Generar PDF de Disponibilidad
@@ -287,6 +334,7 @@ function AvailabilityPage() {
                   quickMarkSold={quickMarkSold}
                   expanded={expanded}
                   toggleExpand={toggleExpand}
+                  onDelete={setDeletingRow}
                 />
               ))}
               {grouped.length === 0 && (
@@ -323,7 +371,139 @@ function AvailabilityPage() {
         onOpenChange={setPdfOpen}
         groups={grouped}
       />
+
+      <CreateLoteDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      <AlertDialog open={!!deletingRow} onOpenChange={(o) => !o && setDeletingRow(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar lote {deletingRow?.lot}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción elimina el lote del inventario y envía la propiedad vinculada a la papelera.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); void confirmDelete(); }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUnit.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {isLoading && (
+        <div className="fixed bottom-4 right-4 rounded-full bg-card border border-border shadow px-3 py-1.5 text-xs text-muted-foreground flex items-center gap-2">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Cargando inventario…
+        </div>
+      )}
     </AppShell>
+  );
+}
+
+/* ───────────── Create lote dialog ───────────── */
+
+function CreateLoteDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const create = useCreateAvailabilityUnit();
+  const [form, setForm] = useState({
+    model: "",
+    lot: "",
+    cluster: "",
+    price: "",
+    delivery: "",
+    status: "Available" as AvailabilityStatus,
+    notes: "",
+  });
+
+  function reset() {
+    setForm({ model: "", lot: "", cluster: "", price: "", delivery: "", status: "Available", notes: "" });
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.model.trim() || !form.lot.trim()) {
+      toast.error("Modelo y lote son obligatorios");
+      return;
+    }
+    try {
+      await create.mutateAsync({
+        model: form.model.trim(),
+        lot: form.lot.trim(),
+        cluster: form.cluster.trim(),
+        price: Number(form.price) || 0,
+        delivery: form.delivery || null,
+        status: form.status,
+        notes: form.notes,
+      });
+      toast.success(`Lote ${form.lot} creado`, {
+        description: `Se generó automáticamente la propiedad ${form.model.toUpperCase()}-L${form.lot}.`,
+      });
+      reset();
+      onOpenChange(false);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Error desconocido";
+      toast.error("No se pudo crear el lote", { description: msg });
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nuevo lote</DialogTitle>
+          <DialogDescription>
+            Cada lote es una unidad vendible. Se creará automáticamente como propiedad vinculada.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Modelo *</Label>
+            <Input value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="Tulipán" required />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Lote *</Label>
+            <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="04" required />
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label>Cluster</Label>
+            <Input value={form.cluster} onChange={(e) => setForm({ ...form, cluster: e.target.value })} placeholder="Cluster Norte" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Precio (MXN)</Label>
+            <Input type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Entrega</Label>
+            <Input type="date" value={form.delivery} onChange={(e) => setForm({ ...form, delivery: e.target.value })} />
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label>Estatus</Label>
+            <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as AvailabilityStatus })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Available">Disponible</SelectItem>
+                <SelectItem value="Reserved">Apartado</SelectItem>
+                <SelectItem value="Sold">Vendido</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label>Notas</Label>
+            <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+          </div>
+          <DialogFooter className="col-span-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              Crear lote
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -371,7 +551,7 @@ function FilterSelect({
 
 function ModelGroup({
   model, items, isAdmin, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
-  selected, toggleRow, quickMarkSold, expanded, toggleExpand,
+  selected, toggleRow, quickMarkSold, expanded, toggleExpand, onDelete,
 }: {
   model: string;
   items: AvailabilityRow[];
@@ -387,6 +567,7 @@ function ModelGroup({
   quickMarkSold: (r: AvailabilityRow) => void;
   expanded: Set<string>;
   toggleExpand: (id: string) => void;
+  onDelete: (r: AvailabilityRow) => void;
 }) {
   const avg = items.reduce((s, r) => s + r.price, 0) / items.length;
   return (
@@ -407,7 +588,6 @@ function ModelGroup({
         const editing = editingId === r.id;
         const isSel = selected.has(r.id);
         const isOpen = expanded.has(r.id);
-        const history = (r.history ?? []).slice(-5).reverse();
         return (
           <Fragment key={r.id}>
             <tr className={cn("border-b border-border/60 hover:bg-muted/30", isSel && "bg-primary/[0.03]", isOpen && "bg-muted/20")}>
@@ -441,10 +621,14 @@ function ModelGroup({
               <td className="px-2 py-2.5">
                 {editing ? (
                   <Input type="date" className="h-8"
-                    value={(draft.delivery ?? r.delivery).slice(0, 10)}
+                    value={(draft.delivery ?? r.delivery ?? "").slice(0, 10)}
                     onChange={(e) => setDraft({ ...draft, delivery: e.target.value })} />
                 ) : (
-                  <span className="text-xs">{new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                  <span className="text-xs">
+                    {r.delivery
+                      ? new Date(r.delivery).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })
+                      : "—"}
+                  </span>
                 )}
               </td>
               <td className="px-2 py-2.5">
@@ -472,8 +656,8 @@ function ModelGroup({
                 ) : <span className="text-xs text-muted-foreground truncate block">{r.notes}</span>}
               </td>
               <td className="px-2 py-2.5">
-                {r.propertyId
-                  ? <span className="font-mono text-[11px] text-primary">{r.propertyId}</span>
+                {r.property_id
+                  ? <span className="font-mono text-[11px] text-primary">{r.property_id.slice(0, 8)}…</span>
                   : <span className="text-[11px] text-muted-foreground italic">sin asignar</span>}
               </td>
               {isAdmin && (
@@ -502,6 +686,9 @@ function ModelGroup({
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => onDelete(r)} aria-label="Eliminar lote">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   )}
                 </td>
@@ -510,7 +697,7 @@ function ModelGroup({
             {isOpen && (
               <tr className="border-b border-border/60 bg-muted/10">
                 <td colSpan={9} className="px-5 py-3">
-                  <HistoryLog entries={history} lot={r.lot} />
+                  <HistoryLog unitId={r.id} lot={r.lot} />
                 </td>
               </tr>
             )}
@@ -523,16 +710,10 @@ function ModelGroup({
 
 /* ───────────── History log ───────────── */
 
-function HistoryLog({
-  entries,
-  lot,
-}: {
-  entries: { at: string; from: AvailabilityStatus; to: AvailabilityStatus; agentId: string }[];
-  lot: string;
-}) {
+function HistoryLog({ unitId, lot }: { unitId: string; lot: string }) {
+  const { data: entries = [] } = useAvailabilityHistory(unitId);
   const statusEs = (s: AvailabilityStatus) =>
     s === "Available" ? "Disponible" : s === "Reserved" ? "Apartado" : "Vendido";
-  const agentName = (id: string) => agents.find((a) => a.id === id)?.name ?? id;
 
   return (
     <div className="rounded-lg border border-border bg-background/60 p-3">
@@ -547,23 +728,19 @@ function HistoryLog({
         </p>
       ) : (
         <ol className="relative border-l border-border/70 ml-1.5 space-y-2.5 pl-4">
-          {entries.map((e, i) => (
-            <li key={i} className="relative">
-              <span className={cn("absolute -left-[21px] top-1 h-2 w-2 rounded-full ring-2 ring-background", STATUS_DOT[e.to])} />
+          {entries.map((e) => (
+            <li key={e.id} className="relative">
+              <span className={cn("absolute -left-[21px] top-1 h-2 w-2 rounded-full ring-2 ring-background", STATUS_DOT[e.to_status])} />
               <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs">
-                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.from])}>
-                  {statusEs(e.from)}
+                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.from_status])}>
+                  {statusEs(e.from_status)}
                 </span>
                 <span className="text-muted-foreground">→</span>
-                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.to])}>
-                  {statusEs(e.to)}
-                </span>
-                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <UserIcon className="h-3 w-3" />
-                  {agentName(e.agentId)}
+                <span className={cn("inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium", STATUS_TINTS[e.to_status])}>
+                  {statusEs(e.to_status)}
                 </span>
                 <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">
-                  {new Date(e.at).toLocaleString("es-MX", {
+                  {new Date(e.changed_at).toLocaleString("es-MX", {
                     day: "2-digit", month: "short", year: "numeric",
                     hour: "2-digit", minute: "2-digit",
                   })}
@@ -788,7 +965,7 @@ function PdfPreviewDialog({
                           <td className="py-1.5 pr-3 font-mono">{r.lot}</td>
                           <td className="py-1.5 pr-3">{r.cluster}</td>
                           <td className="py-1.5 pr-3 text-right tabular-nums font-medium whitespace-nowrap">{fmtMXN(r.price)}</td>
-                          <td className="py-1.5 pr-3 whitespace-nowrap">{new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" })}</td>
+                          <td className="py-1.5 pr-3 whitespace-nowrap">{r.delivery ? new Date(r.delivery).toLocaleDateString("es-MX", { month: "short", year: "numeric" }) : "—"}</td>
                           <td className="py-1.5 pr-3">
                             <span className={cn("inline-block px-2 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider",
                               r.status === "Available" && "bg-emerald-100 text-emerald-800",

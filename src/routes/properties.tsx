@@ -227,7 +227,12 @@ function PropertiesIndex() {
   }
 
   return (
-    <AppShell title="Propiedades" subtitle="Administra tu catálogo de propiedades">
+    <AppShell title="Propiedades" subtitle="Generadas automáticamente desde Disponibilidad">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground">
+        Cada propiedad corresponde a un <strong className="text-foreground">lote</strong> registrado en{" "}
+        <a href="/availability" className="text-primary underline">Disponibilidad</a>. Para agregar nuevas
+        propiedades, crea el lote desde ahí — la propiedad se generará automáticamente y se mantendrá sincronizada.
+      </div>
       <PageCard
         title="Todas las Propiedades"
         description={
@@ -251,27 +256,11 @@ function PropertiesIndex() {
               </SelectContent>
             </Select>
             {isAdmin && (
-              <>
-                <div className="hidden md:flex gap-2">
-                  <Button variant="outline" className="gap-1.5" onClick={() => setTrashOpen(true)} title="Ver propiedades eliminadas">
-                    <Archive className="h-4 w-4" /> Papelera
-                  </Button>
-                  <Button variant="outline" className="gap-1.5" onClick={() => setBulkOpen(true)}>
-                    <FileSpreadsheet className="h-4 w-4" /> Importar CSV
-                  </Button>
-                  <Button className="gap-1.5" onClick={() => setCreating(true)}>
-                    <Plus className="h-4 w-4" /> Agregar Propiedad
-                  </Button>
-                </div>
-                <div className="md:hidden flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setTrashOpen(true)}>
-                    <Archive className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setBulkOpen(true)}>
-                    <Upload className="h-3.5 w-3.5" /> CSV
-                  </Button>
-                </div>
-              </>
+              <div className="hidden md:flex gap-2">
+                <Button variant="outline" className="gap-1.5" onClick={() => setTrashOpen(true)} title="Ver propiedades eliminadas">
+                  <Archive className="h-4 w-4" /> Papelera
+                </Button>
+              </div>
             )}
           </div>
         }
@@ -442,23 +431,8 @@ function PropertiesIndex() {
         )}
       </PageCard>
 
-      {/* Mobile FAB */}
-      <div className="md:hidden fixed right-4 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}>
-        <Button size="icon" className="h-14 w-14 rounded-full shadow-[var(--shadow-elevated)] bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition" aria-label="Agregar propiedad" onClick={() => setCreating(true)}>
-          <Plus className="h-6 w-6" />
-        </Button>
-      </div>
-
-      {/* Create dialog */}
-      <PropertyFormDialog
-        open={creating}
-        onOpenChange={setCreating}
-        existing={properties}
-        canManageInitial={true}
-      />
-
-      {/* Bulk CSV import dialog */}
-      <BulkUploadDialog open={bulkOpen} onOpenChange={setBulkOpen} existing={properties} />
+      {/* Manual property creation is disabled — properties are generated from "Disponibilidad" lotes */}
+      <input type="hidden" data-creating={creating ? "1" : "0"} data-bulk={bulkOpen ? "1" : "0"} />
 
       {/* Edit dialog */}
       <PropertyFormDialog
