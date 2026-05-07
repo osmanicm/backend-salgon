@@ -1,7 +1,8 @@
 import {
   Document, Page, Text, View, StyleSheet,
 } from "@react-pdf/renderer";
-import { fmtMXN, type AvailabilityRow } from "@/data/mock";
+import { fmtMXN } from "@/data/mock";
+import type { AvailabilityUnit as AvailabilityRow } from "@/data/availabilityApi";
 
 const BRAND = "#1f4d3a";
 
