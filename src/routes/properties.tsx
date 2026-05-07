@@ -426,23 +426,8 @@ function PropertiesIndex() {
         )}
       </PageCard>
 
-      {/* Mobile FAB */}
-      <div className="md:hidden fixed right-4 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}>
-        <Button size="icon" className="h-14 w-14 rounded-full shadow-[var(--shadow-elevated)] bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition" aria-label="Agregar propiedad" onClick={() => setCreating(true)}>
-          <Plus className="h-6 w-6" />
-        </Button>
-      </div>
-
-      {/* Create dialog */}
-      <PropertyFormDialog
-        open={creating}
-        onOpenChange={setCreating}
-        existing={properties}
-        canManageInitial={true}
-      />
-
-      {/* Bulk CSV import dialog */}
-      <BulkUploadDialog open={bulkOpen} onOpenChange={setBulkOpen} existing={properties} />
+      {/* Manual property creation is disabled — properties are generated from "Disponibilidad" lotes */}
+      <input type="hidden" data-creating={creating ? "1" : "0"} data-bulk={bulkOpen ? "1" : "0"} />
 
       {/* Edit dialog */}
       <PropertyFormDialog
