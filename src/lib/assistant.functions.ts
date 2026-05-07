@@ -24,7 +24,17 @@ REGLAS ESTRICTAS:
 - Solo lectura: jamás propones modificar la base de datos.
 - Si el usuario pregunta algo fuera de propiedades/disponibilidad, responde brevemente y reorienta.
 
-Estados posibles: Available (Disponible), Reserved (Reservado), Sold (Vendido).`;
+Estados posibles: Available (Disponible), Reserved (Reservado), Sold (Vendido).
+
+AGENDAR CITAS (muy importante):
+- Si el usuario quiere agendar una cita / visita / recorrido, recolecta estos datos: modelo, lote, fecha, hora y nombre del cliente.
+- Si falta algún dato, pregúntalo de forma natural y breve, UNO o DOS a la vez. NO inventes datos. NO reinicies el contexto: mantén lo ya proporcionado entre mensajes.
+- Antes de crear la cita, RESUELVE la propiedad llamando a "resolve_property" con modelo y lote. Si no existe, infórmalo y sugiere alternativas (puedes consultar search_availability/search_properties).
+- Una vez tengas TODOS los datos y la propiedad resuelta, confirma con el usuario en un solo mensaje: "¿Confirmas agendar la cita para <Modelo> lote <Lote> el <fecha legible> a las <hora> a nombre de <cliente>?".
+- SOLO si el usuario confirma (sí, confirmo, dale, ok, adelante, etc.), llama a "create_appointment" con property_id, client_name, scheduled_at (ISO 8601 en zona America/Mexico_City) y opcionalmente client_phone/notes.
+- Si el usuario cancela, descarta la operación y ofrece ayuda adicional.
+- Sugiere horarios comunes (10:00, 12:00, 16:00) cuando preguntes la hora.
+- Interpreta fechas relativas en español (hoy, mañana, "el próximo viernes", "11 de mayo") asumiendo el año actual o el siguiente si la fecha ya pasó. Hora por defecto AM si es ambiguo y razonable.`;
 
 const TOOLS = [
   {
@@ -74,9 +84,49 @@ const TOOLS = [
       parameters: { type: "object", properties: {}, additionalProperties: false },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "resolve_property",
+      description:
+        "Resuelve una propiedad real a partir de modelo y lote. Devuelve property_id, title, status. Úsalo SIEMPRE antes de crear una cita.",
+      parameters: {
+        type: "object",
+        properties: {
+          model: { type: "string" },
+          lot: { type: "string" },
+        },
+        required: ["model", "lot"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_appointment",
+      description:
+        "Crea una cita real en la base de datos. Solo llamar tras confirmación explícita del usuario y con property_id válido.",
+      parameters: {
+        type: "object",
+        properties: {
+          property_id: { type: "string", description: "UUID de la propiedad" },
+          client_name: { type: "string" },
+          scheduled_at: {
+            type: "string",
+            description: "Fecha-hora ISO 8601 con offset, ej. 2026-05-11T10:00:00-06:00",
+          },
+          client_phone: { type: "string" },
+          notes: { type: "string" },
+        },
+        required: ["property_id", "client_name", "scheduled_at"],
+        additionalProperties: false,
+      },
+    },
+  },
 ];
 
-async function runTool(name: string, args: any, supabase: any) {
+async function runTool(name: string, args: any, supabase: any, userId: string) {
   if (name === "search_availability") {
     let q = supabase
       .from("availability_units")
@@ -124,6 +174,58 @@ async function runTool(name: string, args: any, supabase: any) {
     }
     return { total: data?.length ?? 0, by_status: byStatus, by_model: byModel };
   }
+  if (name === "resolve_property") {
+    const model = (args.model ?? "").toString().trim();
+    const lot = (args.lot ?? "").toString().trim();
+    if (!model || !lot) return { error: "Se requieren modelo y lote." };
+    const { data, error } = await supabase
+      .from("properties")
+      .select("id, title, code, model, lot, status, location")
+      .ilike("model", model)
+      .ilike("lot", lot)
+      .is("deleted_at", null)
+      .limit(1);
+    if (error) return { error: error.message };
+    if (!data || data.length === 0) {
+      return { found: false, message: `No se encontró propiedad con modelo "${model}" y lote "${lot}".` };
+    }
+    return { found: true, property: data[0] };
+  }
+  if (name === "create_appointment") {
+    const { property_id, client_name, scheduled_at, client_phone, notes } = args ?? {};
+    if (!property_id || !client_name || !scheduled_at) {
+      return { error: "Faltan datos: property_id, client_name o scheduled_at." };
+    }
+    const when = new Date(scheduled_at);
+    if (isNaN(when.getTime())) return { error: "Fecha/hora inválida." };
+    const { data: prop, error: pErr } = await supabase
+      .from("properties")
+      .select("id, title")
+      .eq("id", property_id)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (pErr) return { error: pErr.message };
+    if (!prop) return { error: "La propiedad no existe o fue eliminada." };
+    const { data, error } = await supabase
+      .from("appointments")
+      .insert({
+        agent_id: userId,
+        property_id,
+        client_name,
+        client_phone: client_phone ?? "",
+        notes: notes ?? "Agendada vía Asistente Virtual",
+        scheduled_at: when.toISOString(),
+      })
+      .select("id, scheduled_at")
+      .single();
+    if (error) return { error: error.message };
+    return {
+      success: true,
+      appointment_id: data.id,
+      property_title: prop.title,
+      scheduled_at: data.scheduled_at,
+    };
+  }
   return { error: `Tool desconocida: ${name}` };
 }
 
@@ -135,18 +237,20 @@ export const askAssistant = createServerFn({ method: "POST" })
     if (!apiKey) {
       return { reply: "El asistente no está configurado (falta LOVABLE_API_KEY)." };
     }
-    const { supabase } = context as { supabase: any };
+    const { supabase, userId } = context as { supabase: any; userId: string };
 
+    const nowIso = new Date().toISOString();
+    const baseSys = `${SYSTEM_PROMPT}\n\nFecha y hora actual (UTC): ${nowIso}. Zona horaria de operación: America/Mexico_City (offset -06:00).`;
     const sys = data.context
-      ? `${SYSTEM_PROMPT}\n\nContexto actual del usuario: módulo "${data.context}". Prioriza ese tipo de información.`
-      : SYSTEM_PROMPT;
+      ? `${baseSys}\n\nContexto actual del usuario: módulo "${data.context}". Prioriza ese tipo de información.`
+      : baseSys;
 
     const convo: any[] = [
       { role: "system", content: sys },
       ...data.messages.map((m) => ({ role: m.role, content: m.content })),
     ];
 
-    for (let step = 0; step < 4; step++) {
+    for (let step = 0; step < 6; step++) {
       const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -187,7 +291,7 @@ export const askAssistant = createServerFn({ method: "POST" })
         } catch {
           args = {};
         }
-        const result = await runTool(tc.function?.name, args, supabase);
+        const result = await runTool(tc.function?.name, args, supabase, userId);
         convo.push({
           role: "tool",
           tool_call_id: tc.id,
