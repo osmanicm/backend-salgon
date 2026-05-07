@@ -251,27 +251,11 @@ function PropertiesIndex() {
               </SelectContent>
             </Select>
             {isAdmin && (
-              <>
-                <div className="hidden md:flex gap-2">
-                  <Button variant="outline" className="gap-1.5" onClick={() => setTrashOpen(true)} title="Ver propiedades eliminadas">
-                    <Archive className="h-4 w-4" /> Papelera
-                  </Button>
-                  <Button variant="outline" className="gap-1.5" onClick={() => setBulkOpen(true)}>
-                    <FileSpreadsheet className="h-4 w-4" /> Importar CSV
-                  </Button>
-                  <Button className="gap-1.5" onClick={() => setCreating(true)}>
-                    <Plus className="h-4 w-4" /> Agregar Propiedad
-                  </Button>
-                </div>
-                <div className="md:hidden flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setTrashOpen(true)}>
-                    <Archive className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setBulkOpen(true)}>
-                    <Upload className="h-3.5 w-3.5" /> CSV
-                  </Button>
-                </div>
-              </>
+              <div className="hidden md:flex gap-2">
+                <Button variant="outline" className="gap-1.5" onClick={() => setTrashOpen(true)} title="Ver propiedades eliminadas">
+                  <Archive className="h-4 w-4" /> Papelera
+                </Button>
+              </div>
             )}
           </div>
         }
