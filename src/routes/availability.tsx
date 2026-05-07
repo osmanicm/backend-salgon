@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Fragment, useMemo, useState } from "react";
 import {
   FileText, Filter, RefreshCw, Smartphone, Database, CheckCircle2,
-  Pencil, Save, X, Printer, Search, ChevronDown, ChevronRight, Send, CircleDollarSign, History, User as UserIcon,
+  Pencil, Save, X, Printer, Search, ChevronDown, ChevronRight, Send, CircleDollarSign, History, User as UserIcon, Plus, Loader2, Trash2,
 } from "lucide-react";
 import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { logAgentEvent } from "@/data/agentEvents";
@@ -15,22 +15,36 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { fmtMXN } from "@/data/mock";
 import {
-  fmtMXN,
-  agents,
-  type AvailabilityRow, type AvailabilityStatus,
-} from "@/data/mock";
-import {
-  useAvailability, updateAvailabilityRow, bulkUpdateAvailabilityStatus,
-} from "@/data/store";
+  useAvailabilityUnits,
+  useUpdateAvailabilityUnit,
+  useBulkUpdateAvailabilityStatus,
+  useCreateAvailabilityUnit,
+  useDeleteAvailabilityUnit,
+  useAvailabilityHistory,
+  type AvailabilityUnit,
+  type AvailabilityStatus,
+} from "@/data/availabilityApi";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+
+// Compat alias so existing rendering code keeps working
+type AvailabilityRow = AvailabilityUnit & {
+  delivery: string;
+  propertyId: string | null;
+  updatedAt: string;
+};
 
 export const Route = createFileRoute("/availability")({
   component: AvailabilityPage,
