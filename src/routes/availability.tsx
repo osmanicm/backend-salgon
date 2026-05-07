@@ -549,8 +549,8 @@ function ModelGroup({
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEdit(r)} aria-label="Editar">
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => deletingRow !== r && undefined} aria-label="Eliminar lote">
-                        <Trash2 className="h-3.5 w-3.5" onClick={(e) => { e.stopPropagation(); (window as unknown as { __setDel?: (r: AvailabilityRow) => void }).__setDel?.(r); }} />
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => onDelete(r)} aria-label="Eliminar lote">
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   )}
