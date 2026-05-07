@@ -84,6 +84,7 @@ function RootComponent() {
         <SplashScreen>
           <Outlet />
         </SplashScreen>
+        <AssistantWidget />
         <Toaster richColors position="top-right" />
       </AuthProvider>
     </QueryClientProvider>
