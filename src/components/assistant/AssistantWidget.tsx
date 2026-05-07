@@ -78,15 +78,27 @@ export function AssistantWidget() {
   return (
     <>
       {!open && (
-        <Button
-          onClick={() => setOpen(true)}
-          size="icon"
-          className="fixed z-50 rounded-full h-14 w-14 shadow-xl bg-primary hover:bg-primary/90"
+        <div
+          className="fixed z-50 flex items-center gap-2"
           style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)", right: "1rem" }}
-          aria-label="Abrir asistente"
         >
-          <Sparkles className="h-6 w-6" />
-        </Button>
+          <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-card border border-border px-2.5 py-1 text-[11px] font-medium text-foreground shadow-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Asistente Virtual
+          </span>
+          <Button
+            onClick={() => setOpen(true)}
+            size="icon"
+            className="relative rounded-full h-14 w-14 shadow-xl bg-primary hover:bg-primary/90"
+            aria-label="Abrir asistente virtual"
+            title="Asistente Virtual Salgon"
+          >
+            <Sparkles className="h-6 w-6" />
+            <span className="absolute -top-1 -right-1 rounded-full bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 shadow">
+              IA
+            </span>
+          </Button>
+        </div>
       )}
       {open && (
         <div
