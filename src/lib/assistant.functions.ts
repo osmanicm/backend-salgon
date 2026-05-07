@@ -126,7 +126,7 @@ const TOOLS = [
   },
 ];
 
-async function runTool(name: string, args: any, supabase: any) {
+async function runTool(name: string, args: any, supabase: any, userId: string) {
   if (name === "search_availability") {
     let q = supabase
       .from("availability_units")
@@ -173,6 +173,58 @@ async function runTool(name: string, args: any, supabase: any) {
       byModel[r.model] = m;
     }
     return { total: data?.length ?? 0, by_status: byStatus, by_model: byModel };
+  }
+  if (name === "resolve_property") {
+    const model = (args.model ?? "").toString().trim();
+    const lot = (args.lot ?? "").toString().trim();
+    if (!model || !lot) return { error: "Se requieren modelo y lote." };
+    const { data, error } = await supabase
+      .from("properties")
+      .select("id, title, code, model, lot, status, location")
+      .ilike("model", model)
+      .ilike("lot", lot)
+      .is("deleted_at", null)
+      .limit(1);
+    if (error) return { error: error.message };
+    if (!data || data.length === 0) {
+      return { found: false, message: `No se encontró propiedad con modelo "${model}" y lote "${lot}".` };
+    }
+    return { found: true, property: data[0] };
+  }
+  if (name === "create_appointment") {
+    const { property_id, client_name, scheduled_at, client_phone, notes } = args ?? {};
+    if (!property_id || !client_name || !scheduled_at) {
+      return { error: "Faltan datos: property_id, client_name o scheduled_at." };
+    }
+    const when = new Date(scheduled_at);
+    if (isNaN(when.getTime())) return { error: "Fecha/hora inválida." };
+    const { data: prop, error: pErr } = await supabase
+      .from("properties")
+      .select("id, title")
+      .eq("id", property_id)
+      .is("deleted_at", null)
+      .maybeSingle();
+    if (pErr) return { error: pErr.message };
+    if (!prop) return { error: "La propiedad no existe o fue eliminada." };
+    const { data, error } = await supabase
+      .from("appointments")
+      .insert({
+        agent_id: userId,
+        property_id,
+        client_name,
+        client_phone: client_phone ?? "",
+        notes: notes ?? "Agendada vía Asistente Virtual",
+        scheduled_at: when.toISOString(),
+      })
+      .select("id, scheduled_at")
+      .single();
+    if (error) return { error: error.message };
+    return {
+      success: true,
+      appointment_id: data.id,
+      property_title: prop.title,
+      scheduled_at: data.scheduled_at,
+    };
   }
   return { error: `Tool desconocida: ${name}` };
 }
