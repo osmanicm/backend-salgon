@@ -62,6 +62,8 @@ const STATUS_DOT: Record<AvailabilityStatus, string> = {
 function AvailabilityPage() {
   const { user } = useAuth();
   const isAuthed = !!user;
+  // Any authenticated user can manage inventory now (admin gating removed at the data layer too)
+  const isAdmin = isAuthed;
   const { data: rows, isLoading } = useAvailabilityUnits();
   const updateUnit = useUpdateAvailabilityUnit();
   const bulkUpdate = useBulkUpdateAvailabilityStatus();
