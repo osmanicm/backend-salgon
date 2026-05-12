@@ -296,6 +296,7 @@ export type Database = {
           status: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           agent_id?: string | null
@@ -316,6 +317,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["property_status"]
           title: string
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           agent_id?: string | null
@@ -336,6 +338,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["property_status"]
           title?: string
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: [
           {
