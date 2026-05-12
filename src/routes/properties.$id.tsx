@@ -14,6 +14,7 @@ import {
   MapPin,
   Calendar,
   StickyNote,
+  Globe,
   Building2,
   Hash,
   Loader2,
@@ -510,6 +511,22 @@ function PropertyDetailPage() {
                   <p className="text-sm whitespace-pre-wrap">{property.notes}</p>
                 </div>
               )}
+              {(() => {
+                const url = property.notes?.match(/https?:\/\/[^\s)]+/i)?.[0];
+                if (!url) return null;
+                return (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-primary hover:bg-muted transition-colors"
+                  >
+                    <Globe className="h-4 w-4" />
+                    <span className="truncate">{url}</span>
+                    <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+                  </a>
+                );
+              })()}
             </PageCard>
 
             <CommissionCalculator model={property.model} price={Number(property.price)} />
