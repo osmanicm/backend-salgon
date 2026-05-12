@@ -14,6 +14,7 @@ import {
   MapPin,
   Calendar,
   StickyNote,
+  Globe,
   Building2,
   Hash,
   Loader2,
