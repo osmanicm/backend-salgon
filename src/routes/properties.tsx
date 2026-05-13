@@ -89,6 +89,7 @@ const propertySchema = z.object({
   model: z.string().trim().max(80).optional().or(z.literal("")),
   lot: z.string().trim().max(40).optional().or(z.literal("")),
   delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida").or(z.literal("")),
+  website_url: z.string().trim().url("URL inválida").max(500).or(z.literal("")),
 });
 
 function PropertiesPage() {
