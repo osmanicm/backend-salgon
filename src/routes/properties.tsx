@@ -605,6 +605,7 @@ export function PropertyFormDialog({
       model: parsed.data.model ? parsed.data.model : null,
       lot: parsed.data.lot ? parsed.data.lot : null,
       delivery_date: parsed.data.delivery_date ? parsed.data.delivery_date : null,
+      website_url: parsed.data.website_url ? parsed.data.website_url : null,
     };
     try {
       if (isEdit && initial) {
