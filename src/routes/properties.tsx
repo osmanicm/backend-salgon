@@ -580,6 +580,7 @@ export function PropertyFormDialog({
       model: form.model,
       lot: form.lot,
       delivery_date: form.delivery_date,
+      website_url: form.website_url,
     });
     if (!parsed.success) {
       console.error("[properties] validation failed", parsed.error.issues);
