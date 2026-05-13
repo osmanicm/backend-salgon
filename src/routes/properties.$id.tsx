@@ -512,7 +512,7 @@ function PropertyDetailPage() {
                 </div>
               )}
               {(() => {
-                const url = property.notes?.match(/https?:\/\/[^\s)]+/i)?.[0];
+                const url = (property as { website_url?: string | null }).website_url?.trim();
                 if (!url) return null;
                 return (
                   <a
