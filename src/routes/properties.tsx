@@ -717,6 +717,11 @@ export function PropertyFormDialog({
             <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="L-12, Mz 3 Lt 7…" maxLength={40} />
             <p className="text-xs text-muted-foreground">Identificador del lote</p>
           </div>
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label>Página web</Label>
+            <Input type="url" value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="https://ejemplo.com/propiedad" maxLength={500} />
+            <p className="text-xs text-muted-foreground">URL pública de la propiedad (opcional)</p>
+          </div>
           <div className="space-y-1.5">
             <Label>Fecha de entrega</Label>
             <Input type="date" value={form.delivery_date} onChange={(e) => setForm({ ...form, delivery_date: e.target.value })} />
