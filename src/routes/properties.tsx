@@ -89,6 +89,7 @@ const propertySchema = z.object({
   model: z.string().trim().max(80).optional().or(z.literal("")),
   lot: z.string().trim().max(40).optional().or(z.literal("")),
   delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida").or(z.literal("")),
+  website_url: z.string().trim().url("URL inválida").max(500).or(z.literal("")),
 });
 
 function PropertiesPage() {
@@ -516,6 +517,7 @@ export function PropertyFormDialog({
     model: "",
     lot: "",
     delivery_date: "",
+    website_url: "",
   });
 
   React.useEffect(() => {
@@ -536,6 +538,7 @@ export function PropertyFormDialog({
         model: initial.model ?? "",
         lot: initial.lot ?? "",
         delivery_date: initial.delivery_date ?? "",
+        website_url: (initial as { website_url?: string | null }).website_url ?? "",
       });
     } else {
       setForm({
@@ -552,6 +555,7 @@ export function PropertyFormDialog({
         model: "",
         lot: "",
         delivery_date: "",
+        website_url: "",
       });
     }
   }, [open, initial, existing]);
@@ -576,6 +580,7 @@ export function PropertyFormDialog({
       model: form.model,
       lot: form.lot,
       delivery_date: form.delivery_date,
+      website_url: form.website_url,
     });
     if (!parsed.success) {
       console.error("[properties] validation failed", parsed.error.issues);
@@ -600,6 +605,7 @@ export function PropertyFormDialog({
       model: parsed.data.model ? parsed.data.model : null,
       lot: parsed.data.lot ? parsed.data.lot : null,
       delivery_date: parsed.data.delivery_date ? parsed.data.delivery_date : null,
+      website_url: parsed.data.website_url ? parsed.data.website_url : null,
     };
     try {
       if (isEdit && initial) {
@@ -710,6 +716,11 @@ export function PropertyFormDialog({
             <Label># Lote</Label>
             <Input value={form.lot} onChange={(e) => setForm({ ...form, lot: e.target.value })} placeholder="L-12, Mz 3 Lt 7…" maxLength={40} />
             <p className="text-xs text-muted-foreground">Identificador del lote</p>
+          </div>
+          <div className="sm:col-span-2 space-y-1.5">
+            <Label>Página web</Label>
+            <Input type="url" value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="https://ejemplo.com/propiedad" maxLength={500} />
+            <p className="text-xs text-muted-foreground">URL pública de la propiedad (opcional)</p>
           </div>
           <div className="space-y-1.5">
             <Label>Fecha de entrega</Label>
