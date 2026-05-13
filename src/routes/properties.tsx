@@ -517,6 +517,7 @@ export function PropertyFormDialog({
     model: "",
     lot: "",
     delivery_date: "",
+    website_url: "",
   });
 
   React.useEffect(() => {
