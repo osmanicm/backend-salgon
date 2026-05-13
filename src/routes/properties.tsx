@@ -538,6 +538,7 @@ export function PropertyFormDialog({
         model: initial.model ?? "",
         lot: initial.lot ?? "",
         delivery_date: initial.delivery_date ?? "",
+        website_url: (initial as { website_url?: string | null }).website_url ?? "",
       });
     } else {
       setForm({
