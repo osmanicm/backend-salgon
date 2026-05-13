@@ -512,7 +512,9 @@ function PropertyDetailPage() {
                 </div>
               )}
               {(() => {
-                const url = (property as { website_url?: string | null }).website_url?.trim();
+                const explicit = (property as { website_url?: string | null }).website_url?.trim();
+                const fromNotes = property.notes?.match(/https?:\/\/[^\s)]+/i)?.[0]?.replace(/[.,;:]+$/, "");
+                const url = explicit || fromNotes;
                 if (!url) return null;
                 return (
                   <a
