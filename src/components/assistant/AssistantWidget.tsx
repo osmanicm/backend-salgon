@@ -29,16 +29,23 @@ function moduleFromPath(pathname: string): string | undefined {
 export function AssistantWidget() {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([
+  const INITIAL_MESSAGES: Msg[] = [
     {
       role: "assistant",
       content:
         "¡Hola! Soy tu asistente Salgon. Puedo consultar propiedades y disponibilidad en tiempo real. ¿Qué necesitas?",
     },
-  ]);
+  ];
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [messages, setMessages] = useState<Msg[]>(INITIAL_MESSAGES);
+
+  function handleClose() {
+    setOpen(false);
+    setMessages(INITIAL_MESSAGES);
+    setInput("");
+  }
   const ask = useServerFn(askAssistant);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -82,12 +89,8 @@ export function AssistantWidget() {
       {!open && (
         <div
           className="fixed z-50 flex items-center gap-2"
-          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)", right: "1rem" }}
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)", left: "1rem" }}
         >
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-card border border-border px-2.5 py-1 text-[11px] font-medium text-foreground shadow-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Asistente Virtual
-          </span>
           <Button
             onClick={() => setOpen(true)}
             size="icon"
@@ -107,7 +110,7 @@ export function AssistantWidget() {
           className="fixed z-50 flex flex-col bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
           style={{
             bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)",
-            right: "1rem",
+            left: "1rem",
             width: "min(380px, calc(100vw - 2rem))",
             height: "min(560px, calc(100vh - 9rem))",
           }}
@@ -126,7 +129,7 @@ export function AssistantWidget() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               aria-label="Cerrar"
             >
               <X className="h-4 w-4" />
