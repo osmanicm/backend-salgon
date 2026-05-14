@@ -129,7 +129,7 @@ export function AssistantWidget() {
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
-              onClick={() => setOpen(false)}
+              onClick={handleClose}
               aria-label="Cerrar"
             >
               <X className="h-4 w-4" />
