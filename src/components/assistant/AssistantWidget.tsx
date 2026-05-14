@@ -29,16 +29,23 @@ function moduleFromPath(pathname: string): string | undefined {
 export function AssistantWidget() {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([
+  const INITIAL_MESSAGES: Msg[] = [
     {
       role: "assistant",
       content:
         "¡Hola! Soy tu asistente Salgon. Puedo consultar propiedades y disponibilidad en tiempo real. ¿Qué necesitas?",
     },
-  ]);
+  ];
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [messages, setMessages] = useState<Msg[]>(INITIAL_MESSAGES);
+
+  function handleClose() {
+    setOpen(false);
+    setMessages(INITIAL_MESSAGES);
+    setInput("");
+  }
   const ask = useServerFn(askAssistant);
   const scrollRef = useRef<HTMLDivElement>(null);
 
