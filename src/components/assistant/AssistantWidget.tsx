@@ -89,12 +89,8 @@ export function AssistantWidget() {
       {!open && (
         <div
           className="fixed z-50 flex items-center gap-2"
-          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)", right: "1rem" }}
+          style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)", left: "1rem" }}
         >
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-card border border-border px-2.5 py-1 text-[11px] font-medium text-foreground shadow-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Asistente Virtual
-          </span>
           <Button
             onClick={() => setOpen(true)}
             size="icon"
