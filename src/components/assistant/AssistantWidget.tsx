@@ -110,7 +110,7 @@ export function AssistantWidget() {
           className="fixed z-50 flex flex-col bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
           style={{
             bottom: "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)",
-            right: "1rem",
+            left: "1rem",
             width: "min(380px, calc(100vw - 2rem))",
             height: "min(560px, calc(100vh - 9rem))",
           }}
