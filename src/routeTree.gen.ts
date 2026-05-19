@@ -116,14 +116,14 @@ const NewsIdRoute = NewsIdRouteImport.update({
   getParentRoute: () => NewsRoute,
 } as any)
 const EventsNewRoute = EventsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => EventsRoute,
+  id: '/events/new',
+  path: '/events/new',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIdRoute = EventsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => EventsRoute,
+  id: '/events/$id',
+  path: '/events/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIdEditRoute = EventsIdEditRouteImport.update({
   id: '/edit',
@@ -282,6 +282,8 @@ export interface RootRouteChildren {
   PropertiesRoute: typeof PropertiesRouteWithChildren
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
+  EventsIdRoute: typeof EventsIdRouteWithChildren
+  EventsNewRoute: typeof EventsNewRoute
   EventsIndexRoute: typeof EventsIndexRoute
 }
 
@@ -408,17 +410,17 @@ declare module '@tanstack/react-router' {
     }
     '/events/new': {
       id: '/events/new'
-      path: '/new'
+      path: '/events/new'
       fullPath: '/events/new'
       preLoaderRoute: typeof EventsNewRouteImport
-      parentRoute: typeof EventsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/events/$id': {
       id: '/events/$id'
-      path: '/$id'
+      path: '/events/$id'
       fullPath: '/events/$id'
       preLoaderRoute: typeof EventsIdRouteImport
-      parentRoute: typeof EventsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/events/$id/edit': {
       id: '/events/$id/edit'
@@ -452,6 +454,18 @@ const PropertiesRouteWithChildren = PropertiesRoute._addFileChildren(
   PropertiesRouteChildren,
 )
 
+interface EventsIdRouteChildren {
+  EventsIdEditRoute: typeof EventsIdEditRoute
+}
+
+const EventsIdRouteChildren: EventsIdRouteChildren = {
+  EventsIdEditRoute: EventsIdEditRoute,
+}
+
+const EventsIdRouteWithChildren = EventsIdRoute._addFileChildren(
+  EventsIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentRoute: AgentRoute,
@@ -467,6 +481,8 @@ const rootRouteChildren: RootRouteChildren = {
   PropertiesRoute: PropertiesRouteWithChildren,
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
+  EventsIdRoute: EventsIdRouteWithChildren,
+  EventsNewRoute: EventsNewRoute,
   EventsIndexRoute: EventsIndexRoute,
 }
 export const routeTree = rootRouteImport
