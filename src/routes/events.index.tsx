@@ -4,8 +4,9 @@ import { z } from "zod";
 import { toast } from "sonner";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, Star, CalendarDays, Filter,
-  MapPin, Users as UsersIcon, Ticket,
+  MapPin, Users as UsersIcon, Ticket, CheckCircle2, X, Loader2, ChevronRight,
 } from "lucide-react";
+import { useMyRegistration, useRegister, useCancelRegistration } from "@/data/eventsApi";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
