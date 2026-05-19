@@ -26,7 +26,9 @@ import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
 import { Route as NewsIdRouteImport } from './routes/news.$id'
+import { Route as EventsNewRouteImport } from './routes/events.new'
 import { Route as EventsIdRouteImport } from './routes/events.$id'
+import { Route as EventsIdEditRouteImport } from './routes/events.$id.edit'
 
 const WhatsappRoute = WhatsappRouteImport.update({
   id: '/whatsapp',
@@ -113,10 +115,20 @@ const NewsIdRoute = NewsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => NewsRoute,
 } as any)
+const EventsNewRoute = EventsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => EventsRoute,
+} as any)
 const EventsIdRoute = EventsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => EventsRoute,
+} as any)
+const EventsIdEditRoute = EventsIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => EventsIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -135,9 +147,11 @@ export interface FileRoutesByFullPath {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
-  '/events/$id': typeof EventsIdRoute
+  '/events/$id': typeof EventsIdRouteWithChildren
+  '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
+  '/events/$id/edit': typeof EventsIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -155,9 +169,11 @@ export interface FileRoutesByTo {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
-  '/events/$id': typeof EventsIdRoute
+  '/events/$id': typeof EventsIdRouteWithChildren
+  '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
+  '/events/$id/edit': typeof EventsIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -176,9 +192,11 @@ export interface FileRoutesById {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
-  '/events/$id': typeof EventsIdRoute
+  '/events/$id': typeof EventsIdRouteWithChildren
+  '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
+  '/events/$id/edit': typeof EventsIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -199,8 +217,10 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/events/$id'
+    | '/events/new'
     | '/news/$id'
     | '/properties/$id'
+    | '/events/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,8 +239,10 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/events/$id'
+    | '/events/new'
     | '/news/$id'
     | '/properties/$id'
+    | '/events/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -239,8 +261,10 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/events/$id'
+    | '/events/new'
     | '/news/$id'
     | '/properties/$id'
+    | '/events/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -382,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsIdRouteImport
       parentRoute: typeof NewsRoute
     }
+    '/events/new': {
+      id: '/events/new'
+      path: '/new'
+      fullPath: '/events/new'
+      preLoaderRoute: typeof EventsNewRouteImport
+      parentRoute: typeof EventsRoute
+    }
     '/events/$id': {
       id: '/events/$id'
       path: '/$id'
@@ -389,15 +420,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsIdRouteImport
       parentRoute: typeof EventsRoute
     }
+    '/events/$id/edit': {
+      id: '/events/$id/edit'
+      path: '/edit'
+      fullPath: '/events/$id/edit'
+      preLoaderRoute: typeof EventsIdEditRouteImport
+      parentRoute: typeof EventsIdRoute
+    }
   }
 }
 
+interface EventsIdRouteChildren {
+  EventsIdEditRoute: typeof EventsIdEditRoute
+}
+
+const EventsIdRouteChildren: EventsIdRouteChildren = {
+  EventsIdEditRoute: EventsIdEditRoute,
+}
+
+const EventsIdRouteWithChildren = EventsIdRoute._addFileChildren(
+  EventsIdRouteChildren,
+)
+
 interface EventsRouteChildren {
-  EventsIdRoute: typeof EventsIdRoute
+  EventsIdRoute: typeof EventsIdRouteWithChildren
+  EventsNewRoute: typeof EventsNewRoute
 }
 
 const EventsRouteChildren: EventsRouteChildren = {
-  EventsIdRoute: EventsIdRoute,
+  EventsIdRoute: EventsIdRouteWithChildren,
+  EventsNewRoute: EventsNewRoute,
 }
 
 const EventsRouteWithChildren =

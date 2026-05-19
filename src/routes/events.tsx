@@ -155,9 +155,7 @@ function AdminEvents() {
   const { type, setType, when, setWhen, filtered } = useFilters(items);
   const update = useUpdateEvent();
   const del = useDeleteEvent();
-  const [editing, setEditing] = useState<EventRow | null>(null);
   const [confirmDel, setConfirmDel] = useState<EventRow | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
 
   async function togglePublish(e: EventRow) {
     try {
@@ -171,7 +169,11 @@ function AdminEvents() {
       <PageCard
         title="Todos los eventos"
         description={isLoading ? "Cargando…" : `${items.length} eventos`}
-        action={<Button onClick={() => setCreateOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Nuevo evento</Button>}
+        action={
+          <Button asChild className="gap-1.5">
+            <Link to="/events/new"><Plus className="h-4 w-4" /> Nuevo evento</Link>
+          </Button>
+        }
       >
         <div className="mb-3"><FiltersBar type={type} setType={setType} when={when} setWhen={setWhen} /></div>
 
@@ -207,7 +209,9 @@ function AdminEvents() {
                   <Button size="sm" variant="ghost" onClick={() => togglePublish(e)} title={e.status === "Published" ? "Despublicar" : "Publicar"}>
                     {e.status === "Published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditing(e)}><Pencil className="h-4 w-4" /></Button>
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to="/events/$id/edit" params={{ id: e.id }}><Pencil className="h-4 w-4" /></Link>
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => setConfirmDel(e)} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -218,8 +222,7 @@ function AdminEvents() {
         </ul>
       </PageCard>
 
-      <EventFormDialog open={createOpen} onOpenChange={setCreateOpen} />
-      <EventFormDialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }} initial={editing ?? undefined} />
+
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => { if (!o) setConfirmDel(null); }}>
         <AlertDialogContent>
