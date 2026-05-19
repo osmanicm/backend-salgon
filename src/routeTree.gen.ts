@@ -27,7 +27,7 @@ import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
 import { Route as NewsIdRouteImport } from './routes/news.$id'
 import { Route as EventsNewRouteImport } from './routes/events.new'
-import { Route as EventsIdRouteImport } from './routes/events.$id'
+import { Route as EventsIdIndexRouteImport } from './routes/events.$id.index'
 import { Route as EventsIdEditRouteImport } from './routes/events.$id.edit'
 
 const WhatsappRoute = WhatsappRouteImport.update({
@@ -120,9 +120,9 @@ const EventsNewRoute = EventsNewRouteImport.update({
   path: '/events/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventsIdRoute = EventsIdRouteImport.update({
-  id: '/events/$id',
-  path: '/events/$id',
+const EventsIdIndexRoute = EventsIdIndexRouteImport.update({
+  id: '/events/$id/',
+  path: '/events/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIdEditRoute = EventsIdEditRouteImport.update({
@@ -146,12 +146,12 @@ export interface FileRoutesByFullPath {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
-  '/events/$id': typeof EventsIdRouteWithChildren
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
+  '/events/$id/': typeof EventsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -168,12 +168,12 @@ export interface FileRoutesByTo {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
-  '/events/$id': typeof EventsIdRouteWithChildren
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
+  '/events/$id': typeof EventsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -191,12 +191,12 @@ export interface FileRoutesById {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
-  '/events/$id': typeof EventsIdRouteWithChildren
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
+  '/events/$id/': typeof EventsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -215,12 +215,12 @@ export interface FileRouteTypes {
     | '/properties'
     | '/users'
     | '/whatsapp'
-    | '/events/$id'
     | '/events/new'
     | '/news/$id'
     | '/properties/$id'
     | '/events/'
     | '/events/$id/edit'
+    | '/events/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -237,12 +237,12 @@ export interface FileRouteTypes {
     | '/properties'
     | '/users'
     | '/whatsapp'
-    | '/events/$id'
     | '/events/new'
     | '/news/$id'
     | '/properties/$id'
     | '/events'
     | '/events/$id/edit'
+    | '/events/$id'
   id:
     | '__root__'
     | '/'
@@ -259,12 +259,12 @@ export interface FileRouteTypes {
     | '/properties'
     | '/users'
     | '/whatsapp'
-    | '/events/$id'
     | '/events/new'
     | '/news/$id'
     | '/properties/$id'
     | '/events/'
     | '/events/$id/edit'
+    | '/events/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -282,9 +282,9 @@ export interface RootRouteChildren {
   PropertiesRoute: typeof PropertiesRouteWithChildren
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
-  EventsIdRoute: typeof EventsIdRouteWithChildren
   EventsNewRoute: typeof EventsNewRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  EventsIdIndexRoute: typeof EventsIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -415,11 +415,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/events/$id': {
-      id: '/events/$id'
+    '/events/$id/': {
+      id: '/events/$id/'
       path: '/events/$id'
-      fullPath: '/events/$id'
-      preLoaderRoute: typeof EventsIdRouteImport
+      fullPath: '/events/$id/'
+      preLoaderRoute: typeof EventsIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/$id/edit': {
@@ -454,18 +454,6 @@ const PropertiesRouteWithChildren = PropertiesRoute._addFileChildren(
   PropertiesRouteChildren,
 )
 
-interface EventsIdRouteChildren {
-  EventsIdEditRoute: typeof EventsIdEditRoute
-}
-
-const EventsIdRouteChildren: EventsIdRouteChildren = {
-  EventsIdEditRoute: EventsIdEditRoute,
-}
-
-const EventsIdRouteWithChildren = EventsIdRoute._addFileChildren(
-  EventsIdRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentRoute: AgentRoute,
@@ -481,9 +469,9 @@ const rootRouteChildren: RootRouteChildren = {
   PropertiesRoute: PropertiesRouteWithChildren,
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
-  EventsIdRoute: EventsIdRouteWithChildren,
   EventsNewRoute: EventsNewRoute,
   EventsIndexRoute: EventsIndexRoute,
+  EventsIdIndexRoute: EventsIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
