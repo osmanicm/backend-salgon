@@ -26,6 +26,7 @@ import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
 import { Route as NewsIdRouteImport } from './routes/news.$id'
+import { Route as EventsIdRouteImport } from './routes/events.$id'
 
 const WhatsappRoute = WhatsappRouteImport.update({
   id: '/whatsapp',
@@ -112,6 +113,11 @@ const NewsIdRoute = NewsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => NewsRoute,
 } as any)
+const EventsIdRoute = EventsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => EventsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -121,7 +127,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/events/$id': typeof EventsIdRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
 }
@@ -140,7 +147,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/events/$id': typeof EventsIdRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
 }
@@ -160,7 +168,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
-  '/events': typeof EventsRoute
+  '/events': typeof EventsRouteWithChildren
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/events/$id': typeof EventsIdRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
 }
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/users'
     | '/whatsapp'
+    | '/events/$id'
     | '/news/$id'
     | '/properties/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/users'
     | '/whatsapp'
+    | '/events/$id'
     | '/news/$id'
     | '/properties/$id'
   id:
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/users'
     | '/whatsapp'
+    | '/events/$id'
     | '/news/$id'
     | '/properties/$id'
   fileRoutesById: FileRoutesById
@@ -239,7 +251,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   AvailabilityRoute: typeof AvailabilityRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
-  EventsRoute: typeof EventsRoute
+  EventsRoute: typeof EventsRouteWithChildren
   LeadsRoute: typeof LeadsRoute
   MoreRoute: typeof MoreRoute
   NewsRoute: typeof NewsRouteWithChildren
@@ -370,8 +382,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsIdRouteImport
       parentRoute: typeof NewsRoute
     }
+    '/events/$id': {
+      id: '/events/$id'
+      path: '/$id'
+      fullPath: '/events/$id'
+      preLoaderRoute: typeof EventsIdRouteImport
+      parentRoute: typeof EventsRoute
+    }
   }
 }
+
+interface EventsRouteChildren {
+  EventsIdRoute: typeof EventsIdRoute
+}
+
+const EventsRouteChildren: EventsRouteChildren = {
+  EventsIdRoute: EventsIdRoute,
+}
+
+const EventsRouteWithChildren =
+  EventsRoute._addFileChildren(EventsRouteChildren)
 
 interface NewsRouteChildren {
   NewsIdRoute: typeof NewsIdRoute
@@ -403,7 +433,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   AvailabilityRoute: AvailabilityRoute,
   ChangePasswordRoute: ChangePasswordRoute,
-  EventsRoute: EventsRoute,
+  EventsRoute: EventsRouteWithChildren,
   LeadsRoute: LeadsRoute,
   MoreRoute: MoreRoute,
   NewsRoute: NewsRouteWithChildren,

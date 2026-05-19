@@ -52,7 +52,7 @@ function EventDetailPage() {
   async function handleRegister(slotId?: string) {
     if (!user) { toast.error("Inicia sesión"); return; }
     try {
-      await register.mutateAsync({ event_id: ev.id, slot_id: slotId ?? null, user_id: user.id });
+      await register.mutateAsync({ event_id: ev!.id, slot_id: slotId ?? null, user_id: user.id });
       toast.success("¡Inscripción confirmada!");
     } catch (e) { toast.error((e as Error).message); }
   }
