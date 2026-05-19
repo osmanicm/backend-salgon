@@ -1,11 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Building2, Users, CalendarDays, MoreHorizontal, Newspaper } from "lucide-react";
+import { Home, Building2, Users, CalendarDays, MoreHorizontal, Newspaper, Ticket } from "lucide-react";
 import { ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
 type Tab = {
-  to: "/" | "/agent" | "/properties" | "/availability" | "/leads" | "/appointments" | "/whatsapp" | "/news" | "/more";
+  to: "/" | "/agent" | "/properties" | "/availability" | "/leads" | "/appointments" | "/whatsapp" | "/news" | "/events" | "/more";
   label: string;
   icon: typeof Home;
   exact?: boolean;
