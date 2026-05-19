@@ -45,9 +45,14 @@ const sections: Section[] = [
 ];
 
 function MorePage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const visibleSections = sections
+    .map((s) => ({ ...s, items: s.items.filter((it) => isAdmin || !it.adminOnly) }))
+    .filter((s) => s.items.length > 0);
   return (
     <AppShell title="Más" subtitle="Accesos rápidos y configuración">
-      {sections.map((s) => (
+      {visibleSections.map((s) => (
         <PageCard key={s.title} title={s.title}>
           <ul className="-mx-1 divide-y divide-border">
             {s.items.map((it) => {
