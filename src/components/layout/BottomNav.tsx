@@ -23,8 +23,8 @@ const agentTabs: Tab[] = [
   { to: "/agent", label: "Inicio", icon: Home, exact: true },
   { to: "/properties", label: "Propiedades", icon: Building2 },
   { to: "/news", label: "Noticias", icon: Newspaper },
-  { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
-  { to: "/appointments", label: "Citas", icon: CalendarDays },
+  { to: "/events", label: "Eventos", icon: Ticket },
+  { to: "/more", label: "Más", icon: MoreHorizontal },
 ];
 
 export function BottomNav() {
