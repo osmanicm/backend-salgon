@@ -11,6 +11,7 @@ import {
   LogOut,
   ClipboardList,
   BarChart3,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +24,7 @@ const adminNav = [
   { to: "/leads", label: "Prospectos", icon: Users },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
   { to: "/pipeline", label: "Embudo de Ventas", icon: KanbanSquare },
+  { to: "/news", label: "Noticias", icon: Newspaper },
   { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/analytics", label: "Analítica de agentes", icon: BarChart3 },
   { to: "/users", label: "Usuarios", icon: UserCog },
@@ -33,6 +35,7 @@ const agentNav = [
   { to: "/properties", label: "Propiedades", icon: Building2 },
   { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
+  { to: "/news", label: "Noticias", icon: Newspaper },
 ] as const;
 
 export function Sidebar() {
