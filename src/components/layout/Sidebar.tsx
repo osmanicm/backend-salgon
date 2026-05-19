@@ -26,6 +26,7 @@ const adminNav = [
   { to: "/appointments", label: "Citas", icon: CalendarDays },
   { to: "/pipeline", label: "Embudo de Ventas", icon: KanbanSquare },
   { to: "/news", label: "Noticias", icon: Newspaper },
+  { to: "/events", label: "Eventos", icon: Ticket },
   { to: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/analytics", label: "Analítica de agentes", icon: BarChart3 },
   { to: "/users", label: "Usuarios", icon: UserCog },
@@ -37,6 +38,7 @@ const agentNav = [
   { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
   { to: "/news", label: "Noticias", icon: Newspaper },
+  { to: "/events", label: "Eventos", icon: Ticket },
 ] as const;
 
 export function Sidebar() {
