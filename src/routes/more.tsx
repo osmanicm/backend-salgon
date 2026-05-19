@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ClipboardList, KanbanSquare, MessageCircle, UserCog,
-  Settings, LogOut, ChevronRight, BarChart3,
+  Settings, LogOut, ChevronRight, BarChart3, Newspaper, CalendarDays,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
@@ -18,7 +18,9 @@ const sections = [
     title: "Operaciones",
     items: [
       { to: "/availability" as const, label: "Disponibilidad", description: "Inventario centralizado", icon: ClipboardList },
+      { to: "/appointments" as const, label: "Citas", description: "Agenda de visitas", icon: CalendarDays },
       { to: "/pipeline" as const,     label: "Embudo de Ventas", description: "Tablero de etapas", icon: KanbanSquare },
+      { to: "/news" as const,         label: "Noticias", description: "Comunicación interna", icon: Newspaper },
       { to: "/whatsapp" as const,     label: "WhatsApp", description: "Plantillas y envíos", icon: MessageCircle },
       { to: "/analytics" as const,    label: "Analítica de agentes", description: "Métricas y actividad", icon: BarChart3 },
     ],
