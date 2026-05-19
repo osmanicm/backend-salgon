@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
+import { useAuth } from "@/hooks/useAuth";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
@@ -13,23 +14,32 @@ export const Route = createFileRoute("/more")({
   errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Más" error={error} reset={reset} />,
 });
 
-const sections = [
+type Item = {
+  to: "/availability" | "/appointments" | "/pipeline" | "/news" | "/events" | "/whatsapp" | "/analytics" | "/users";
+  label: string;
+  description: string;
+  icon: typeof ClipboardList;
+  adminOnly?: boolean;
+};
+type Section = { title: string; items: Item[] };
+
+const sections: Section[] = [
   {
     title: "Operaciones",
     items: [
-      { to: "/availability" as const, label: "Disponibilidad", description: "Inventario centralizado", icon: ClipboardList },
-      { to: "/appointments" as const, label: "Citas", description: "Agenda de visitas", icon: CalendarDays },
-      { to: "/pipeline" as const,     label: "Embudo de Ventas", description: "Tablero de etapas", icon: KanbanSquare },
-      { to: "/news" as const,         label: "Noticias", description: "Comunicación interna", icon: Newspaper },
-      { to: "/events" as const,       label: "Eventos", description: "Asistencia y logística", icon: Ticket },
-      { to: "/whatsapp" as const,     label: "WhatsApp", description: "Plantillas y envíos", icon: MessageCircle },
-      { to: "/analytics" as const,    label: "Analítica de agentes", description: "Métricas y actividad", icon: BarChart3 },
+      { to: "/availability", label: "Disponibilidad", description: "Inventario centralizado", icon: ClipboardList },
+      { to: "/appointments", label: "Citas", description: "Agenda de visitas", icon: CalendarDays },
+      { to: "/pipeline",     label: "Embudo de Ventas", description: "Tablero de etapas", icon: KanbanSquare, adminOnly: true },
+      { to: "/news",         label: "Noticias", description: "Comunicación interna", icon: Newspaper },
+      { to: "/events",       label: "Eventos", description: "Asistencia y logística", icon: Ticket },
+      { to: "/whatsapp",     label: "WhatsApp", description: "Plantillas y envíos", icon: MessageCircle, adminOnly: true },
+      { to: "/analytics",    label: "Analítica de agentes", description: "Métricas y actividad", icon: BarChart3, adminOnly: true },
     ],
   },
   {
     title: "Equipo",
     items: [
-      { to: "/users" as const, label: "Usuarios", description: "Administradores y agentes", icon: UserCog },
+      { to: "/users", label: "Usuarios", description: "Administradores y agentes", icon: UserCog, adminOnly: true },
     ],
   },
 ];
