@@ -262,7 +262,7 @@ function AdminNews() {
 const schema = z.object({
   title: z.string().trim().min(3, "Título requerido").max(200),
   description: z.string().trim().min(1, "Descripción requerida").max(5000),
-  category: z.enum(["Open House", "Nuevos Lanzamientos", "Promociones", "Bonos", "Avisos Internos"]),
+  category: z.enum(["Nuevos Lanzamientos", "Promociones", "Bonos", "Avisos Internos"]),
   status: z.enum(["Published", "Draft"]),
   image_url: z.string().max(1000).optional().or(z.literal("")),
   event_date: z.string().optional().or(z.literal("")),

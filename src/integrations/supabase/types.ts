@@ -193,6 +193,160 @@ export type Database = {
           },
         ]
       }
+      event_registrations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          notes: string
+          slot_id: string | null
+          status: Database["public"]["Enums"]["registration_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          notes?: string
+          slot_id?: string | null
+          status?: Database["public"]["Enums"]["registration_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          notes?: string
+          slot_id?: string | null
+          status?: Database["public"]["Enums"]["registration_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_registrations_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "event_slots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_slots: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          ends_at: string | null
+          event_id: string
+          id: string
+          label: string
+          starts_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          ends_at?: string | null
+          event_id: string
+          id?: string
+          label?: string
+          starts_at: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          ends_at?: string | null
+          event_id?: string
+          id?: string
+          label?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_slots_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          agenda: Json
+          author_id: string | null
+          capacity: number | null
+          created_at: string
+          description: string
+          ends_at: string | null
+          highlighted: boolean
+          id: string
+          image_url: string | null
+          location: string
+          materials: Json
+          related_property_id: string | null
+          starts_at: string | null
+          status: Database["public"]["Enums"]["event_status"]
+          title: string
+          type: Database["public"]["Enums"]["event_type"]
+          updated_at: string
+        }
+        Insert: {
+          agenda?: Json
+          author_id?: string | null
+          capacity?: number | null
+          created_at?: string
+          description?: string
+          ends_at?: string | null
+          highlighted?: boolean
+          id?: string
+          image_url?: string | null
+          location?: string
+          materials?: Json
+          related_property_id?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["event_status"]
+          title: string
+          type: Database["public"]["Enums"]["event_type"]
+          updated_at?: string
+        }
+        Update: {
+          agenda?: Json
+          author_id?: string | null
+          capacity?: number | null
+          created_at?: string
+          description?: string
+          ends_at?: string | null
+          highlighted?: boolean
+          id?: string
+          image_url?: string | null
+          location?: string
+          materials?: Json
+          related_property_id?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["event_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["event_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_related_property_id_fkey"
+            columns: ["related_property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           agent_id: string
@@ -526,17 +680,23 @@ export type Database = {
         | "appointment_created"
       app_role: "admin" | "agent"
       availability_status: "Available" | "Reserved" | "Sold"
+      event_status: "Published" | "Draft"
+      event_type:
+        | "Open House"
+        | "PASS Anual"
+        | "Capacitación"
+        | "Reunión Comercial"
       lead_source: "Website" | "WhatsApp" | "Referral" | "Walk-in" | "Facebook"
       lead_status: "New" | "Contacted" | "Visit" | "Negotiation" | "Closed"
       media_kind: "photo" | "render" | "video"
       news_category:
-        | "Open House"
         | "Nuevos Lanzamientos"
         | "Promociones"
         | "Bonos"
         | "Avisos Internos"
       news_status: "Published" | "Draft"
       property_status: "Available" | "Reserved" | "Sold"
+      registration_status: "Confirmed" | "Cancelled" | "Attended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -674,11 +834,17 @@ export const Constants = {
       ],
       app_role: ["admin", "agent"],
       availability_status: ["Available", "Reserved", "Sold"],
+      event_status: ["Published", "Draft"],
+      event_type: [
+        "Open House",
+        "PASS Anual",
+        "Capacitación",
+        "Reunión Comercial",
+      ],
       lead_source: ["Website", "WhatsApp", "Referral", "Walk-in", "Facebook"],
       lead_status: ["New", "Contacted", "Visit", "Negotiation", "Closed"],
       media_kind: ["photo", "render", "video"],
       news_category: [
-        "Open House",
         "Nuevos Lanzamientos",
         "Promociones",
         "Bonos",
@@ -686,6 +852,7 @@ export const Constants = {
       ],
       news_status: ["Published", "Draft"],
       property_status: ["Available", "Reserved", "Sold"],
+      registration_status: ["Confirmed", "Cancelled", "Attended"],
     },
   },
 } as const
