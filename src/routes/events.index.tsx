@@ -32,7 +32,7 @@ import { normalizeImageUrl } from "@/lib/imageUrl";
 import { cn } from "@/lib/utils";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
-export const Route = createFileRoute("/events")({
+export const Route = createFileRoute("/events/")({
   component: EventsPage,
   errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Eventos" error={error} reset={reset} />,
 });
