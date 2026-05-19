@@ -11,7 +11,6 @@ export type NewsInsert = TablesInsert<"news">;
 export type NewsUpdate = TablesUpdate<"news">;
 
 export const NEWS_CATEGORIES: NewsCategory[] = [
-  "Open House",
   "Nuevos Lanzamientos",
   "Promociones",
   "Bonos",
