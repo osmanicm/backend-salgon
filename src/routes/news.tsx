@@ -293,7 +293,7 @@ function NewsFormDialog({
   }));
 
   // Reset state when opening with a different record
-  useMemo(() => {
+  useEffect(() => {
     if (open) {
       setForm({
         title: initial?.title ?? "",
