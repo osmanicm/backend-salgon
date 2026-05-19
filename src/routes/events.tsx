@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -151,6 +151,7 @@ function EventCard({ e }: { e: EventRow }) {
 
 // ────────── Admin manager ──────────
 function AdminEvents() {
+  const navigate = useNavigate();
   const { data: items = [], isLoading } = useEvents();
   const { type, setType, when, setWhen, filtered } = useFilters(items);
   const update = useUpdateEvent();
@@ -170,8 +171,8 @@ function AdminEvents() {
         title="Todos los eventos"
         description={isLoading ? "Cargando…" : `${items.length} eventos`}
         action={
-          <Button asChild className="gap-1.5">
-            <Link to="/events/new"><Plus className="h-4 w-4" /> Nuevo evento</Link>
+          <Button className="gap-1.5" onClick={() => navigate({ to: "/events/new" })}>
+            <Plus className="h-4 w-4" /> Nuevo evento
           </Button>
         }
       >
