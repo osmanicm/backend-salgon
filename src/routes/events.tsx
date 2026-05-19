@@ -155,9 +155,7 @@ function AdminEvents() {
   const { type, setType, when, setWhen, filtered } = useFilters(items);
   const update = useUpdateEvent();
   const del = useDeleteEvent();
-  const [editing, setEditing] = useState<EventRow | null>(null);
   const [confirmDel, setConfirmDel] = useState<EventRow | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
 
   async function togglePublish(e: EventRow) {
     try {
@@ -171,7 +169,11 @@ function AdminEvents() {
       <PageCard
         title="Todos los eventos"
         description={isLoading ? "Cargando…" : `${items.length} eventos`}
-        action={<Button onClick={() => setCreateOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> Nuevo evento</Button>}
+        action={
+          <Button asChild className="gap-1.5">
+            <Link to="/events/new"><Plus className="h-4 w-4" /> Nuevo evento</Link>
+          </Button>
+        }
       >
         <div className="mb-3"><FiltersBar type={type} setType={setType} when={when} setWhen={setWhen} /></div>
 
