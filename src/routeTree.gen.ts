@@ -16,6 +16,7 @@ import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as EventsRouteImport } from './routes/events'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -59,6 +60,11 @@ const MoreRoute = MoreRouteImport.update({
 const LeadsRoute = LeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoute = EventsRouteImport.update({
+  id: '/events',
+  path: '/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChangePasswordRoute = ChangePasswordRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
+  '/events': typeof EventsRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
+  '/events': typeof EventsRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
+  '/events': typeof EventsRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/change-password'
+    | '/events'
     | '/leads'
     | '/more'
     | '/news'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/change-password'
+    | '/events'
     | '/leads'
     | '/more'
     | '/news'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/change-password'
+    | '/events'
     | '/leads'
     | '/more'
     | '/news'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   AvailabilityRoute: typeof AvailabilityRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
+  EventsRoute: typeof EventsRoute
   LeadsRoute: typeof LeadsRoute
   MoreRoute: typeof MoreRoute
   NewsRoute: typeof NewsRouteWithChildren
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/leads'
       preLoaderRoute: typeof LeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events': {
+      id: '/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof EventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/change-password': {
@@ -383,6 +403,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   AvailabilityRoute: AvailabilityRoute,
   ChangePasswordRoute: ChangePasswordRoute,
+  EventsRoute: EventsRoute,
   LeadsRoute: LeadsRoute,
   MoreRoute: MoreRoute,
   NewsRoute: NewsRouteWithChildren,
