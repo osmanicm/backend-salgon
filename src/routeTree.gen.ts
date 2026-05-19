@@ -16,7 +16,6 @@ import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as LeadsRouteImport } from './routes/leads'
-import { Route as EventsRouteImport } from './routes/events'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -24,6 +23,7 @@ import { Route as AppointmentsRouteImport } from './routes/appointments'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
 import { Route as NewsIdRouteImport } from './routes/news.$id'
 import { Route as EventsNewRouteImport } from './routes/events.new'
@@ -65,11 +65,6 @@ const LeadsRoute = LeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventsRoute = EventsRouteImport.update({
-  id: '/events',
-  path: '/events',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ChangePasswordRoute = ChangePasswordRouteImport.update({
   id: '/change-password',
   path: '/change-password',
@@ -103,6 +98,11 @@ const AgentRoute = AgentRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsIndexRoute = EventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PropertiesIdRoute = PropertiesIdRouteImport.update({
@@ -139,7 +139,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
-  '/events': typeof EventsRouteWithChildren
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -151,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
+  '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -161,7 +161,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
-  '/events': typeof EventsRouteWithChildren
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -173,6 +172,7 @@ export interface FileRoutesByTo {
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
+  '/events': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
 }
 export interface FileRoutesById {
@@ -184,7 +184,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
   '/change-password': typeof ChangePasswordRoute
-  '/events': typeof EventsRouteWithChildren
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
@@ -196,6 +195,7 @@ export interface FileRoutesById {
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
+  '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
 }
 export interface FileRouteTypes {
@@ -208,7 +208,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/change-password'
-    | '/events'
     | '/leads'
     | '/more'
     | '/news'
@@ -220,6 +219,7 @@ export interface FileRouteTypes {
     | '/events/new'
     | '/news/$id'
     | '/properties/$id'
+    | '/events/'
     | '/events/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -230,7 +230,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/change-password'
-    | '/events'
     | '/leads'
     | '/more'
     | '/news'
@@ -242,6 +241,7 @@ export interface FileRouteTypes {
     | '/events/new'
     | '/news/$id'
     | '/properties/$id'
+    | '/events'
     | '/events/$id/edit'
   id:
     | '__root__'
@@ -252,7 +252,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/availability'
     | '/change-password'
-    | '/events'
     | '/leads'
     | '/more'
     | '/news'
@@ -264,6 +263,7 @@ export interface FileRouteTypes {
     | '/events/new'
     | '/news/$id'
     | '/properties/$id'
+    | '/events/'
     | '/events/$id/edit'
   fileRoutesById: FileRoutesById
 }
@@ -275,7 +275,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   AvailabilityRoute: typeof AvailabilityRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
-  EventsRoute: typeof EventsRouteWithChildren
   LeadsRoute: typeof LeadsRoute
   MoreRoute: typeof MoreRoute
   NewsRoute: typeof NewsRouteWithChildren
@@ -283,6 +282,7 @@ export interface RootRouteChildren {
   PropertiesRoute: typeof PropertiesRouteWithChildren
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
+  EventsIndexRoute: typeof EventsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -336,13 +336,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/events': {
-      id: '/events'
-      path: '/events'
-      fullPath: '/events'
-      preLoaderRoute: typeof EventsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/change-password': {
       id: '/change-password'
       path: '/change-password'
@@ -392,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/': {
+      id: '/events/'
+      path: '/events'
+      fullPath: '/events/'
+      preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/properties/$id': {
       id: '/properties/$id'
       path: '/$id'
@@ -430,31 +430,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface EventsIdRouteChildren {
-  EventsIdEditRoute: typeof EventsIdEditRoute
-}
-
-const EventsIdRouteChildren: EventsIdRouteChildren = {
-  EventsIdEditRoute: EventsIdEditRoute,
-}
-
-const EventsIdRouteWithChildren = EventsIdRoute._addFileChildren(
-  EventsIdRouteChildren,
-)
-
-interface EventsRouteChildren {
-  EventsIdRoute: typeof EventsIdRouteWithChildren
-  EventsNewRoute: typeof EventsNewRoute
-}
-
-const EventsRouteChildren: EventsRouteChildren = {
-  EventsIdRoute: EventsIdRouteWithChildren,
-  EventsNewRoute: EventsNewRoute,
-}
-
-const EventsRouteWithChildren =
-  EventsRoute._addFileChildren(EventsRouteChildren)
-
 interface NewsRouteChildren {
   NewsIdRoute: typeof NewsIdRoute
 }
@@ -485,7 +460,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   AvailabilityRoute: AvailabilityRoute,
   ChangePasswordRoute: ChangePasswordRoute,
-  EventsRoute: EventsRouteWithChildren,
   LeadsRoute: LeadsRoute,
   MoreRoute: MoreRoute,
   NewsRoute: NewsRouteWithChildren,
@@ -493,7 +467,17 @@ const rootRouteChildren: RootRouteChildren = {
   PropertiesRoute: PropertiesRouteWithChildren,
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
+  EventsIndexRoute: EventsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
