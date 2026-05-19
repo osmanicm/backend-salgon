@@ -13,6 +13,7 @@ import { Route as WhatsappRouteImport } from './routes/whatsapp'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as PipelineRouteImport } from './routes/pipeline'
+import { Route as NewsRouteImport } from './routes/news'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
@@ -23,6 +24,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
+import { Route as NewsIdRouteImport } from './routes/news.$id'
 
 const WhatsappRoute = WhatsappRouteImport.update({
   id: '/whatsapp',
@@ -42,6 +44,11 @@ const PropertiesRoute = PropertiesRouteImport.update({
 const PipelineRoute = PipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsRoute = NewsRouteImport.update({
+  id: '/news',
+  path: '/news',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MoreRoute = MoreRouteImport.update({
@@ -94,6 +101,11 @@ const PropertiesIdRoute = PropertiesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => PropertiesRoute,
 } as any)
+const NewsIdRoute = NewsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => NewsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,10 +117,12 @@ export interface FileRoutesByFullPath {
   '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
+  '/news': typeof NewsRouteWithChildren
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
 }
 export interface FileRoutesByTo {
@@ -121,10 +135,12 @@ export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
+  '/news': typeof NewsRouteWithChildren
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
 }
 export interface FileRoutesById {
@@ -138,10 +154,12 @@ export interface FileRoutesById {
   '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
+  '/news': typeof NewsRouteWithChildren
   '/pipeline': typeof PipelineRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/news/$id': typeof NewsIdRoute
   '/properties/$id': typeof PropertiesIdRoute
 }
 export interface FileRouteTypes {
@@ -156,10 +174,12 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/leads'
     | '/more'
+    | '/news'
     | '/pipeline'
     | '/properties'
     | '/users'
     | '/whatsapp'
+    | '/news/$id'
     | '/properties/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -172,10 +192,12 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/leads'
     | '/more'
+    | '/news'
     | '/pipeline'
     | '/properties'
     | '/users'
     | '/whatsapp'
+    | '/news/$id'
     | '/properties/$id'
   id:
     | '__root__'
@@ -188,10 +210,12 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/leads'
     | '/more'
+    | '/news'
     | '/pipeline'
     | '/properties'
     | '/users'
     | '/whatsapp'
+    | '/news/$id'
     | '/properties/$id'
   fileRoutesById: FileRoutesById
 }
@@ -205,6 +229,7 @@ export interface RootRouteChildren {
   ChangePasswordRoute: typeof ChangePasswordRoute
   LeadsRoute: typeof LeadsRoute
   MoreRoute: typeof MoreRoute
+  NewsRoute: typeof NewsRouteWithChildren
   PipelineRoute: typeof PipelineRoute
   PropertiesRoute: typeof PropertiesRouteWithChildren
   UsersRoute: typeof UsersRoute
@@ -239,6 +264,13 @@ declare module '@tanstack/react-router' {
       path: '/pipeline'
       fullPath: '/pipeline'
       preLoaderRoute: typeof PipelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news': {
+      id: '/news'
+      path: '/news'
+      fullPath: '/news'
+      preLoaderRoute: typeof NewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/more': {
@@ -311,8 +343,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertiesIdRouteImport
       parentRoute: typeof PropertiesRoute
     }
+    '/news/$id': {
+      id: '/news/$id'
+      path: '/$id'
+      fullPath: '/news/$id'
+      preLoaderRoute: typeof NewsIdRouteImport
+      parentRoute: typeof NewsRoute
+    }
   }
 }
+
+interface NewsRouteChildren {
+  NewsIdRoute: typeof NewsIdRoute
+}
+
+const NewsRouteChildren: NewsRouteChildren = {
+  NewsIdRoute: NewsIdRoute,
+}
+
+const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
 
 interface PropertiesRouteChildren {
   PropertiesIdRoute: typeof PropertiesIdRoute
@@ -336,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangePasswordRoute: ChangePasswordRoute,
   LeadsRoute: LeadsRoute,
   MoreRoute: MoreRoute,
+  NewsRoute: NewsRouteWithChildren,
   PipelineRoute: PipelineRoute,
   PropertiesRoute: PropertiesRouteWithChildren,
   UsersRoute: UsersRoute,
@@ -344,12 +394,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

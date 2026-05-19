@@ -1,11 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Building2, Users, CalendarDays, MoreHorizontal } from "lucide-react";
+import { Home, Building2, Users, CalendarDays, MoreHorizontal, Newspaper } from "lucide-react";
 import { ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
 type Tab = {
-  to: "/" | "/agent" | "/properties" | "/availability" | "/leads" | "/appointments" | "/whatsapp" | "/more";
+  to: "/" | "/agent" | "/properties" | "/availability" | "/leads" | "/appointments" | "/whatsapp" | "/news" | "/more";
   label: string;
   icon: typeof Home;
   exact?: boolean;
@@ -15,13 +15,14 @@ const adminTabs: Tab[] = [
   { to: "/", label: "Inicio", icon: Home, exact: true },
   { to: "/properties", label: "Propiedades", icon: Building2 },
   { to: "/leads", label: "Prospectos", icon: Users },
-  { to: "/appointments", label: "Citas", icon: CalendarDays },
+  { to: "/news", label: "Noticias", icon: Newspaper },
   { to: "/more", label: "Más", icon: MoreHorizontal },
 ];
 
 const agentTabs: Tab[] = [
   { to: "/agent", label: "Inicio", icon: Home, exact: true },
   { to: "/properties", label: "Propiedades", icon: Building2 },
+  { to: "/news", label: "Noticias", icon: Newspaper },
   { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
 ];

@@ -246,6 +246,59 @@ export type Database = {
           },
         ]
       }
+      news: {
+        Row: {
+          author_id: string | null
+          category: Database["public"]["Enums"]["news_category"]
+          created_at: string
+          description: string
+          event_date: string | null
+          highlighted: boolean
+          id: string
+          image_url: string | null
+          related_property_id: string | null
+          status: Database["public"]["Enums"]["news_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          category?: Database["public"]["Enums"]["news_category"]
+          created_at?: string
+          description?: string
+          event_date?: string | null
+          highlighted?: boolean
+          id?: string
+          image_url?: string | null
+          related_property_id?: string | null
+          status?: Database["public"]["Enums"]["news_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          category?: Database["public"]["Enums"]["news_category"]
+          created_at?: string
+          description?: string
+          event_date?: string | null
+          highlighted?: boolean
+          id?: string
+          image_url?: string | null
+          related_property_id?: string | null
+          status?: Database["public"]["Enums"]["news_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_related_property_id_fkey"
+            columns: ["related_property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -476,6 +529,13 @@ export type Database = {
       lead_source: "Website" | "WhatsApp" | "Referral" | "Walk-in" | "Facebook"
       lead_status: "New" | "Contacted" | "Visit" | "Negotiation" | "Closed"
       media_kind: "photo" | "render" | "video"
+      news_category:
+        | "Open House"
+        | "Nuevos Lanzamientos"
+        | "Promociones"
+        | "Bonos"
+        | "Avisos Internos"
+      news_status: "Published" | "Draft"
       property_status: "Available" | "Reserved" | "Sold"
     }
     CompositeTypes: {
@@ -617,6 +677,14 @@ export const Constants = {
       lead_source: ["Website", "WhatsApp", "Referral", "Walk-in", "Facebook"],
       lead_status: ["New", "Contacted", "Visit", "Negotiation", "Closed"],
       media_kind: ["photo", "render", "video"],
+      news_category: [
+        "Open House",
+        "Nuevos Lanzamientos",
+        "Promociones",
+        "Bonos",
+        "Avisos Internos",
+      ],
+      news_status: ["Published", "Draft"],
       property_status: ["Available", "Reserved", "Sold"],
     },
   },
