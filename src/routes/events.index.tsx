@@ -120,33 +120,84 @@ function AgentEvents() {
 }
 
 function EventCard({ e }: { e: EventRow }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const img = normalizeImageUrl(e.image_url ?? "");
+  const isOpenHouse = e.type === "Open House";
+  const hasSlots = (e.slots?.length ?? 0) > 0;
+  const { data: myReg } = useMyRegistration(e.id, user?.id);
+  const register = useRegister();
+  const cancel = useCancelRegistration();
+
+  async function handleConfirm(ev: React.MouseEvent) {
+    ev.preventDefault(); ev.stopPropagation();
+    if (!user) { toast.error("Inicia sesión"); return; }
+    if (isOpenHouse && hasSlots) {
+      navigate({ to: "/events/$id", params: { id: e.id } });
+      return;
+    }
+    try {
+      await register.mutateAsync({ event_id: e.id, user_id: user.id });
+      toast.success("¡Asistencia confirmada!");
+    } catch (err) { toast.error((err as Error).message); }
+  }
+  async function handleCancel(ev: React.MouseEvent) {
+    ev.preventDefault(); ev.stopPropagation();
+    if (!myReg) return;
+    try {
+      await cancel.mutateAsync(myReg.id);
+      toast.success("Asistencia cancelada");
+    } catch (err) { toast.error((err as Error).message); }
+  }
+
   return (
-    <Link
-      to="/events/$id"
-      params={{ id: e.id }}
+    <div
       className={cn(
         "group rounded-2xl border bg-card overflow-hidden shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-elevated)] transition-shadow flex flex-col",
         e.highlighted ? "border-primary/40 ring-1 ring-primary/20" : "border-border",
       )}
     >
-      <div className="relative aspect-video bg-muted overflow-hidden">
-        {img ? <img src={img} alt="" className="h-full w-full object-cover group-hover:scale-[1.02] transition-transform" />
-          : <div className="h-full w-full grid place-items-center text-muted-foreground"><CalendarDays className="h-8 w-8" /></div>}
-        <div className="absolute top-2 left-2 flex gap-1.5">
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">{e.type}</span>
-          {e.highlighted && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning/90 text-warning-foreground inline-flex items-center gap-1"><Star className="h-3 w-3" /> Destacado</span>}
+      <Link to="/events/$id" params={{ id: e.id }} className="block">
+        <div className="relative aspect-video bg-muted overflow-hidden">
+          {img ? <img src={img} alt="" className="h-full w-full object-cover group-hover:scale-[1.02] transition-transform" />
+            : <div className="h-full w-full grid place-items-center text-muted-foreground"><CalendarDays className="h-8 w-8" /></div>}
+          <div className="absolute top-2 left-2 flex gap-1.5">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-primary-foreground">{e.type}</span>
+            {e.highlighted && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-warning/90 text-warning-foreground inline-flex items-center gap-1"><Star className="h-3 w-3" /> Destacado</span>}
+          </div>
         </div>
-      </div>
+      </Link>
       <div className="p-4 flex flex-col gap-2 flex-1">
-        <h3 className="font-semibold leading-snug line-clamp-2">{e.title}</h3>
+        <Link to="/events/$id" params={{ id: e.id }} className="hover:underline">
+          <h3 className="font-semibold leading-snug line-clamp-2">{e.title}</h3>
+        </Link>
         <div className="text-xs text-muted-foreground flex flex-col gap-1">
           <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {fmt(e.starts_at)}</span>
           {e.location && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.location}</span>}
           {e.capacity != null && <span className="inline-flex items-center gap-1"><UsersIcon className="h-3.5 w-3.5" /> Cupo: {e.capacity}</span>}
         </div>
+        <div className="mt-auto pt-3">
+          {myReg ? (
+            <div className="flex items-center gap-2">
+              <span className="flex-1 inline-flex items-center gap-1.5 text-sm text-success font-medium">
+                <CheckCircle2 className="h-4 w-4" /> Asistencia confirmada
+              </span>
+              <Button size="sm" variant="outline" onClick={handleCancel} disabled={cancel.isPending}>
+                <X className="h-4 w-4 mr-1" /> Cancelar
+              </Button>
+            </div>
+          ) : isOpenHouse && hasSlots ? (
+            <Button size="sm" className="w-full" onClick={handleConfirm}>
+              Elegir horario <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          ) : (
+            <Button size="sm" className="w-full" onClick={handleConfirm} disabled={register.isPending}>
+              {register.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Ticket className="h-4 w-4 mr-1" /> Confirmar asistencia</>}
+            </Button>
+          )}
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
