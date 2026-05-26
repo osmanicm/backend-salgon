@@ -1,16 +1,37 @@
-## Agregar botón "Cerrar sesión" en el header móvil
 
-Actualmente la versión móvil del header (`MobileHeader`) muestra un avatar estático sin acción de cerrar sesión. Los usuarios (admin y agente) en móvil no tienen forma directa de salir desde la barra superior.
+## Objetivo
+Publicar la versión actual del proyecto en un repositorio de GitHub usando la integración nativa de Lovable (sincronización bidireccional automática).
 
-### Cambio propuesto
+## Pasos
 
-En `src/components/layout/MobileHeader.tsx`:
-- Agregar un botón de logout (icono `LogOut` de lucide-react) al lado del avatar.
-- Conectar `useAuth()` para obtener `signOut` e iniciales reales del perfil.
-- Al hacer clic: ejecutar `await signOut()`, mostrar toast `"Sesión cerrada"`, y navegar a `/auth` con `useNavigate()` de `@tanstack/react-router`.
-- Mantener el mismo estilo visual (botón redondo, `h-9 w-9`, hover `bg-muted`) consistente con los otros íconos del header móvil.
+### 1. Conectar Lovable con GitHub
+En el editor de Lovable:
+- Abre el menú **+** (esquina inferior izquierda del chat)
+- Selecciona **GitHub** → **Connect project**
+- Autoriza la **Lovable GitHub App** en GitHub
+- Elige la cuenta u organización donde se creará el repositorio
 
-Esto aplica automáticamente a ambos roles (admin y agente) ya que ambos comparten el mismo `MobileHeader` vía `AppShell`.
+> Nota: solo se puede conectar una cuenta de GitHub por cuenta de Lovable.
 
-### Archivos modificados
-- `src/components/layout/MobileHeader.tsx`
+### 2. Crear el repositorio
+- Una vez autorizado, haz clic en **Create Repository** dentro de Lovable
+- Lovable creará automáticamente un nuevo repo con todo el código actual del proyecto
+- A partir de ese momento la sincronización es **bidireccional y en tiempo real**: los cambios hechos en Lovable se suben a GitHub y viceversa
+
+### 3. (Opcional) Configurar visibilidad y colaboradores
+Directamente en GitHub:
+- Ajustar el repo como **público o privado** según necesites
+- Invitar colaboradores desde **Settings → Collaborators**
+- Configurar reglas de protección de rama si trabajarás con PRs
+
+### 4. (Opcional) Descargar el código como ZIP
+Si solo quieres una copia local sin mantener sincronización:
+- En GitHub: **Code → Download ZIP**
+- O clonar: `git clone <url-del-repo>`
+
+### Consideraciones importantes
+- **Datos de la base de datos** (Lovable Cloud) NO se exportan con el código. Si necesitas respaldarlos, ve a **Cloud → Database → Tables** y exporta cada tabla como CSV.
+- **Variables de entorno y secrets** tampoco se suben al repo; deberás configurarlos aparte si despliegas fuera de Lovable.
+- Importar un repo ya existente a Lovable **no está soportado** todavía, así que este flujo solo aplica para crear un repo nuevo desde este proyecto.
+
+¿Quieres que proceda o tienes alguna preferencia sobre el nombre del repo o la cuenta/organización destino?
