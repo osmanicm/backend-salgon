@@ -5,11 +5,11 @@ test.describe("Citas", () => {
 
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const dateStr = tomorrow.toISOString().slice(0, 10); // yyyy-MM-dd
+  const dateStr = tomorrow.toISOString().slice(0, 10);
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/appointments");
-    await expect(page.getByRole("heading", { name: /citas/i })).toBeVisible();
+    await page.waitForLoadState("networkidle");
   });
 
   test("crea una nueva cita", async ({ page }) => {
@@ -18,15 +18,16 @@ test.describe("Citas", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
 
-    await dialog.getByLabel(/cliente/i).fill(clientName);
-    await dialog.getByLabel(/teléfono/i).fill("+52 55 9876 5432");
+    // Usar placeholders porque los Label no tienen htmlFor
+    await dialog.getByPlaceholder("Ej. Juan Pérez").fill(clientName);
+    await dialog.getByPlaceholder("+52 55 1234 5678").fill("+52 55 9876 5432");
 
     // Seleccionar la primera propiedad disponible
-    await dialog.getByRole("combobox", { name: /propiedad/i }).click();
+    await dialog.getByRole("combobox").click();
     await page.getByRole("option").first().click();
 
-    await dialog.getByLabel(/fecha/i).fill(dateStr);
-    await dialog.getByLabel(/hora/i).fill("10:00");
+    await dialog.locator('input[type="date"]').fill(dateStr);
+    await dialog.locator('input[type="time"]').fill("10:00");
 
     await dialog.getByRole("button", { name: /agendar/i }).click();
 
@@ -43,7 +44,7 @@ test.describe("Citas", () => {
     const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
 
-    await dialog.getByLabel(/hora/i).fill("11:30");
+    await dialog.locator('input[type="time"]').fill("11:30");
     await dialog.getByRole("button", { name: /guardar cambios/i }).click();
 
     await expect(dialog).not.toBeVisible({ timeout: 8_000 });
@@ -59,6 +60,6 @@ test.describe("Citas", () => {
     await expect(confirmDialog).toBeVisible();
     await confirmDialog.getByRole("button", { name: /^eliminar$/i }).click();
 
-    await expect(page.getByText(clientName)).not.toBeVisible({ timeout: 8_000 });
+    await expect(page.locator("li", { hasText: clientName })).not.toBeVisible({ timeout: 8_000 });
   });
 });

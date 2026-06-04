@@ -5,7 +5,7 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const authFile = path.join(__dirname, ".auth/user.json");
 
-const EMAIL = process.env.E2E_EMAIL ?? "osmanicm@gmail.com";
+const EMAIL = process.env.E2E_EMAIL ?? "inmobiliariasalgon@gmail.com";
 const PASSWORD = process.env.E2E_PASSWORD ?? "";
 
 setup("authenticate", async ({ page }) => {
@@ -16,12 +16,24 @@ setup("authenticate", async ({ page }) => {
   }
 
   await page.goto("/auth");
+  await page.waitForLoadState("networkidle");
 
-  await page.getByLabel(/correo/i).fill(EMAIL);
-  await page.getByLabel(/contraseña/i).fill(PASSWORD);
+  await page.locator("#login-email").fill(EMAIL);
+  await page.locator("#login-password").fill(PASSWORD);
+
   await page.getByRole("button", { name: /entrar/i }).click();
 
-  await expect(page).toHaveURL(/^\/((?!auth).)*$/, { timeout: 15_000 });
+  // Capturar toast de error si aparece
+  const toast = page.locator("[data-sonner-toast]").first();
+  const toastVisible = await toast.isVisible({ timeout: 3_000 }).catch(() => false);
+  if (toastVisible) {
+    const msg = await toast.textContent();
+    console.error(`Toast de error: ${msg}`);
+  }
+
+  await page.screenshot({ path: "test-results/auth-after-click.png" });
+
+  await page.waitForURL((url) => !url.pathname.includes("auth"), { timeout: 15_000 });
 
   await page.context().storageState({ path: authFile });
 });
