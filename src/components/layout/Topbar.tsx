@@ -1,15 +1,28 @@
 import { Bell, Search, Plus, LogOut } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { CommandPalette } from "@/components/layout/CommandPalette";
 
 export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
   const { profile, user, roles, signOut } = useAuth();
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuario";
   const initials = displayName.split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
   const roleLabel = roles.includes("admin") ? "Administrador" : roles.includes("agent") ? "Agente" : "Sin rol";
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []);
 
   async function handleSignOut() {
     await signOut();
@@ -17,43 +30,53 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
   }
 
   return (
-    <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b border-border">
-      <div className="flex items-center gap-4 px-6 h-16">
-        <div className="min-w-0">
-          <h1 className="text-lg font-semibold tracking-tight truncate">{title}</h1>
-          {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
-        </div>
-        <div className="ml-auto flex items-center gap-3">
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar propiedades, prospectos…" className="pl-9 w-72 bg-muted/50 border-transparent focus-visible:bg-card" />
+    <>
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b border-border">
+        <div className="flex items-center gap-4 px-6 h-16">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold tracking-tight truncate">{title}</h1>
+            {subtitle && <p className="text-xs text-muted-foreground truncate">{subtitle}</p>}
           </div>
-          <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="h-4 w-4" /> Nuevo
-          </Button>
-          <button className="relative h-9 w-9 grid place-items-center rounded-full hover:bg-muted">
-            <Bell className="h-4 w-4" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
-          </button>
-          <div className="flex items-center gap-2 pl-2 border-l border-border">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="hidden sm:block leading-tight">
-              <div className="text-sm font-medium">{displayName}</div>
-              <div className="text-[11px] text-muted-foreground">{roleLabel}</div>
-            </div>
+          <div className="ml-auto flex items-center gap-3">
             <button
-              onClick={handleSignOut}
-              className="ml-1 h-9 w-9 grid place-items-center rounded-full hover:bg-muted text-muted-foreground"
-              aria-label="Cerrar sesión"
-              title="Cerrar sesión"
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="relative hidden md:flex items-center h-9 w-72 rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground hover:bg-muted/80 transition-colors"
             >
-              <LogOut className="h-4 w-4" />
+              <Search className="mr-2 h-4 w-4 shrink-0" />
+              <span className="flex-1 text-left">Buscar propiedades, prospectos…</span>
+              <kbd className="hidden lg:inline-flex items-center rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground/60 bg-background ml-2">
+                ⌘K
+              </kbd>
             </button>
+            <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Plus className="h-4 w-4" /> Nuevo
+            </Button>
+            <button className="relative h-9 w-9 grid place-items-center rounded-full hover:bg-muted">
+              <Bell className="h-4 w-4" />
+              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
+            </button>
+            <div className="flex items-center gap-2 pl-2 border-l border-border">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="hidden sm:block leading-tight">
+                <div className="text-sm font-medium">{displayName}</div>
+                <div className="text-[11px] text-muted-foreground">{roleLabel}</div>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="ml-1 h-9 w-9 grid place-items-center rounded-full hover:bg-muted text-muted-foreground"
+                aria-label="Cerrar sesión"
+                title="Cerrar sesión"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 }

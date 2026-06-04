@@ -127,7 +127,7 @@ export const Route = createFileRoute("/properties/$id")({
   notFoundComponent: () => (
     <AppShell title="Propiedad" subtitle="Detalle">
       <PageCard title="Propiedad no encontrada" description="Verifica el enlace o vuelve al listado.">
-        <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
+        <Link to="/properties" search={{ q: "" }} className="text-primary hover:underline inline-flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Volver a Propiedades
         </Link>
       </PageCard>
@@ -136,7 +136,7 @@ export const Route = createFileRoute("/properties/$id")({
   errorComponent: ({ error }) => (
     <AppShell title="Propiedad" subtitle="Detalle">
       <PageCard title="Error al cargar la propiedad" description={error.message}>
-        <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
+        <Link to="/properties" search={{ q: "" }} className="text-primary hover:underline inline-flex items-center gap-1">
           <ArrowLeft className="h-4 w-4" /> Volver
         </Link>
       </PageCard>
@@ -172,7 +172,7 @@ function PropertyDetailPage() {
     try {
       await softDelete.mutateAsync(property.id);
       toast.success(`"${property.title}" enviada a la papelera`);
-      navigate({ to: "/properties" });
+      navigate({ to: "/properties", search: { q: "" } });
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "No se pudo eliminar");
     }
@@ -243,7 +243,7 @@ function PropertyDetailPage() {
     return (
       <AppShell title="Propiedad" subtitle="Detalle">
         <PageCard title="Propiedad no encontrada" description="Es posible que haya sido eliminada.">
-          <Link to="/properties" className="text-primary hover:underline inline-flex items-center gap-1">
+          <Link to="/properties" search={{ q: "" }} className="text-primary hover:underline inline-flex items-center gap-1">
             <ArrowLeft className="h-4 w-4" /> Volver a Propiedades
           </Link>
         </PageCard>
@@ -362,7 +362,7 @@ function PropertyDetailPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate({ to: "/properties" })}
+            onClick={() => navigate({ to: "/properties", search: { q: "" } })}
             aria-label="Volver"
             className="shrink-0"
           >
@@ -399,6 +399,7 @@ function PropertyDetailPage() {
             canManage ? (
               <Link
                 to="/properties"
+                search={{ q: "" }}
                 className="text-xs text-primary hover:underline inline-flex items-center gap-1"
               >
                 <Pencil className="h-3.5 w-3.5" /> Subir / gestionar archivos
@@ -531,7 +532,12 @@ function PropertyDetailPage() {
               })()}
             </PageCard>
 
-            <CommissionCalculator model={property.model} price={Number(property.price)} />
+            <CommissionCalculator
+              model={property.model}
+              price={Number(property.price)}
+              propertyId={property.id}
+              agentId={user?.id}
+            />
           </div>
 
           <div className="space-y-4">
@@ -1036,7 +1042,7 @@ function FichaPdfTab({
             {canManage ? (
               <>
                 {" "}desde{" "}
-                <Link to="/properties" className="text-primary hover:underline">
+                <Link to="/properties" search={{ q: "" }} className="text-primary hover:underline">
                   Editar propiedad
                 </Link>
                 .

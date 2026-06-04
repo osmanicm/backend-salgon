@@ -193,6 +193,63 @@ export type Database = {
           },
         ]
       }
+      commissions: {
+        Row: {
+          agent_id: string
+          commission_mxn: number
+          commission_pct: number
+          created_at: string
+          down_pct: number
+          enganche_mxn: number
+          id: string
+          model: string | null
+          notes: string
+          price: number
+          property_id: string | null
+        }
+        Insert: {
+          agent_id: string
+          commission_mxn: number
+          commission_pct: number
+          created_at?: string
+          down_pct: number
+          enganche_mxn: number
+          id?: string
+          model?: string | null
+          notes?: string
+          price: number
+          property_id?: string | null
+        }
+        Update: {
+          agent_id?: string
+          commission_mxn?: number
+          commission_pct?: number
+          created_at?: string
+          down_pct?: number
+          enganche_mxn?: number
+          id?: string
+          model?: string | null
+          notes?: string
+          price?: number
+          property_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_registrations: {
         Row: {
           created_at: string

@@ -16,9 +16,19 @@ dist-ssr
 .nitro
 *.local
 
+# Secrets — nunca commitear
+.env
+.env.local
+.env.*.local
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+
+# Playwright
+/playwright-report/
+/test-results/
+e2e/.auth/
 
 # Editor directories and files
 .vscode/*

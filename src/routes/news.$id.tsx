@@ -68,6 +68,7 @@ function NewsDetailPage() {
               <Link
                 to="/properties/$id"
                 params={{ id: n.property.id }}
+                search={{ q: "" }}
                 className="mt-4 flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-3 hover:bg-muted/60 transition-colors"
               >
                 <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center">

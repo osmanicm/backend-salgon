@@ -1,7 +1,23 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "app-salgon",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+  "workers_dev": false,
+  "custom_domains": [
+    { "hostname": "app.salgon.com" }
+  ],
+  // Secrets are NOT stored here — set them via:
+  //   wrangler secret put RESEND_API_KEY
+  //   wrangler secret put ADMIN_EMAIL
+  //   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+  // The following vars can be plain (non-secret) env vars:
+  "vars": {
+    "SUPABASE_URL": "https://hlqmfwqeildvbokawngt.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhscW1md3FlaWxkdmJva2F3bmd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNjM0MzYsImV4cCI6MjA5NTgzOTQzNn0.KXsh2IEE3Qt2w6uwLo5iRD-y8fmvYirzPfUjMfnUytM",
+    "VITE_SUPABASE_URL": "https://hlqmfwqeildvbokawngt.supabase.co",
+    "VITE_SUPABASE_PROJECT_ID": "hlqmfwqeildvbokawngt",
+    "VITE_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhscW1md3FlaWxkdmJva2F3bmd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNjM0MzYsImV4cCI6MjA5NTgzOTQzNn0.KXsh2IEE3Qt2w6uwLo5iRD-y8fmvYirzPfUjMfnUytM"
+  }
 }

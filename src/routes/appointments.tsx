@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Calendar as CalIcon, List, ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
+import { Plus, Calendar as CalIcon, List, ChevronLeft, ChevronRight, Clock, Loader2, Pencil, Trash2, Search } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { AppShell } from "@/components/layout/AppShell";
@@ -15,40 +15,53 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useProperties } from "@/data/propertiesApi";
-import { useAppointments, useCreateAppointment, type AppointmentRow } from "@/data/appointmentsApi";
+import { useAppointments, useCreateAppointment, useUpdateAppointment, useDeleteAppointment, type AppointmentRow } from "@/data/appointmentsApi";
 import { useAuth } from "@/hooks/useAuth";
 import { logAgentEvent } from "@/data/agentEvents";
+import { notifyNewAppointment } from "@/utils/notifications.functions";
 import { cn } from "@/lib/utils";
-
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
 export const Route = createFileRoute("/appointments")({
+  validateSearch: (s: Record<string, unknown>) => ({ q: typeof s.q === "string" ? s.q : "" }),
   component: AppointmentsPage,
   errorComponent: ({ error, reset }) => <RouteErrorBoundary title="Citas" error={error} reset={reset} />,
 });
 
 function AppointmentsPage() {
+  const { q: urlQ } = Route.useSearch();
   const [month, setMonth] = useState(new Date());
+  const [q, setQ] = useState(urlQ);
   const { data: appointments = [], isLoading } = useAppointments();
   const qc = useQueryClient();
 
   useEffect(() => {
     const ch = supabase
       .channel("appointments-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "appointments" },
-        () => {
-          qc.invalidateQueries({ queryKey: ["appointments"] });
-        },
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "appointments" }, () => {
+        qc.invalidateQueries({ queryKey: ["appointments"] });
+      })
       .subscribe();
-    return () => {
-      void supabase.removeChannel(ch);
-    };
+    return () => { void supabase.removeChannel(ch); };
   }, [qc]);
+
+  const filtered = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return appointments;
+    return appointments.filter((a) =>
+      a.client_name.toLowerCase().includes(term) ||
+      a.client_phone.includes(term) ||
+      (a.property?.title ?? "").toLowerCase().includes(term) ||
+      (a.notes ?? "").toLowerCase().includes(term)
+    );
+  }, [appointments, q]);
+
+  const listDesc = isLoading
+    ? "Cargando…"
+    : `${filtered.length}${filtered.length !== appointments.length ? ` de ${appointments.length}` : ""} programadas`;
 
   return (
     <AppShell title="Citas" subtitle="Agenda y administra las visitas a propiedades">
@@ -75,37 +88,31 @@ function AppointmentsPage() {
           >
             <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
               <div className="min-w-[560px]">
-                <CalendarGrid month={month} appointments={appointments} />
+                <CalendarGrid month={month} appointments={filtered} />
               </div>
             </div>
           </PageCard>
         </TabsContent>
 
         <TabsContent value="list">
-          <PageCard title="Próximas citas" description={isLoading ? "Cargando…" : `${appointments.length} programadas`}>
-            {!isLoading && appointments.length === 0 ? (
-              <div className="text-sm text-muted-foreground py-8 text-center">Aún no tienes citas programadas.</div>
+          <PageCard
+            title="Citas programadas"
+            description={listDesc}
+            action={
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cliente, propiedad…" className="pl-9 w-full md:w-56" />
+              </div>
+            }
+          >
+            {!isLoading && filtered.length === 0 ? (
+              <div className="text-sm text-muted-foreground py-8 text-center">
+                {appointments.length === 0 ? "Aún no tienes citas programadas." : "Sin resultados para la búsqueda."}
+              </div>
             ) : null}
             <ul className="divide-y divide-border">
-              {appointments.map((a) => (
-                <li key={a.id} className="flex items-center gap-3 md:gap-4 py-3">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary grid place-items-center shrink-0">
-                    <div className="text-center leading-tight">
-                      <div className="text-[10px] uppercase">{format(parseISO(a.scheduled_at), "MMM", { locale: es })}</div>
-                      <div className="text-base font-semibold">{format(parseISO(a.scheduled_at), "dd")}</div>
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">
-                      {a.client_name || a.lead?.name || "Cliente"} → {a.property?.title ?? "Propiedad"}
-                    </div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-                      <Clock className="h-3 w-3 shrink-0" />{format(parseISO(a.scheduled_at), "p", { locale: es })}{a.notes ? ` · ${a.notes}` : ""}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5 truncate md:hidden">{a.property?.location ?? ""}</div>
-                  </div>
-                  <span className="hidden md:inline text-xs text-muted-foreground">{a.property?.location ?? ""}</span>
-                </li>
+              {filtered.map((a) => (
+                <AppointmentListItem key={a.id} appointment={a} />
               ))}
             </ul>
           </PageCard>
@@ -119,6 +126,72 @@ function AppointmentsPage() {
   );
 }
 
+function AppointmentListItem({ appointment: a }: { appointment: AppointmentRow }) {
+  const [editOpen, setEditOpen] = useState(false);
+  const deleteAppt = useDeleteAppointment();
+
+  async function handleDelete() {
+    try {
+      await deleteAppt.mutateAsync(a.id);
+      toast.success("Cita eliminada");
+    } catch {
+      toast.error("No se pudo eliminar la cita");
+    }
+  }
+
+  return (
+    <li className="flex items-center gap-3 md:gap-4 py-3">
+      <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary grid place-items-center shrink-0">
+        <div className="text-center leading-tight">
+          <div className="text-[10px] uppercase">{format(parseISO(a.scheduled_at), "MMM", { locale: es })}</div>
+          <div className="text-base font-semibold">{format(parseISO(a.scheduled_at), "dd")}</div>
+        </div>
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium truncate">
+          {a.client_name || a.lead?.name || "Cliente"} → {a.property?.title ?? "Propiedad"}
+        </div>
+        <div className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+          <Clock className="h-3 w-3 shrink-0" />{format(parseISO(a.scheduled_at), "p", { locale: es })}{a.notes ? ` · ${a.notes}` : ""}
+        </div>
+        <div className="text-[11px] text-muted-foreground mt-0.5 truncate md:hidden">{a.property?.location ?? ""}</div>
+      </div>
+      <span className="hidden md:inline text-xs text-muted-foreground">{a.property?.location ?? ""}</span>
+      <div className="flex items-center gap-1 shrink-0">
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" aria-label="Editar cita">
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          </DialogTrigger>
+          <AppointmentFormDialogContent appointment={a} onClose={() => setEditOpen(false)} />
+        </Dialog>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive" aria-label="Eliminar cita" disabled={deleteAppt.isPending}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar cita?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Se eliminará la cita con <strong>{a.client_name || a.lead?.name || "el cliente"}</strong> del {format(parseISO(a.scheduled_at), "PPP 'a las' p", { locale: es })}. Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </li>
+  );
+}
+
 function NewAppointmentFab() {
   const [open, setOpen] = useState(false);
   return (
@@ -128,7 +201,17 @@ function NewAppointmentFab() {
           <Plus className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <NewAppointmentDialogContent onClose={() => setOpen(false)} />
+      <AppointmentFormDialogContent onClose={() => setOpen(false)} />
+    </Dialog>
+  );
+}
+
+function NewAppointmentDialog() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Nueva Cita</Button></DialogTrigger>
+      <AppointmentFormDialogContent onClose={() => setOpen(false)} />
     </Dialog>
   );
 }
@@ -166,49 +249,45 @@ function CalendarGrid({ month, appointments }: { month: Date; appointments: Appo
   );
 }
 
-function NewAppointmentDialog() {
-  const [open, setOpen] = useState(false);
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Nueva Cita</Button></DialogTrigger>
-      <NewAppointmentDialogContent onClose={() => setOpen(false)} />
-    </Dialog>
-  );
-}
-
 const phoneRegex = /^\+?[\d\s\-()]{7,20}$/;
 
-const appointmentSchema = z
-  .object({
-    clientName: z.string().trim().min(2, "Nombre del cliente requerido").max(100),
-    clientPhone: z.string().trim().min(7).max(20).regex(phoneRegex, "Teléfono inválido"),
-    propertyId: z.string().min(1, "Selecciona una propiedad"),
-    date: z.string().min(1).regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
-    time: z.string().min(1).regex(/^\d{2}:\d{2}$/, "Hora inválida"),
-    notes: z.string().trim().max(500).optional().default(""),
-  })
-  .superRefine((val, ctx) => {
-    const dt = new Date(`${val.date}T${val.time}:00`);
-    if (Number.isNaN(dt.getTime())) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["date"], message: "Fecha/hora inválida" });
-      return;
-    }
-    if (dt.getTime() < Date.now() - 60_000) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["date"], message: "La cita debe ser en el futuro" });
-    }
-  });
+const appointmentSchema = z.object({
+  clientName: z.string().trim().min(2, "Nombre del cliente requerido").max(100),
+  clientPhone: z.string().trim().min(7).max(20).regex(phoneRegex, "Teléfono inválido"),
+  propertyId: z.string().min(1, "Selecciona una propiedad"),
+  date: z.string().min(1).regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+  time: z.string().min(1).regex(/^\d{2}:\d{2}$/, "Hora inválida"),
+  notes: z.string().trim().max(500).optional().default(""),
+});
 
 type ApptForm = { clientName: string; clientPhone: string; propertyId: string; date: string; time: string; notes: string };
+
+function appointmentToForm(a: AppointmentRow): ApptForm {
+  const dt = parseISO(a.scheduled_at);
+  return {
+    clientName: a.client_name,
+    clientPhone: a.client_phone,
+    propertyId: a.property_id ?? "",
+    date: format(dt, "yyyy-MM-dd"),
+    time: format(dt, "HH:mm"),
+    notes: a.notes ?? "",
+  };
+}
+
 const emptyAppt: ApptForm = { clientName: "", clientPhone: "", propertyId: "", date: "", time: "", notes: "" };
 
-function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
+function AppointmentFormDialogContent({ appointment, onClose }: { appointment?: AppointmentRow; onClose?: () => void }) {
+  const isEdit = Boolean(appointment);
   const { user } = useAuth();
   const { data: properties = [] } = useProperties();
   const create = useCreateAppointment();
-  const [form, setForm] = useState<ApptForm>(emptyAppt);
+  const update = useUpdateAppointment();
+  const [form, setForm] = useState<ApptForm>(appointment ? appointmentToForm(appointment) : emptyAppt);
   const [errors, setErrors] = useState<Partial<Record<keyof ApptForm, string>>>({});
 
-  function update<K extends keyof ApptForm>(key: K, value: ApptForm[K]) {
+  const isPending = create.isPending || update.isPending;
+
+  function updateField<K extends keyof ApptForm>(key: K, value: ApptForm[K]) {
     setForm((f) => ({ ...f, [key]: value }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: undefined }));
   }
@@ -226,63 +305,82 @@ function NewAppointmentDialogContent({ onClose }: { onClose?: () => void }) {
       toast.error(parsed.error.issues[0].message);
       return;
     }
-    if (!user?.id) {
-      toast.error("Debes iniciar sesión");
-      return;
-    }
+    const scheduledAt = new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString();
     try {
-      await create.mutateAsync({
-        agent_id: user.id,
-        property_id: parsed.data.propertyId,
-        client_name: parsed.data.clientName,
-        client_phone: parsed.data.clientPhone,
-        scheduled_at: new Date(`${parsed.data.date}T${parsed.data.time}:00`).toISOString(),
-        notes: parsed.data.notes ?? "",
-      });
-      toast.success("Cita agendada");
-      void logAgentEvent({ type: "appointment_created", propertyId: parsed.data.propertyId, metadata: { date: parsed.data.date } });
-      setForm(emptyAppt);
-      setErrors({});
+      if (isEdit && appointment) {
+        await update.mutateAsync({
+          id: appointment.id,
+          patch: {
+            property_id: parsed.data.propertyId,
+            client_name: parsed.data.clientName,
+            client_phone: parsed.data.clientPhone,
+            scheduled_at: scheduledAt,
+            notes: parsed.data.notes ?? "",
+          },
+        });
+        toast.success("Cita actualizada");
+      } else {
+        if (!user?.id) { toast.error("Debes iniciar sesión"); return; }
+        await create.mutateAsync({
+          agent_id: user.id,
+          property_id: parsed.data.propertyId,
+          client_name: parsed.data.clientName,
+          client_phone: parsed.data.clientPhone,
+          scheduled_at: scheduledAt,
+          notes: parsed.data.notes ?? "",
+        });
+        toast.success("Cita agendada");
+        void logAgentEvent({ type: "appointment_created", propertyId: parsed.data.propertyId, metadata: { date: parsed.data.date } });
+        void notifyNewAppointment({ data: {
+          clientName: parsed.data.clientName,
+          clientPhone: parsed.data.clientPhone,
+          scheduledAt: scheduledAt,
+          propertyTitle: properties.find((p) => p.id === parsed.data.propertyId)?.title,
+          notes: parsed.data.notes || undefined,
+        } }).catch(() => {});
+        setForm(emptyAppt);
+        setErrors({});
+      }
       onClose?.();
     } catch (err) {
       const e = err as { message?: string };
-      toast.error(e.message ?? "No se pudo agendar la cita");
+      toast.error(e.message ?? (isEdit ? "No se pudo actualizar la cita" : "No se pudo agendar la cita"));
     }
   }
 
   const todayIso = new Date().toISOString().slice(0, 10);
   return (
     <DialogContent>
-      <DialogHeader><DialogTitle>Crear cita</DialogTitle></DialogHeader>
+      <DialogHeader><DialogTitle>{isEdit ? "Editar cita" : "Crear cita"}</DialogTitle></DialogHeader>
       <form onSubmit={handleSubmit} noValidate className="grid gap-4">
         <ApptField label="Cliente *" error={errors.clientName}>
-          <Input value={form.clientName} onChange={(e) => update("clientName", e.target.value)} placeholder="Ej. Juan Pérez" maxLength={100} />
+          <Input value={form.clientName} onChange={(e) => updateField("clientName", e.target.value)} placeholder="Ej. Juan Pérez" maxLength={100} />
         </ApptField>
         <ApptField label="Teléfono (WhatsApp) *" error={errors.clientPhone}>
-          <Input type="tel" inputMode="tel" value={form.clientPhone} onChange={(e) => update("clientPhone", e.target.value)} placeholder="+52 55 1234 5678" maxLength={20} />
+          <Input type="tel" inputMode="tel" value={form.clientPhone} onChange={(e) => updateField("clientPhone", e.target.value)} placeholder="+52 55 1234 5678" maxLength={20} />
         </ApptField>
         <ApptField label="Propiedad *" error={errors.propertyId}>
-          <Select value={form.propertyId} onValueChange={(v) => update("propertyId", v)}>
+          <Select value={form.propertyId} onValueChange={(v) => updateField("propertyId", v)}>
             <SelectTrigger><SelectValue placeholder="Selecciona propiedad" /></SelectTrigger>
             <SelectContent>{properties.map(p => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}</SelectContent>
           </Select>
         </ApptField>
         <div className="grid grid-cols-2 gap-4">
           <ApptField label="Fecha *" error={errors.date}>
-            <Input type="date" min={todayIso} value={form.date} onChange={(e) => update("date", e.target.value)} />
+            <Input type="date" min={isEdit ? undefined : todayIso} value={form.date} onChange={(e) => updateField("date", e.target.value)} />
           </ApptField>
           <ApptField label="Hora *" error={errors.time}>
-            <Input type="time" value={form.time} onChange={(e) => update("time", e.target.value)} />
+            <Input type="time" value={form.time} onChange={(e) => updateField("time", e.target.value)} />
           </ApptField>
         </div>
         <ApptField label="Notas" error={errors.notes}>
-          <Textarea rows={3} value={form.notes} onChange={(e) => update("notes", e.target.value)} placeholder="Detalles de la visita…" maxLength={500} />
+          <Textarea rows={3} value={form.notes} onChange={(e) => updateField("notes", e.target.value)} placeholder="Detalles de la visita…" maxLength={500} />
         </ApptField>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={() => onClose?.()}>Cancelar</Button>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
-            Agendar
+          <Button type="submit" disabled={isPending}>
+            {isPending && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
+            {isEdit ? "Guardar cambios" : "Agendar"}
           </Button>
         </DialogFooter>
       </form>

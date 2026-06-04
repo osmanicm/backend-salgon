@@ -89,7 +89,7 @@ function EventDetailPage() {
         {ev.property && (
           <div className="mt-4 rounded-xl border border-border bg-muted/30 p-3 text-sm">
             <div className="text-xs text-muted-foreground mb-1">Propiedad relacionada</div>
-            <Link to="/properties/$id" params={{ id: ev.property.id }} className="font-medium hover:underline">{ev.property.title} ({ev.property.code})</Link>
+            <Link to="/properties/$id" params={{ id: ev.property.id }} search={{ q: "" }} className="font-medium hover:underline">{ev.property.title} ({ev.property.code})</Link>
           </div>
         )}
       </PageCard>

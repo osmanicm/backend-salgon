@@ -80,7 +80,7 @@ function AgentDashboard() {
         {kpis.map((k) => {
           const Icon = k.icon;
           return (
-            <Link key={k.label} to={k.to}>
+            <Link key={k.label} to={k.to} search={{ q: "" }}>
               <PageCard>
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 grid place-items-center rounded-lg bg-primary/10 text-primary">
@@ -100,9 +100,9 @@ function AgentDashboard() {
 
       <PageCard title="Acciones rápidas">
         <div className="flex flex-wrap gap-2">
-          <Link to="/properties" className="text-sm text-primary hover:underline">Ver propiedades</Link>
+          <Link to="/properties" search={{ q: "" }} className="text-sm text-primary hover:underline">Ver propiedades</Link>
           <span className="text-muted-foreground">·</span>
-          <Link to="/appointments" className="text-sm text-primary hover:underline">Agenda</Link>
+          <Link to="/appointments" search={{ q: "" }} className="text-sm text-primary hover:underline">Agenda</Link>
         </div>
       </PageCard>
     </AppShell>

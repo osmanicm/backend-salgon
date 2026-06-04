@@ -118,10 +118,6 @@ function DashboardPage() {
         )}
       </PageCard>
 
-      <p className="text-[11px] text-muted-foreground text-center">
-        Los KPIs y listados muestran únicamente datos sincronizados con la base de datos.
-        Módulos como Prospectos, Citas y Pipeline aparecerán aquí cuando tengan persistencia.
-      </p>
     </AppShell>
   );
 }

@@ -10,6 +10,7 @@ import {
   Activity,
   TrendingUp,
   Calendar as CalendarIcon,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -119,6 +120,19 @@ function aggregate(events: AgentEventRow[], profiles: AgentProfile[]): AgentMetr
   return Array.from(map.values()).sort((a, b) => b.total - a.total);
 }
 
+function downloadCsv(rows: (string | number)[][], filename: string) {
+  const content = rows
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob(["﻿" + content], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function fmtDate(iso: string | null) {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -222,6 +236,29 @@ function AnalyticsPage() {
 
   const top = metrics.slice(0, 5);
   const maxTotal = Math.max(1, ...metrics.map((m) => m.total));
+
+  function handleExportMetrics() {
+    const dateTag = new Date().toISOString().slice(0, 10);
+    const header = ["Agente", "Email", "Sesiones", "Compartidos", "PDF Prop.", "PDF Disp. Gen.", "PDF Disp. Modelo", "Citas", "Total", "Última actividad"];
+    const rows = metrics.map((m) => [
+      m.name, m.email ?? "",
+      m.byType.session_start, m.byType.property_share,
+      m.byType.property_pdf, m.byType.availability_pdf_general,
+      m.byType.availability_pdf_model, m.byType.appointment_created,
+      m.total, m.lastActiveAt ? fmtDate(m.lastActiveAt) : "",
+    ]);
+    downloadCsv([header, ...rows], `analitica-agentes-${dateTag}.csv`);
+  }
+
+  function handleExportEvents() {
+    const dateTag = new Date().toISOString().slice(0, 10);
+    const header = ["Fecha", "Agente", "Email", "Tipo de evento", "Modelo"];
+    const rows = events.map((e) => {
+      const agent = profiles.find((p) => p.id === e.agent_id);
+      return [fmtDate(e.created_at), agent?.full_name ?? "—", agent?.email ?? "—", EVENT_LABEL[e.event_type], e.model ?? ""];
+    });
+    downloadCsv([header, ...rows], `eventos-agentes-${dateTag}.csv`);
+  }
 
   return (
     <AppShell
@@ -424,12 +461,17 @@ function AnalyticsPage() {
         title="Detalle por agente"
         description="Métricas completas de cada agente"
         action={
-          <Link
-            to="/users"
-            className="text-xs text-primary inline-flex items-center gap-1 hover:underline"
-          >
-            <TrendingUp className="h-3 w-3" /> Ver usuarios
-          </Link>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={handleExportMetrics} disabled={metrics.length === 0}>
+              <Download className="h-3.5 w-3.5" /> Métricas CSV
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={handleExportEvents} disabled={events.length === 0}>
+              <Download className="h-3.5 w-3.5" /> Eventos CSV
+            </Button>
+            <Link to="/users" className="text-xs text-primary inline-flex items-center gap-1 hover:underline">
+              <TrendingUp className="h-3 w-3" /> Ver usuarios
+            </Link>
+          </div>
         }
       >
         <div className="overflow-x-auto -mx-4 md:-mx-5 px-4 md:px-5">

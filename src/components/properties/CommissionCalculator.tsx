@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
-import { Calculator, TrendingUp, Database } from "lucide-react";
+import { Calculator, TrendingUp, Database, Save, Loader2 } from "lucide-react";
 import { PageCard } from "@/components/common/PageCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { fmtMoney } from "@/data/mock";
+import { useCreateCommission } from "@/data/commissionsApi";
+import { toast } from "sonner";
 
 type Tier = { downPct: number; commissionPct: number };
 
@@ -65,13 +67,18 @@ function resolveTier(tiers: Tier[], inputPct: number): Tier | null {
 export function CommissionCalculator({
   model,
   price,
+  propertyId,
+  agentId,
 }: {
   model: string | null | undefined;
   price: number;
+  propertyId?: string;
+  agentId?: string;
 }) {
   const modelKey = normalizeModelKey(model);
   const tiers = modelKey ? COMMISSION_POLICY[modelKey] : null;
   const [pctInput, setPctInput] = useState<string>("");
+  const createCommission = useCreateCommission();
 
   const pct = useMemo(() => {
     const n = parseFloat(pctInput.replace(",", "."));
@@ -87,6 +94,26 @@ export function CommissionCalculator({
   const enganche = pct !== null ? (price * pct) / 100 : 0;
   const saldo = pct !== null ? price - enganche : price;
   const comisionMxn = tier ? (price * tier.commissionPct) / 100 : 0;
+
+  async function handleSave() {
+    if (!tier || pct === null || !agentId) return;
+    try {
+      await createCommission.mutateAsync({
+        property_id: propertyId ?? null,
+        agent_id: agentId,
+        model: modelKey,
+        price,
+        down_pct: pct,
+        commission_pct: tier.commissionPct,
+        enganche_mxn: enganche,
+        commission_mxn: comisionMxn,
+        notes: "",
+      });
+      toast.success("Cálculo guardado");
+    } catch {
+      toast.error("No se pudo guardar el cálculo");
+    }
+  }
 
   return (
     <PageCard
@@ -178,6 +205,24 @@ export function CommissionCalculator({
               </div>
             </div>
           </div>
+
+          {tier && agentId && (
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={handleSave}
+                disabled={createCommission.isPending}
+              >
+                {createCommission.isPending
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  : <Save className="h-3.5 w-3.5" />}
+                Guardar cálculo
+              </Button>
+            </div>
+          )}
 
           {pct !== null && !tier && (
             <p className="text-xs text-muted-foreground">
