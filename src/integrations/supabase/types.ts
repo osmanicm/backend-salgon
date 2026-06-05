@@ -513,30 +513,69 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string | null
+          facebook: string | null
           full_name: string | null
           id: string
+          instagram: string | null
+          linkedin: string | null
+          office_address: string | null
           phone: string | null
+          phone_mobile: string | null
+          phone_office: string | null
+          slug: string | null
+          tiktok: string | null
+          twitter_x: string | null
           updated_at: string
+          website: string | null
+          whatsapp: string | null
+          youtube: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
+          facebook?: string | null
           full_name?: string | null
           id: string
+          instagram?: string | null
+          linkedin?: string | null
+          office_address?: string | null
           phone?: string | null
+          phone_mobile?: string | null
+          phone_office?: string | null
+          slug?: string | null
+          tiktok?: string | null
+          twitter_x?: string | null
           updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+          youtube?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string | null
+          facebook?: string | null
           full_name?: string | null
           id?: string
+          instagram?: string | null
+          linkedin?: string | null
+          office_address?: string | null
           phone?: string | null
+          phone_mobile?: string | null
+          phone_office?: string | null
+          slug?: string | null
+          tiktok?: string | null
+          twitter_x?: string | null
           updated_at?: string
+          website?: string | null
+          whatsapp?: string | null
+          youtube?: string | null
         }
         Relationships: []
       }
