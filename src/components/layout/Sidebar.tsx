@@ -13,6 +13,7 @@ import {
   BarChart3,
   Newspaper,
   Ticket,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -85,6 +86,17 @@ export function Sidebar() {
         })}
       </nav>
       <div className="border-t border-sidebar-border p-3 space-y-1">
+        <Link
+          to="/profile"
+          className={cn(
+            "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            pathname === "/profile"
+              ? "bg-sidebar-accent text-sidebar-primary font-medium"
+              : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60"
+          )}
+        >
+          <User className="h-4 w-4" /> Mi Perfil
+        </Link>
         <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
           <Settings className="h-4 w-4" /> Configuración
         </button>

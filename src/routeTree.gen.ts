@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsappRouteImport } from './routes/whatsapp'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as PropertiesRouteImport } from './routes/properties'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as MoreRouteImport } from './routes/more'
@@ -25,6 +26,7 @@ import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
+import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as NewsIdRouteImport } from './routes/news.$id'
 import { Route as EventsNewRouteImport } from './routes/events.new'
 import { Route as EventsIdIndexRouteImport } from './routes/events.$id.index'
@@ -43,6 +45,11 @@ const UsersRoute = UsersRouteImport.update({
 const PropertiesRoute = PropertiesRouteImport.update({
   id: '/properties',
   path: '/properties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PipelineRoute = PipelineRouteImport.update({
@@ -110,6 +117,11 @@ const PropertiesIdRoute = PropertiesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => PropertiesRoute,
 } as any)
+const PIdRoute = PIdRouteImport.update({
+  id: '/p/$id',
+  path: '/p/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewsIdRoute = NewsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -143,11 +155,13 @@ export interface FileRoutesByFullPath {
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
   '/pipeline': typeof PipelineRoute
+  '/profile': typeof ProfileRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
+  '/p/$id': typeof PIdRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
@@ -165,11 +179,13 @@ export interface FileRoutesByTo {
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
   '/pipeline': typeof PipelineRoute
+  '/profile': typeof ProfileRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
+  '/p/$id': typeof PIdRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
@@ -188,11 +204,13 @@ export interface FileRoutesById {
   '/more': typeof MoreRoute
   '/news': typeof NewsRouteWithChildren
   '/pipeline': typeof PipelineRoute
+  '/profile': typeof ProfileRoute
   '/properties': typeof PropertiesRouteWithChildren
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
+  '/p/$id': typeof PIdRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
@@ -212,11 +230,13 @@ export interface FileRouteTypes {
     | '/more'
     | '/news'
     | '/pipeline'
+    | '/profile'
     | '/properties'
     | '/users'
     | '/whatsapp'
     | '/events/new'
     | '/news/$id'
+    | '/p/$id'
     | '/properties/$id'
     | '/events/'
     | '/events/$id/edit'
@@ -234,11 +254,13 @@ export interface FileRouteTypes {
     | '/more'
     | '/news'
     | '/pipeline'
+    | '/profile'
     | '/properties'
     | '/users'
     | '/whatsapp'
     | '/events/new'
     | '/news/$id'
+    | '/p/$id'
     | '/properties/$id'
     | '/events'
     | '/events/$id/edit'
@@ -256,11 +278,13 @@ export interface FileRouteTypes {
     | '/more'
     | '/news'
     | '/pipeline'
+    | '/profile'
     | '/properties'
     | '/users'
     | '/whatsapp'
     | '/events/new'
     | '/news/$id'
+    | '/p/$id'
     | '/properties/$id'
     | '/events/'
     | '/events/$id/edit'
@@ -279,10 +303,12 @@ export interface RootRouteChildren {
   MoreRoute: typeof MoreRoute
   NewsRoute: typeof NewsRouteWithChildren
   PipelineRoute: typeof PipelineRoute
+  ProfileRoute: typeof ProfileRoute
   PropertiesRoute: typeof PropertiesRouteWithChildren
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
   EventsNewRoute: typeof EventsNewRoute
+  PIdRoute: typeof PIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
   EventsIdEditRoute: typeof EventsIdEditRoute
   EventsIdIndexRoute: typeof EventsIdIndexRoute
@@ -309,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/properties'
       fullPath: '/properties'
       preLoaderRoute: typeof PropertiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pipeline': {
@@ -402,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertiesIdRouteImport
       parentRoute: typeof PropertiesRoute
     }
+    '/p/$id': {
+      id: '/p/$id'
+      path: '/p/$id'
+      fullPath: '/p/$id'
+      preLoaderRoute: typeof PIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/news/$id': {
       id: '/news/$id'
       path: '/$id'
@@ -467,10 +507,12 @@ const rootRouteChildren: RootRouteChildren = {
   MoreRoute: MoreRoute,
   NewsRoute: NewsRouteWithChildren,
   PipelineRoute: PipelineRoute,
+  ProfileRoute: ProfileRoute,
   PropertiesRoute: PropertiesRouteWithChildren,
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
   EventsNewRoute: EventsNewRoute,
+  PIdRoute: PIdRoute,
   EventsIndexRoute: EventsIndexRoute,
   EventsIdEditRoute: EventsIdEditRoute,
   EventsIdIndexRoute: EventsIdIndexRoute,
