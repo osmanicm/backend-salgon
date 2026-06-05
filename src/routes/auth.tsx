@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import * as React from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2, Mail, Lock, User as UserIcon } from "lucide-react";
+import { Loader2, Mail, Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +52,8 @@ function AuthPage() {
   const [password, setPassword] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [showLoginPwd, setShowLoginPwd] = React.useState(false);
+  const [showSignupPwd, setShowSignupPwd] = React.useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -132,7 +134,12 @@ function AuthPage() {
                   <Input id="login-email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@empresa.com" />
                 </Field>
                 <Field icon={<Lock className="h-4 w-4" />} label="Contraseña" id="login-password">
-                  <Input id="login-password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                  <div className="relative">
+                    <Input id="login-password" type={showLoginPwd ? "text" : "password"} autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
+                    <button type="button" onClick={() => setShowLoginPwd((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1} aria-label={showLoginPwd ? "Ocultar contraseña" : "Mostrar contraseña"}>
+                      {showLoginPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </Field>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />} Entrar
@@ -149,7 +156,12 @@ function AuthPage() {
                   <Input id="signup-email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tucorreo@empresa.com" />
                 </Field>
                 <Field icon={<Lock className="h-4 w-4" />} label="Contraseña" id="signup-password">
-                  <Input id="signup-password" type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" />
+                  <div className="relative">
+                    <Input id="signup-password" type={showSignupPwd ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mínimo 6 caracteres" className="pr-10" />
+                    <button type="button" onClick={() => setShowSignupPwd((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1} aria-label={showSignupPwd ? "Ocultar contraseña" : "Mostrar contraseña"}>
+                      {showSignupPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </Field>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />} Crear cuenta

@@ -1,5 +1,4 @@
-import { Bell, Search, Plus, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bell, Search, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
@@ -50,9 +49,6 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
                 ⌘K
               </kbd>
             </button>
-            <Button size="sm" className="gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="h-4 w-4" /> Nuevo
-            </Button>
             <button className="relative h-9 w-9 grid place-items-center rounded-full hover:bg-muted">
               <Bell className="h-4 w-4" />
               <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
