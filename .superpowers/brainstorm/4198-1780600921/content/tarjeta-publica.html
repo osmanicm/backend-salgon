@@ -1,0 +1,153 @@
+<style>
+  .preview-wrap { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+  .card-preview { border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.18); cursor: pointer; transition: transform .2s, box-shadow .2s; width: 300px; flex-shrink: 0; border: 3px solid transparent; }
+  .card-preview:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.22); }
+  .card-preview.selected { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.3); }
+
+  /* OPCIÓN A — Link-in-bio vertical */
+  .a-bg { background: linear-gradient(160deg, #0f3d2a 0%, #1a5c38 60%, #c9a227 100%); padding: 36px 24px 28px; text-align: center; }
+  .a-avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #c9a227; margin: 0 auto 12px; background: #c9a227; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #0f3d2a; font-weight: 700; }
+  .a-name { color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 2px; }
+  .a-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(201,162,39,.2); border: 1px solid #c9a227; border-radius: 20px; padding: 4px 12px; color: #c9a227; font-size: 11px; font-weight: 600; margin: 8px 0 16px; }
+  .a-links { display: flex; flex-direction: column; gap: 8px; }
+  .a-link { background: rgba(255,255,255,.12); border-radius: 10px; padding: 10px 16px; color: #fff; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .a-link-icon { width: 20px; height: 20px; border-radius: 50%; background: #c9a227; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #0f3d2a; font-weight: 700; flex-shrink: 0; }
+  .a-qr { margin-top: 16px; background: rgba(255,255,255,.1); border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; color: rgba(255,255,255,.8); font-size: 11px; }
+  .qr-box { width: 44px; height: 44px; background: #fff; border-radius: 6px; display: grid; place-items: center; font-size: 8px; color: #0f3d2a; font-weight: 700; }
+
+  /* OPCIÓN B — Hero + datos lateral */
+  .b-hero { background: linear-gradient(135deg, #0f3d2a, #1a5c38); padding: 24px; display: flex; gap: 16px; align-items: center; }
+  .b-avatar { width: 72px; height: 72px; border-radius: 12px; background: #c9a227; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #0f3d2a; font-weight: 700; flex-shrink: 0; }
+  .b-info { color: #fff; }
+  .b-name { font-size: 17px; font-weight: 700; line-height: 1.2; }
+  .b-badge { display: inline-block; background: #c9a227; color: #0f3d2a; font-size: 9px; font-weight: 700; border-radius: 4px; padding: 2px 7px; margin-top: 5px; text-transform: uppercase; letter-spacing: .5px; }
+  .b-body { background: #fff; padding: 16px; }
+  .b-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #444; }
+  .b-row:last-child { border-bottom: none; }
+  .b-icon { width: 28px; height: 28px; border-radius: 8px; background: #f0f7f3; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .b-footer { background: #0f3d2a; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .b-logo { color: #c9a227; font-weight: 700; font-size: 13px; }
+  .b-qr2 { width: 36px; height: 36px; background: #fff; border-radius: 6px; display: grid; place-items: center; font-size: 7px; color: #0f3d2a; font-weight: 700; }
+
+  /* OPCIÓN C — Glassmorphism / premium */
+  .c-bg { background: linear-gradient(145deg, #0a2e1e 0%, #0f3d2a 40%, #1a5238 70%, #c9a227 100%); padding: 28px 20px; position: relative; overflow: hidden; }
+  .c-pattern { position: absolute; inset: 0; opacity: .06; background-image: repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%); background-size: 12px 12px; }
+  .c-inner { position: relative; }
+  .c-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .c-avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(201,162,39,.7); background: rgba(201,162,39,.2); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #c9a227; font-weight: 700; backdrop-filter: blur(8px); }
+  .c-txt { color: #fff; }
+  .c-name { font-size: 18px; font-weight: 700; }
+  .c-title { font-size: 11px; color: rgba(255,255,255,.65); margin-top: 2px; }
+  .c-seal { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.1); backdrop-filter: blur(10px); border: 1px solid rgba(201,162,39,.4); border-radius: 10px; padding: 8px 12px; margin-bottom: 16px; }
+  .c-seal-icon { font-size: 20px; }
+  .c-seal-txt { color: #fff; }
+  .c-seal-title { font-size: 12px; font-weight: 700; color: #c9a227; }
+  .c-seal-sub { font-size: 10px; color: rgba(255,255,255,.7); }
+  .c-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .c-chip { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; padding: 4px 10px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 5px; }
+  .c-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .c-qr3 { width: 52px; height: 52px; background: #fff; border-radius: 8px; display: grid; place-items: center; font-size: 7px; color: #0f3d2a; font-weight: 700; }
+  .c-brand { text-align: right; }
+  .c-brand-name { color: #c9a227; font-weight: 700; font-size: 15px; }
+  .c-brand-sub { color: rgba(255,255,255,.6); font-size: 9px; }
+</style>
+
+<h2>Diseño de la Tarjeta Digital Pública</h2>
+<p class="subtitle">¿Qué estilo se siente más profesional para un agente inmobiliario?</p>
+
+<div class="preview-wrap">
+
+  <!-- OPCIÓN A -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:8px">A — Link-in-bio vertical</p>
+    <div class="card-preview" data-choice="a" onclick="toggleSelect(this)">
+      <div class="a-bg">
+        <div class="a-avatar">JR</div>
+        <div class="a-name">Juan Rodríguez</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">Monterrey, N.L.</div>
+        <div class="a-badge">🏅 Agente Autorizado Salgon</div>
+        <div class="a-links">
+          <div class="a-link"><div class="a-link-icon">📱</div>+52 81 1234 5678</div>
+          <div class="a-link"><div class="a-link-icon">✉</div>juan@salgon.com</div>
+          <div class="a-link"><div class="a-link-icon">📍</div>Av. Vasconcelos 123, Of. 4</div>
+          <div class="a-link"><div class="a-link-icon">in</div>linkedin.com/in/juanrod</div>
+          <div class="a-link"><div class="a-link-icon">▷</div>instagram.com/juanrod</div>
+        </div>
+        <div class="a-qr">
+          <div class="qr-box">QR</div>
+          <span>Escanea para guardar mis datos</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPCIÓN B -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:8px">B — Hero + ficha de datos</p>
+    <div class="card-preview" data-choice="b" onclick="toggleSelect(this)">
+      <div class="b-hero">
+        <div class="b-avatar">JR</div>
+        <div class="b-info">
+          <div class="b-name">Juan Rodríguez<br>García</div>
+          <div class="b-badge">🏅 Agente Autorizado Salgon</div>
+        </div>
+      </div>
+      <div class="b-body">
+        <div class="b-row"><div class="b-icon">📱</div>+52 81 1234 5678 (WhatsApp)</div>
+        <div class="b-row"><div class="b-icon">📞</div>+52 81 8765 4321</div>
+        <div class="b-row"><div class="b-icon">✉</div>juan@inmobiliariasalgon.com</div>
+        <div class="b-row"><div class="b-icon">📍</div>Av. Vasconcelos 123, Monterrey</div>
+        <div class="b-row"><div class="b-icon">in</div>LinkedIn · Instagram · Facebook</div>
+      </div>
+      <div class="b-footer">
+        <div class="b-logo">★ Salgon Bienes Raíces</div>
+        <div class="b-qr2">QR</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPCIÓN C -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:8px">C — Premium glassmorphism</p>
+    <div class="card-preview" data-choice="c" onclick="toggleSelect(this)">
+      <div class="c-bg">
+        <div class="c-pattern"></div>
+        <div class="c-inner">
+          <div class="c-top">
+            <div class="c-avatar">JR</div>
+            <div class="c-txt">
+              <div class="c-name">Juan Rodríguez</div>
+              <div class="c-title">Asesor Inmobiliario · Monterrey</div>
+            </div>
+          </div>
+          <div class="c-seal">
+            <div class="c-seal-icon">🏅</div>
+            <div class="c-seal-txt">
+              <div class="c-seal-title">Agente Inmobiliario Autorizado</div>
+              <div class="c-seal-sub">Salgon Bienes Raíces · Certificado</div>
+            </div>
+          </div>
+          <div class="c-chips">
+            <div class="c-chip">📱 +52 81 1234 5678</div>
+            <div class="c-chip">✉ juan@salgon.com</div>
+            <div class="c-chip">📍 Monterrey, N.L.</div>
+            <div class="c-chip">in LinkedIn</div>
+            <div class="c-chip">▷ Instagram</div>
+          </div>
+          <div class="c-bottom">
+            <div class="c-qr3">QR</div>
+            <div class="c-brand">
+              <div class="c-brand-name">Salgon</div>
+              <div class="c-brand-sub">Suite Inmobiliaria</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:20px">
+  Haz clic en el diseño que más te guste — o dime en el chat.
+</p>

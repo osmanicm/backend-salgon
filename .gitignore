@@ -40,3 +40,4 @@ e2e/.auth/
 *.njsproj
 *.sln
 *.sw?
+.gstack/

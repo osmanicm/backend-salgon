@@ -1,0 +1,212 @@
+<style>
+  /* ── SALGON BRAND PALETTE ───────────────────────────
+     Brand red:   #E21013
+     Dark red:    #6e0709
+     Mid red:     #991012
+     Gold:        #d97706
+     Gold light:  #fbbf24
+  ─────────────────────────────────────────────────── */
+  :root {
+    --red:      #E21013;
+    --red-dark: #6e0709;
+    --red-mid:  #991012;
+    --gold:     #d97706;
+    --gold-lt:  #fbbf24;
+  }
+
+  .preview-wrap { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+  .card-preview { border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.22); cursor: pointer; transition: transform .2s, box-shadow .2s; width: 300px; flex-shrink: 0; border: 3px solid transparent; }
+  .card-preview:hover { transform: translateY(-4px); box-shadow: 0 16px 44px rgba(226,16,19,.25); }
+  .card-preview.selected { border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,.35); }
+
+  /* ── A: Link-in-bio vertical ── */
+  .a-bg { background: linear-gradient(160deg, #6e0709 0%, #991012 50%, #E21013 100%); padding: 36px 24px 28px; text-align: center; }
+  .a-avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid #fbbf24; margin: 0 auto 12px; background: rgba(251,191,36,.12); display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fbbf24; font-weight: 700; }
+  .a-name { color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 2px; font-family: Georgia, serif; letter-spacing: -.2px; }
+  .a-city { color: rgba(255,255,255,.65); font-size: 12px; margin-bottom: 10px; }
+  .a-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(217,119,6,.22); border: 1px solid #d97706; border-radius: 20px; padding: 5px 14px; color: #fbbf24; font-size: 11px; font-weight: 600; margin-bottom: 18px; }
+  .a-links { display: flex; flex-direction: column; gap: 7px; }
+  .a-link { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 12px; display: flex; align-items: center; gap: 10px; }
+  .a-icon { width: 22px; height: 22px; border-radius: 6px; background: #d97706; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 700; flex-shrink: 0; }
+  .a-qr { margin-top: 16px; background: rgba(0,0,0,.22); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .a-qr-box { width: 44px; height: 44px; background: #fff; border-radius: 7px; display: grid; place-items: center; flex-shrink: 0; padding: 4px; }
+  .a-qr-txt { color: rgba(255,255,255,.75); font-size: 11px; line-height: 1.45; text-align: left; }
+  .a-foot { margin-top: 14px; color: #fbbf24; font-size: 12px; font-weight: 700; letter-spacing: .4px; }
+
+  /* ── B: Hero + ficha ── */
+  .b-hero { background: linear-gradient(130deg, #6e0709 0%, #E21013 100%); padding: 22px 18px; display: flex; gap: 14px; align-items: center; }
+  .b-avatar { width: 70px; height: 70px; border-radius: 12px; background: rgba(251,191,36,.15); border: 2px solid #fbbf24; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fbbf24; font-weight: 700; flex-shrink: 0; }
+  .b-info { color: #fff; }
+  .b-name { font-size: 16px; font-weight: 700; line-height: 1.25; font-family: Georgia, serif; }
+  .b-badge { display: inline-flex; align-items: center; gap: 4px; background: #d97706; color: #fff; font-size: 9px; font-weight: 700; border-radius: 4px; padding: 3px 8px; margin-top: 6px; text-transform: uppercase; letter-spacing: .4px; }
+  .b-body { background: #fff; padding: 14px 16px; }
+  .b-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 12px; color: #374151; }
+  .b-row:last-child { border-bottom: none; }
+  .b-ic { width: 30px; height: 30px; border-radius: 8px; background: #fef2f2; border: 1px solid #fecaca; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .b-social-row { display: flex; gap: 7px; padding: 10px 0 4px; }
+  .b-soc { width: 32px; height: 32px; border-radius: 8px; background: #E21013; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+  .b-footer { background: linear-gradient(90deg, #6e0709, #991012); padding: 11px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .b-logo { color: #fbbf24; font-weight: 700; font-size: 13px; }
+  .b-qr2 { width: 38px; height: 38px; background: #fff; border-radius: 7px; padding: 3px; display: grid; place-items: center; }
+
+  /* ── C: Premium dark glass ── */
+  .c-bg { background: linear-gradient(145deg, #3b0001 0%, #6e0709 30%, #991012 60%, #c97706 100%); padding: 26px 20px; position: relative; overflow: hidden; }
+  .c-pattern { position: absolute; inset: 0; opacity: .05; background-image: repeating-linear-gradient(45deg, #fff 0, #fff 1px, transparent 0, transparent 50%); background-size: 10px 10px; pointer-events: none; }
+  .c-inner { position: relative; z-index: 1; }
+  .c-top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .c-avatar { width: 68px; height: 68px; border-radius: 50%; border: 2px solid rgba(251,191,36,.8); background: rgba(251,191,36,.12); display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fbbf24; font-weight: 700; flex-shrink: 0; }
+  .c-name { font-size: 19px; font-weight: 700; font-family: Georgia, serif; color: #fff; }
+  .c-title { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 3px; }
+  .c-seal { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.08); backdrop-filter: blur(12px); border: 1px solid rgba(251,191,36,.35); border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; }
+  .c-seal-emoji { font-size: 22px; }
+  .c-seal-title { font-size: 12px; font-weight: 700; color: #fbbf24; }
+  .c-seal-sub { font-size: 10px; color: rgba(255,255,255,.65); margin-top: 1px; }
+  .c-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .c-chip { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); border-radius: 20px; padding: 5px 11px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 5px; }
+  .c-bottom { display: flex; align-items: flex-end; justify-content: space-between; }
+  .c-qr { width: 54px; height: 54px; background: #fff; border-radius: 9px; padding: 5px; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+  .c-brand { text-align: right; }
+  .c-brand-icon { width: 30px; height: 30px; border-radius: 7px; background: #E21013; margin-left: auto; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+  .c-brand-name { color: #fbbf24; font-weight: 700; font-size: 16px; font-family: Georgia, serif; }
+  .c-brand-sub { color: rgba(255,255,255,.5); font-size: 9px; text-transform: uppercase; letter-spacing: .4px; }
+
+  /* QR pixel art */
+  .qr7 { display: grid; grid-template-columns: repeat(7, 5px); gap: 1px; }
+  .qr7 div { width:5px; height:5px; border-radius:1px; }
+  .qr6 { display: grid; grid-template-columns: repeat(6, 4px); gap: 1px; }
+  .qr6 div { width:4px; height:4px; border-radius:.5px; }
+</style>
+
+<h2>Tarjeta Digital — Color #E21013</h2>
+<p class="subtitle">Branding real Salgon · Rojo <strong style="color:#E21013">#E21013</strong> + dorado. ¿Cuál te convence?</p>
+
+<div class="preview-wrap">
+
+  <!-- A -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:8px">A — Link-in-bio vertical</p>
+    <div class="card-preview" data-choice="a" onclick="toggleSelect(this)">
+      <div class="a-bg">
+        <div class="a-avatar">JR</div>
+        <div class="a-name">Juan Rodríguez</div>
+        <div class="a-city">Asesor Inmobiliario · Monterrey, N.L.</div>
+        <div class="a-badge">🏅 Agente Autorizado Salgon</div>
+        <div class="a-links">
+          <div class="a-link"><div class="a-icon">📱</div>+52 81 1234 5678 (WhatsApp)</div>
+          <div class="a-link"><div class="a-icon">📞</div>+52 81 8765 4321</div>
+          <div class="a-link"><div class="a-icon">✉</div>juan@inmobiliariasalgon.com</div>
+          <div class="a-link"><div class="a-icon">📍</div>Av. Vasconcelos 123, Of. 4</div>
+          <div class="a-link"><div class="a-icon">in</div>LinkedIn · Instagram · Facebook</div>
+        </div>
+        <div class="a-qr">
+          <div class="a-qr-box">
+            <div class="qr7">
+              <div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div>
+              <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div>
+              <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div>
+              <div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#E21013"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div>
+              <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div>
+              <div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div>
+              <div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div>
+            </div>
+          </div>
+          <div class="a-qr-txt">Escanea para guardar<br>mi tarjeta de contacto</div>
+        </div>
+        <div class="a-foot">★ Salgon Bienes Raíces</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:8px">B — Hero + ficha de datos</p>
+    <div class="card-preview" data-choice="b" onclick="toggleSelect(this)">
+      <div class="b-hero">
+        <div class="b-avatar">JR</div>
+        <div class="b-info">
+          <div class="b-name">Juan Rodríguez<br>García</div>
+          <div class="b-badge">🏅 Agente Autorizado Salgon</div>
+        </div>
+      </div>
+      <div class="b-body">
+        <div class="b-row"><div class="b-ic">📱</div>+52 81 1234 5678 (WhatsApp)</div>
+        <div class="b-row"><div class="b-ic">📞</div>+52 81 8765 4321</div>
+        <div class="b-row"><div class="b-ic">✉</div>juan@inmobiliariasalgon.com</div>
+        <div class="b-row"><div class="b-ic">📍</div>Av. Vasconcelos 123, Monterrey</div>
+        <div class="b-social-row">
+          <div class="b-soc">in</div><div class="b-soc">▷</div><div class="b-soc">f</div><div class="b-soc">tk</div>
+        </div>
+      </div>
+      <div class="b-footer">
+        <div class="b-logo">★ Salgon Bienes Raíces</div>
+        <div class="b-qr2">
+          <div class="qr6">
+            <div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div>
+            <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#E21013"></div><div style="background:#111"></div>
+            <div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div>
+            <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div>
+            <div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div>
+            <div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div>
+    <p class="label" style="text-align:center;margin-bottom:8px">C — Premium dark</p>
+    <div class="card-preview" data-choice="c" onclick="toggleSelect(this)">
+      <div class="c-bg">
+        <div class="c-pattern"></div>
+        <div class="c-inner">
+          <div class="c-top">
+            <div class="c-avatar">JR</div>
+            <div>
+              <div class="c-name">Juan Rodríguez</div>
+              <div class="c-title">Asesor Inmobiliario · Monterrey, N.L.</div>
+            </div>
+          </div>
+          <div class="c-seal">
+            <div class="c-seal-emoji">🏅</div>
+            <div>
+              <div class="c-seal-title">Agente Inmobiliario Autorizado</div>
+              <div class="c-seal-sub">Salgon Bienes Raíces · Certificado</div>
+            </div>
+          </div>
+          <div class="c-chips">
+            <div class="c-chip">📱 +52 81 1234 5678</div>
+            <div class="c-chip">✉ juan@salgon.com</div>
+            <div class="c-chip">📍 Monterrey, N.L.</div>
+            <div class="c-chip">in LinkedIn</div>
+            <div class="c-chip">▷ Instagram</div>
+            <div class="c-chip">f Facebook</div>
+          </div>
+          <div class="c-bottom">
+            <div class="c-qr">
+              <div class="qr7">
+                <div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div>
+                <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div>
+                <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div>
+                <div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#E21013"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div>
+                <div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#fff"></div><div style="background:#111"></div>
+                <div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#111"></div><div style="background:#111"></div>
+                <div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div><div style="background:#111"></div><div style="background:#fff"></div>
+              </div>
+            </div>
+            <div class="c-brand">
+              <div class="c-brand-icon">🏠</div>
+              <div class="c-brand-name">Salgon</div>
+              <div class="c-brand-sub">Bienes Raíces</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:20px">
+  Haz clic en el que más te convenza · o dime qué combinar
+</p>
