@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, CalendarDays, MapPin, Users as UsersIcon, Star, CheckCircle2, X,
-  Plus, Trash2, Ticket, Loader2,
+  Plus, Trash2, Ticket, Loader2, Download, FileSpreadsheet,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
@@ -19,6 +19,11 @@ import {
 import { normalizeImageUrl } from "@/lib/imageUrl";
 import { cn } from "@/lib/utils";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+import {
+  exportRegistrationsCsv,
+  exportRegistrationsPdf,
+  type RegistrationExportRow,
+} from "@/lib/eventRegistrationsExport";
 
 export const Route = createFileRoute("/events/$id/")({
   component: EventDetailPage,
@@ -62,6 +67,32 @@ function EventDetailPage() {
       await cancel.mutateAsync(myReg.id);
       toast.success("Inscripción cancelada");
     } catch (e) { toast.error((e as Error).message); }
+  }
+
+  function exportRows(): RegistrationExportRow[] {
+    return registrations.map((r) => ({
+      fullName: r.user?.full_name || r.user?.email || r.user_id,
+      registeredAt: r.created_at,
+      eventTitle: ev?.title ?? "—",
+    }));
+  }
+  function handleExportCsv() {
+    const rows = exportRows();
+    if (rows.length === 0) { toast.error("No hay inscritos para exportar"); return; }
+    exportRegistrationsCsv(rows, new Date().toISOString().slice(0, 10));
+    toast.success(`${rows.length} inscrito(s) exportado(s) a CSV`);
+  }
+  async function handleExportPdf() {
+    const rows = exportRows();
+    if (rows.length === 0) { toast.error("No hay inscritos para exportar"); return; }
+    try {
+      await exportRegistrationsPdf(rows, {
+        title: "Inscritos al evento",
+        subtitle: ev?.title ?? undefined,
+        filenameTag: new Date().toISOString().slice(0, 10),
+      });
+      toast.success("PDF generado");
+    } catch (e) { toast.error(e instanceof Error ? e.message : "No se pudo generar el PDF"); }
   }
 
   return (
@@ -143,7 +174,19 @@ function EventDetailPage() {
       {isAdmin && (
         <>
           {ev.type === "Open House" && <AdminSlotManager event={ev} />}
-          <PageCard title={`Inscritos (${registrations.length})`}>
+          <PageCard
+            title={`Inscritos (${registrations.length})`}
+            action={
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={handleExportCsv} disabled={registrations.length === 0}>
+                  <FileSpreadsheet className="h-3.5 w-3.5" /> Excel (CSV)
+                </Button>
+                <Button size="sm" className="gap-1.5" onClick={handleExportPdf} disabled={registrations.length === 0}>
+                  <Download className="h-3.5 w-3.5" /> PDF
+                </Button>
+              </div>
+            }
+          >
             {registrations.length === 0 ? (
               <div className="py-6 text-center text-sm text-muted-foreground">Aún no hay inscripciones.</div>
             ) : (

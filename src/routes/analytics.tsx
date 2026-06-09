@@ -30,6 +30,7 @@ import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { downloadCsv } from "@/lib/csv";
 
 export const Route = createFileRoute("/analytics")({
   component: AnalyticsPage,
@@ -118,19 +119,6 @@ function aggregate(events: AgentEventRow[], profiles: AgentProfile[]): AgentMetr
     if (!m.lastActiveAt || e.created_at > m.lastActiveAt) m.lastActiveAt = e.created_at;
   }
   return Array.from(map.values()).sort((a, b) => b.total - a.total);
-}
-
-function downloadCsv(rows: (string | number)[][], filename: string) {
-  const content = rows
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-  const blob = new Blob(["﻿" + content], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 function fmtDate(iso: string | null) {

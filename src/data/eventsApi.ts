@@ -141,6 +141,40 @@ export function useEventRegistrations(eventId: string | undefined) {
   });
 }
 
+export type EventRegistrationFull = EventRegistration & {
+  user?: { id: string; full_name: string | null; email: string | null } | null;
+  event?: { id: string; title: string; starts_at: string | null; type: EventType } | null;
+};
+
+/** Todos los registros (solo admin por RLS), con evento embebido y perfil del usuario. */
+export function useAllEventRegistrations() {
+  return useQuery({
+    queryKey: ["event_registrations", "all"],
+    queryFn: async (): Promise<EventRegistrationFull[]> => {
+      const { data, error } = await supabase
+        .from("event_registrations")
+        .select(
+          "*, event:events!event_registrations_event_id_fkey(id, title, starts_at, type)"
+        )
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      const regs = (data ?? []) as unknown as EventRegistrationFull[];
+      if (regs.length === 0) return [];
+
+      // user_id no tiene FK a profiles → enriquecemos en un query aparte.
+      const userIds = [...new Set(regs.map((r) => r.user_id))];
+      const { data: profiles, error: pErr } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds);
+      if (pErr) throw pErr;
+
+      const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return regs.map((r) => ({ ...r, user: byId.get(r.user_id) ?? null }));
+    },
+  });
+}
+
 export function useMyRegistration(eventId: string | undefined, userId: string | undefined) {
   return useQuery({
     enabled: !!eventId && !!userId,

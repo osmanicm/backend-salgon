@@ -223,9 +223,14 @@ function AdminEvents() {
         title="Todos los eventos"
         description={isLoading ? "Cargando…" : `${items.length} eventos`}
         action={
-          <Button className="gap-1.5" onClick={() => navigate({ to: "/events/new" })}>
-            <Plus className="h-4 w-4" /> Nuevo evento
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="gap-1.5" onClick={() => navigate({ to: "/events/registrations" })}>
+              <UsersIcon className="h-4 w-4" /> Inscritos
+            </Button>
+            <Button className="gap-1.5" onClick={() => navigate({ to: "/events/new" })}>
+              <Plus className="h-4 w-4" /> Nuevo evento
+            </Button>
+          </div>
         }
       >
         <div className="mb-3"><FiltersBar type={type} setType={setType} when={when} setWhen={setWhen} /></div>
