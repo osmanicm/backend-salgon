@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { whatsappTemplates, leads } from "@/data/mock";
+import { whatsappTemplates } from "@/data/mock";
+import { useLeads } from "@/data/leadsApi";
 import { consumeWhatsappHandoff, blobToDataUrl, type WhatsappHandoff } from "@/data/whatsappHandoff";
 import { toast } from "sonner";
 
@@ -37,8 +38,9 @@ function formatBytes(n: number) {
 }
 
 function WhatsappPage() {
+  const { data: leads = [], isLoading: leadsLoading } = useLeads();
   const [body, setBody] = useState(whatsappTemplates[0].body);
-  const [to, setTo] = useState(leads[0].id);
+  const [to, setTo] = useState("");
   const [attachment, setAttachment] = useState<WhatsappHandoff["attachment"] | null>(null);
   const [image, setImage] = useState<WhatsappHandoff["image"] | null>(null);
   const [extraPhotos, setExtraPhotos] = useState<ExtraPhoto[]>([]);
@@ -90,7 +92,7 @@ function WhatsappPage() {
     const h = consumeWhatsappHandoff();
     if (!h) return;
     setBody(h.message);
-    if (h.toLeadId && leads.some((l) => l.id === h.toLeadId)) setTo(h.toLeadId);
+    if (h.toLeadId) setTo(h.toLeadId);
     if (h.attachment) {
       setAttachment(h.attachment);
       toast.success("PDF adjunto desde Disponibilidad", {
@@ -110,8 +112,18 @@ function WhatsappPage() {
     }
   }, []);
 
+  // Select the first lead by default once they load, unless a handoff already
+  // pre-selected one.
+  useEffect(() => {
+    if (!to && leads.length > 0) setTo(leads[0].id);
+  }, [leads, to]);
+
   function send() {
     const lead = leads.find((l) => l.id === to);
+    if (!lead) {
+      toast.error("Selecciona un destinatario");
+      return;
+    }
     const parts: string[] = [];
     if (attachment) parts.push(`adjunto ${attachment.filename}`);
     if (image) parts.push(`imagen ${image.filename}`);
@@ -167,9 +179,9 @@ function WhatsappPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Destinatario</Label>
-                <Select value={to} onValueChange={setTo}>
+                <Select value={to} onValueChange={setTo} disabled={leadsLoading || leads.length === 0}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder={leadsLoading ? "Cargando prospectos…" : "Selecciona un prospecto"} />
                   </SelectTrigger>
                   <SelectContent>
                     {leads.map((l) => (
@@ -179,6 +191,9 @@ function WhatsappPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                {!leadsLoading && leads.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No hay prospectos registrados todavía.</p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label>Teléfono (alterno)</Label>

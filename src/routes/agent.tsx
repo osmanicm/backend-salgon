@@ -4,7 +4,7 @@ import { Building2, CalendarCheck, ArrowRight, ShieldAlert, X } from "lucide-rea
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { useAuth } from "@/hooks/useAuth";
-import { appointments } from "@/data/mock";
+import { useAppointments } from "@/data/appointmentsApi";
 import { useProperties } from "@/data/propertiesApi";
 import {
   type BlockedAttempt,
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/agent")({
 function AgentDashboard() {
   const { user, profile } = useAuth();
   const { data: properties = [] } = useProperties();
+  const { data: appointments = [], isLoading: apptsLoading } = useAppointments();
   const [blocked, setBlocked] = useState<BlockedAttempt | null>(null);
 
   // Read once on mount; don't auto-clear so a hard refresh keeps the hint
@@ -38,14 +39,16 @@ function AgentDashboard() {
 
   const mine = useMemo(() => {
     // Mirror what the agent actually sees in /properties (RLS-filtered list).
-    return { myProps: properties, myAppts: appointments };
-  }, [properties]);
+    // Appointments are scoped to the current agent explicitly.
+    const myAppts = user ? appointments.filter((a) => a.agent_id === user.id) : [];
+    return { myProps: properties, myAppts };
+  }, [properties, appointments, user]);
 
   const name = profile?.full_name || user?.email?.split("@")[0] || "Agente";
 
   const kpis = [
     { label: "Propiedades", value: String(mine.myProps.length), icon: Building2, to: "/properties" as const },
-    { label: "Mis citas", value: String(mine.myAppts.length), icon: CalendarCheck, to: "/appointments" as const },
+    { label: "Mis citas", value: apptsLoading ? "…" : String(mine.myAppts.length), icon: CalendarCheck, to: "/appointments" as const },
   ];
 
   return (
