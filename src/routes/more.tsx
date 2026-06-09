@@ -82,7 +82,10 @@ function MorePage() {
       <PageCard title="Cuenta">
         <ul className="-mx-1 divide-y divide-border">
           <li>
-            <button className="w-full flex items-center gap-3 px-1 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors rounded-lg text-left">
+            <Link
+              to="/settings"
+              className="w-full flex items-center gap-3 px-1 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors rounded-lg text-left"
+            >
               <span className="h-10 w-10 rounded-xl bg-muted text-foreground grid place-items-center">
                 <Settings className="h-5 w-5" />
               </span>
@@ -91,7 +94,7 @@ function MorePage() {
                 <div className="text-xs text-muted-foreground">Preferencias y notificaciones</div>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </button>
+            </Link>
           </li>
           <li>
             <button className="w-full flex items-center gap-3 px-1 py-3 hover:bg-muted/40 active:bg-muted/60 transition-colors rounded-lg text-left text-destructive">

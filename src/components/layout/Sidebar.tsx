@@ -97,9 +97,17 @@ export function Sidebar() {
         >
           <User className="h-4 w-4" /> Mi Perfil
         </Link>
-        <button className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
+        <Link
+          to="/settings"
+          className={cn(
+            "w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+            pathname === "/settings"
+              ? "bg-sidebar-accent text-sidebar-primary font-medium"
+              : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60"
+          )}
+        >
           <Settings className="h-4 w-4" /> Configuración
-        </button>
+        </Link>
         <button onClick={handleSignOut} className="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-sidebar-foreground/80 hover:bg-sidebar-accent">
           <LogOut className="h-4 w-4" /> Cerrar sesión
         </button>

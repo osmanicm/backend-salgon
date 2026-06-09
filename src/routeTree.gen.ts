@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsappRouteImport } from './routes/whatsapp'
 import { Route as UsersRouteImport } from './routes/users'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as PropertiesRouteImport } from './routes/properties'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PipelineRouteImport } from './routes/pipeline'
@@ -40,6 +41,11 @@ const WhatsappRoute = WhatsappRouteImport.update({
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PropertiesRoute = PropertiesRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/pipeline': typeof PipelineRoute
   '/profile': typeof ProfileRoute
   '/properties': typeof PropertiesRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/events/new': typeof EventsNewRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/pipeline': typeof PipelineRoute
   '/profile': typeof ProfileRoute
   '/properties': typeof PropertiesRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/events/new': typeof EventsNewRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/pipeline': typeof PipelineRoute
   '/profile': typeof ProfileRoute
   '/properties': typeof PropertiesRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/events/new': typeof EventsNewRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/profile'
     | '/properties'
+    | '/settings'
     | '/users'
     | '/whatsapp'
     | '/events/new'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/profile'
     | '/properties'
+    | '/settings'
     | '/users'
     | '/whatsapp'
     | '/events/new'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/profile'
     | '/properties'
+    | '/settings'
     | '/users'
     | '/whatsapp'
     | '/events/new'
@@ -305,6 +317,7 @@ export interface RootRouteChildren {
   PipelineRoute: typeof PipelineRoute
   ProfileRoute: typeof ProfileRoute
   PropertiesRoute: typeof PropertiesRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
   EventsNewRoute: typeof EventsNewRoute
@@ -328,6 +341,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/properties': {
@@ -509,6 +529,7 @@ const rootRouteChildren: RootRouteChildren = {
   PipelineRoute: PipelineRoute,
   ProfileRoute: ProfileRoute,
   PropertiesRoute: PropertiesRouteWithChildren,
+  SettingsRoute: SettingsRoute,
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
   EventsNewRoute: EventsNewRoute,
