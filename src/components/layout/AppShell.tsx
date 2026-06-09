@@ -5,6 +5,7 @@ import { Topbar } from "./Topbar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
 import { ForbiddenScreen } from "./ForbiddenScreen";
+import { PendingActivationScreen } from "./PendingActivationScreen";
 import { useAuth } from "@/hooks/useAuth";
 import { useSessionLogger } from "@/data/agentEvents";
 import { Loader2 } from "lucide-react";
@@ -20,10 +21,12 @@ function isAdminOnly(pathname: string) {
 }
 
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
-  const { user, loading, roles } = useAuth();
+  const { user, loading, roles, profile } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isAdmin = roles.includes("admin");
+  // Non-admin users must be activated by an admin before accessing the app.
+  const inactive = !loading && !!user && !isAdmin && profile != null && profile.is_active === false;
   const blocked = !loading && !!user && !isAdmin && isAdminOnly(pathname);
   useSessionLogger(user?.id);
 
@@ -48,6 +51,10 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
         </div>
       </div>
     );
+  }
+
+  if (inactive) {
+    return <PendingActivationScreen />;
   }
 
   if (blocked) {

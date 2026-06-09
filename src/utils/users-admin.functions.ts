@@ -34,6 +34,7 @@ export interface ManagedUser {
   email_confirmed_at: string | null;
   created_at: string | null;
   must_change_password: boolean;
+  is_active: boolean;
 }
 
 /**
@@ -50,7 +51,7 @@ export const listManagedUsers = createServerFn({ method: "GET" })
       const [profilesRes, rolesRes, authRes] = await Promise.all([
         supabaseAdmin
           .from("profiles")
-          .select("id, full_name, email, avatar_url, phone, created_at"),
+          .select("id, full_name, email, avatar_url, phone, created_at, is_active"),
         supabaseAdmin.from("user_roles").select("user_id, role"),
         supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
       ]);
@@ -93,6 +94,7 @@ export const listManagedUsers = createServerFn({ method: "GET" })
           email_confirmed_at: auth?.email_confirmed_at ?? null,
           created_at: p.created_at,
           must_change_password: Boolean(meta.must_change_password),
+          is_active: Boolean((p as { is_active?: boolean }).is_active),
         };
       });
 
@@ -111,6 +113,52 @@ export const listManagedUsers = createServerFn({ method: "GET" })
       if (err instanceof Response) throw err;
       console.error("listManagedUsers threw:", err);
       return { users: [], error: "lookup_failed" };
+    }
+  });
+
+const setActiveSchema = z.object({
+  user_id: z.string().uuid(),
+  is_active: z.boolean(),
+});
+
+/**
+ * Admin-only: activates or deactivates a user (profiles.is_active).
+ * Admins cannot be deactivated. Uses the service-role client; the
+ * `protect_is_active` DB trigger also keeps admins always active.
+ */
+export const setUserActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => setActiveSchema.parse(input))
+  .handler(async ({ data, context }): Promise<{ ok: boolean; error: string | null }> => {
+    try {
+      await assertCallerIsAdmin(context.userId);
+
+      // Never allow deactivating an admin.
+      if (!data.is_active) {
+        const { data: adminRow } = await supabaseAdmin
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user_id)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (adminRow) {
+          return { ok: false, error: "No puedes desactivar a un administrador" };
+        }
+      }
+
+      const { error } = await supabaseAdmin
+        .from("profiles")
+        .update({ is_active: data.is_active })
+        .eq("id", data.user_id);
+      if (error) {
+        console.error("setUserActive update error:", error);
+        return { ok: false, error: error.message };
+      }
+      return { ok: true, error: null };
+    } catch (err) {
+      if (err instanceof Response) throw err;
+      console.error("setUserActive threw:", err);
+      return { ok: false, error: "update_failed" };
     }
   });
 

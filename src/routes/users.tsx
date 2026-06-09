@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { ResetPasswordDialog } from "@/components/users/ResetPasswordDialog";
-import { listManagedUsers, type ManagedUser } from "@/utils/users-admin.functions";
+import { listManagedUsers, setUserActive, type ManagedUser } from "@/utils/users-admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthHeaders } from "@/lib/serverFnAuth";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
@@ -61,6 +62,7 @@ function formatDate(iso: string | null): string {
 function UsersPage() {
   const navigate = useNavigate();
   const [resetTarget, setResetTarget] = React.useState<ManagedUser | null>(null);
+  const [togglingId, setTogglingId] = React.useState<string | null>(null);
 
   const usersQuery = useQuery({
     queryKey: ["managed-users"],
@@ -72,6 +74,23 @@ function UsersPage() {
   });
 
   const users = usersQuery.data ?? [];
+
+  async function handleToggleActive(u: ManagedUser, next: boolean) {
+    setTogglingId(u.id);
+    try {
+      const res = await setUserActive({
+        data: { user_id: u.id, is_active: next },
+        headers: await getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error(res.error ?? "No se pudo actualizar");
+      toast.success(next ? "Usuario activado" : "Usuario desactivado");
+      await usersQuery.refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo actualizar el estado");
+    } finally {
+      setTogglingId(null);
+    }
+  }
 
   return (
     <AppShell title="Usuarios" subtitle="Administradores y agentes que gestionan la plataforma">
@@ -158,7 +177,7 @@ function UsersPage() {
                       <div className="font-medium mt-0.5">{formatDate(u.last_sign_in_at)}</div>
                     </div>
                     <div>
-                      <div className="text-muted-foreground uppercase tracking-wider text-[10px]">Estado</div>
+                      <div className="text-muted-foreground uppercase tracking-wider text-[10px]">Correo</div>
                       <div className="font-medium mt-0.5 flex items-center gap-1">
                         {u.must_change_password ? (
                           <>
@@ -168,16 +187,40 @@ function UsersPage() {
                         ) : u.email_confirmed_at ? (
                           <>
                             <ShieldCheck className="h-3 w-3 text-success" />
-                            <span>Activo</span>
+                            <span>Confirmado</span>
                           </>
                         ) : (
-                          <span className="text-muted-foreground">Pendiente</span>
+                          <span className="text-muted-foreground">Sin confirmar</span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex gap-2">
+                  <div className="mt-4 flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium">
+                        {isAdmin ? "Acceso (admin)" : u.is_active ? "Cuenta activa" : "Cuenta desactivada"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {isAdmin
+                          ? "Los administradores siempre están activos"
+                          : u.is_active
+                            ? "Puede acceder a la plataforma"
+                            : "No puede acceder hasta activarla"}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {togglingId === u.id && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                      <Switch
+                        checked={isAdmin ? true : u.is_active}
+                        disabled={isAdmin || togglingId === u.id}
+                        onCheckedChange={(v) => handleToggleActive(u, v)}
+                        aria-label={u.is_active ? "Desactivar usuario" : "Activar usuario"}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex gap-2">
                     <Button
                       size="sm"
                       variant="outline"

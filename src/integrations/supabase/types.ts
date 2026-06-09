@@ -519,6 +519,7 @@ export type Database = {
           facebook: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           instagram: string | null
           linkedin: string | null
           office_address: string | null
@@ -541,6 +542,7 @@ export type Database = {
           facebook?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean
           instagram?: string | null
           linkedin?: string | null
           office_address?: string | null
@@ -563,6 +565,7 @@ export type Database = {
           facebook?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           instagram?: string | null
           linkedin?: string | null
           office_address?: string | null

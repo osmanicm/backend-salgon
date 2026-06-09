@@ -9,6 +9,7 @@ export interface AuthProfile {
   full_name: string | null;
   email: string | null;
   avatar_url: string | null;
+  is_active: boolean;
 }
 
 interface AuthState {
@@ -25,7 +26,7 @@ const AuthContext = React.createContext<AuthState | undefined>(undefined);
 
 async function fetchProfileAndRoles(userId: string) {
   const [{ data: profile }, { data: roleRows }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, email, avatar_url").eq("id", userId).maybeSingle(),
+    supabase.from("profiles").select("id, full_name, email, avatar_url, is_active").eq("id", userId).maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", userId),
   ]);
   return {
