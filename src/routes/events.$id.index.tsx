@@ -150,7 +150,7 @@ function EventDetailPage() {
               <ul className="divide-y divide-border text-sm">
                 {registrations.map((r) => (
                   <li key={r.id} className="py-2 flex items-center justify-between gap-2">
-                    <div className="font-mono text-xs truncate">{r.user_id}</div>
+                    <div className="text-sm truncate">{r.user?.full_name || r.user?.email || r.user_id}</div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-muted-foreground">{fmt(r.created_at)}</span>
                       <span className={cn("px-1.5 py-0.5 rounded-md text-[10px] font-medium",

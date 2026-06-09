@@ -13,6 +13,9 @@ export type EventUpdate = TablesUpdate<"events">;
 export type EventSlotRow = Tables<"event_slots">;
 export type EventSlotInsert = TablesInsert<"event_slots">;
 export type EventRegistration = Tables<"event_registrations">;
+export type EventRegistrationWithUser = EventRegistration & {
+  user?: { id: string; full_name: string | null; email: string | null } | null;
+};
 
 export const EVENT_TYPES: EventType[] = [
   "Open House",
@@ -114,14 +117,26 @@ export function useEventRegistrations(eventId: string | undefined) {
   return useQuery({
     enabled: !!eventId,
     queryKey: ["event_registrations", eventId],
-    queryFn: async (): Promise<EventRegistration[]> => {
+    queryFn: async (): Promise<EventRegistrationWithUser[]> => {
       const { data, error } = await supabase
         .from("event_registrations")
         .select("*")
         .eq("event_id", eventId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as EventRegistration[];
+      const regs = (data ?? []) as EventRegistration[];
+      if (regs.length === 0) return [];
+
+      // user_id no tiene FK a profiles, así que enriquecemos en un query aparte.
+      const userIds = [...new Set(regs.map((r) => r.user_id))];
+      const { data: profiles, error: pErr } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds);
+      if (pErr) throw pErr;
+
+      const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return regs.map((r) => ({ ...r, user: byId.get(r.user_id) ?? null }));
     },
   });
 }
