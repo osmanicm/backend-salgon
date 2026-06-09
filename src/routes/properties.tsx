@@ -16,8 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { fmtMoney, leads, type Lead } from "@/data/mock";
+import { fmtMoney } from "@/data/mock";
 import {
   nextPropertyCode,
   useAgentsList,
@@ -30,7 +29,6 @@ import {
   useUpdateProperty,
   type PropertyRow,
 } from "@/data/propertiesApi";
-import { setWhatsappHandoff, blobToDataUrl } from "@/data/whatsappHandoff";
 import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -138,39 +136,6 @@ function PropertiesIndex() {
   const paged = filtered.slice(pageStart, pageStart + pageSize);
   const showingFrom = filtered.length === 0 ? 0 : pageStart + 1;
   const showingTo = Math.min(filtered.length, pageStart + pageSize);
-
-  async function shareOnWhatsapp(p: PropertyRow, lead?: Lead) {
-    const greeting = lead ? `¡Hola ${lead.name.split(" ")[0]}!` : `¡Hola!`;
-    const message =
-      `${greeting} Te comparto esta propiedad que podría interesarte:\n\n` +
-      `🏠 *${p.title}*\n` +
-      `📍 ${p.location}\n` +
-      `💰 ${fmtMoney(Number(p.price))}\n` +
-      `🛏️ ${p.bedrooms} recámaras · 🛁 ${p.bathrooms} baños · 📐 ${p.area} m²\n\n` +
-      `Folio: ${p.code}\n` +
-      `¿Te gustaría agendar una visita?`;
-
-    let image:
-      | { filename: string; dataUrl: string; sizeBytes: number; mimeType: string }
-      | undefined;
-    if (p.image_url) {
-      try {
-        const res = await fetch(p.image_url);
-        if (res.ok) {
-          const blob = await res.blob();
-          const mimeType = blob.type || "image/jpeg";
-          const ext = mimeType.split("/")[1]?.split("+")[0] || "jpg";
-          const dataUrl = await blobToDataUrl(blob);
-          image = { filename: `${p.code}.${ext}`, dataUrl, sizeBytes: blob.size, mimeType };
-        }
-      } catch (e) {
-        console.error("No se pudo adjuntar la imagen", e);
-      }
-    }
-
-    setWhatsappHandoff({ message, toLeadId: lead?.id, image, meta: { propertyId: p.id } });
-    navigate({ to: "/whatsapp" });
-  }
 
   async function shareNative(p: PropertyRow) {
     const text =
@@ -815,48 +780,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="mt-0.5 font-medium">{children}</div>
     </div>
-  );
-}
-
-function LeadPickerPopover({ trigger, onPick }: { trigger: React.ReactNode; onPick: (lead?: Lead) => void }) {
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
-  const filtered = leads.filter((l) => (l.name + " " + l.phone).toLowerCase().includes(q.toLowerCase()));
-
-  function handlePick(lead?: Lead) {
-    setOpen(false);
-    setQ("");
-    onPick(lead);
-  }
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent align="end" className="w-72 p-0">
-        <div className="p-3 border-b border-border">
-          <div className="text-sm font-medium">Elige destinatario</div>
-          <div className="text-xs text-muted-foreground mt-0.5">Selecciona un prospecto o continúa sin asignar.</div>
-          <div className="relative mt-2">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar prospecto…" className="h-8 pl-8 text-xs" />
-          </div>
-        </div>
-        <ul className="max-h-60 overflow-y-auto py-1">
-          {filtered.map((l) => (
-            <li key={l.id}>
-              <button type="button" onClick={() => handlePick(l)} className="w-full text-left px-3 py-2 hover:bg-muted/60 transition-colors">
-                <div className="text-sm font-medium truncate">{l.name}</div>
-                <div className="text-[11px] text-muted-foreground truncate">{l.phone}</div>
-              </button>
-            </li>
-          ))}
-          {filtered.length === 0 && <li className="px-3 py-4 text-center text-xs text-muted-foreground">Sin resultados</li>}
-        </ul>
-        <div className="p-2 border-t border-border">
-          <Button variant="outline" size="sm" className="w-full" onClick={() => handlePick(undefined)}>Continuar sin destinatario</Button>
-        </div>
-      </PopoverContent>
-    </Popover>
   );
 }
 
