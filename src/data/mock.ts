@@ -127,14 +127,6 @@ export const propertiesByStatus = [
   { status: "Sold", count: properties.filter(p => p.status === "Sold").length + 14 },
 ];
 
-export const whatsappTemplates = [
-  { id: "t1", name: "Bienvenida", body: "Hola {{name}}, gracias por contactar a Salgon Bienes Raíces. ¿En qué podemos ayudarte hoy?" },
-  { id: "t2", name: "Propiedad Sugerida", body: "Hola {{name}}, encontramos una propiedad que coincide con tu interés: {{property}}. ¿Te gustaría agendar una visita?" },
-  { id: "t3", name: "Confirmación de Visita", body: "Hola {{name}}, confirmamos tu visita a {{property}} el {{date}}. ¡Te esperamos!" },
-  { id: "t4", name: "Seguimiento", body: "Hola {{name}}, queríamos dar seguimiento a nuestra última conversación. ¿Tienes alguna duda?" },
-  { id: "t5", name: "Oferta Enviada", body: "Estimado(a) {{name}}, adjuntamos nuestra oferta oficial para {{property}}. Quedamos atentos a tus comentarios." },
-];
-
 export function fmtMoney(n: number) {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",

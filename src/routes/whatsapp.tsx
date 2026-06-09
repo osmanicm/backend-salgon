@@ -8,8 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { whatsappTemplates } from "@/data/mock";
 import { useLeads } from "@/data/leadsApi";
+import { useWhatsappTemplates } from "@/data/whatsappTemplatesApi";
 import { consumeWhatsappHandoff, blobToDataUrl, type WhatsappHandoff } from "@/data/whatsappHandoff";
 import { toast } from "sonner";
 
@@ -39,7 +39,8 @@ function formatBytes(n: number) {
 
 function WhatsappPage() {
   const { data: leads = [], isLoading: leadsLoading } = useLeads();
-  const [body, setBody] = useState(whatsappTemplates[0].body);
+  const { data: templates = [], isLoading: templatesLoading } = useWhatsappTemplates();
+  const [body, setBody] = useState("");
   const [to, setTo] = useState("");
   const [attachment, setAttachment] = useState<WhatsappHandoff["attachment"] | null>(null);
   const [image, setImage] = useState<WhatsappHandoff["image"] | null>(null);
@@ -153,7 +154,7 @@ function WhatsappPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <PageCard title="Plantillas" description="Da clic para cargar una plantilla" className="lg:col-span-1">
           <ul className="space-y-2">
-            {whatsappTemplates.map((t) => (
+            {templates.map((t) => (
               <li key={t.id}>
                 <button
                   onClick={() => setBody(t.body)}
@@ -167,6 +168,14 @@ function WhatsappPage() {
                 </button>
               </li>
             ))}
+            {templatesLoading && (
+              <li className="text-center text-xs text-muted-foreground py-6">Cargando plantillas…</li>
+            )}
+            {!templatesLoading && templates.length === 0 && (
+              <li className="text-center text-xs text-muted-foreground py-6">
+                No hay plantillas. Un admin puede crearlas en Configuración.
+              </li>
+            )}
           </ul>
         </PageCard>
 

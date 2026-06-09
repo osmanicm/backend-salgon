@@ -34,7 +34,7 @@ export const Route = createFileRoute("/settings")({
  * Rutas internas a las que un ítem de configuración puede navegar hoy.
  * Conforme se construyan más pantallas, agrégalas aquí y al ítem correspondiente.
  */
-type SettingRoute = "/profile" | "/change-password" | "/users";
+type SettingRoute = "/profile" | "/change-password" | "/users" | "/whatsapp-templates";
 
 interface SettingItem {
   label: string;
@@ -100,8 +100,8 @@ const sections: SettingSection[] = [
         label: "Plantillas de WhatsApp",
         description: "Mensajes pre-aprobados para envíos",
         icon: MessageSquareText,
+        to: "/whatsapp-templates",
         adminOnly: true,
-        soon: true,
       },
       {
         label: "Marca y branding",

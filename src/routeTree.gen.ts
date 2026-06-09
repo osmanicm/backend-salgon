@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhatsappTemplatesRouteImport } from './routes/whatsapp-templates'
 import { Route as WhatsappRouteImport } from './routes/whatsapp'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -33,6 +34,11 @@ import { Route as EventsNewRouteImport } from './routes/events.new'
 import { Route as EventsIdIndexRouteImport } from './routes/events.$id.index'
 import { Route as EventsIdEditRouteImport } from './routes/events.$id.edit'
 
+const WhatsappTemplatesRoute = WhatsappTemplatesRouteImport.update({
+  id: '/whatsapp-templates',
+  path: '/whatsapp-templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WhatsappRoute = WhatsappRouteImport.update({
   id: '/whatsapp',
   path: '/whatsapp',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/whatsapp-templates': typeof WhatsappTemplatesRoute
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/p/$id': typeof PIdRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/whatsapp-templates': typeof WhatsappTemplatesRoute
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/p/$id': typeof PIdRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
+  '/whatsapp-templates': typeof WhatsappTemplatesRoute
   '/events/new': typeof EventsNewRoute
   '/news/$id': typeof NewsIdRoute
   '/p/$id': typeof PIdRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/users'
     | '/whatsapp'
+    | '/whatsapp-templates'
     | '/events/new'
     | '/news/$id'
     | '/p/$id'
@@ -269,6 +279,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/users'
     | '/whatsapp'
+    | '/whatsapp-templates'
     | '/events/new'
     | '/news/$id'
     | '/p/$id'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/users'
     | '/whatsapp'
+    | '/whatsapp-templates'
     | '/events/new'
     | '/news/$id'
     | '/p/$id'
@@ -320,6 +332,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
+  WhatsappTemplatesRoute: typeof WhatsappTemplatesRoute
   EventsNewRoute: typeof EventsNewRoute
   PIdRoute: typeof PIdRoute
   EventsIndexRoute: typeof EventsIndexRoute
@@ -329,6 +342,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whatsapp-templates': {
+      id: '/whatsapp-templates'
+      path: '/whatsapp-templates'
+      fullPath: '/whatsapp-templates'
+      preLoaderRoute: typeof WhatsappTemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/whatsapp': {
       id: '/whatsapp'
       path: '/whatsapp'
@@ -532,6 +552,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
+  WhatsappTemplatesRoute: WhatsappTemplatesRoute,
   EventsNewRoute: EventsNewRoute,
   PIdRoute: PIdRoute,
   EventsIndexRoute: EventsIndexRoute,
