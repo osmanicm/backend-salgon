@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import introAudio from "@/assets/intro-audio.wav";
 
 const SPLASH_DURATION = 2800;
+
+/**
+ * Event dispatched on a successful login to trigger the splash + intro sound.
+ * Fired explicitly from the auth flow (see `src/routes/auth.tsx`) so the splash
+ * plays ONLY on a real login — not on session restore, token refresh, route
+ * navigation, or tab refocus (all of which emit Supabase `SIGNED_IN`).
+ */
+export const SPLASH_EVENT = "salgon:splash";
 
 export function SplashScreen({ children }: { children: React.ReactNode }) {
   const [show, setShow] = useState(false);
@@ -24,24 +31,10 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
       timer = setTimeout(() => setShow(false), SPLASH_DURATION);
     };
 
-    // Play once on initial mount (cold load with existing session)
-    const FLAG = "salgon_splash_shown";
-    if (!sessionStorage.getItem(FLAG)) {
-      sessionStorage.setItem(FLAG, "1");
-      play();
-    }
-
-    // Replay on every SIGNED_IN event (login, regardless of role)
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        play();
-      } else if (event === "SIGNED_OUT") {
-        sessionStorage.removeItem(FLAG);
-      }
-    });
+    window.addEventListener(SPLASH_EVENT, play);
 
     return () => {
-      sub.subscription.unsubscribe();
+      window.removeEventListener(SPLASH_EVENT, play);
       clearTimeout(timer);
       currentAudio?.pause();
     };

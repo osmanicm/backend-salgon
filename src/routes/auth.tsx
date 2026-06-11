@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { SPLASH_EVENT } from "@/components/layout/SplashScreen";
 
 import { toast } from "sonner";
 import { z } from "zod";
@@ -70,6 +71,8 @@ function AuthPage() {
       return;
     }
     toast.success("¡Bienvenido!");
+    // Splash + intro sound only on a real login (see SplashScreen).
+    window.dispatchEvent(new Event(SPLASH_EVENT));
     const meta = (signInData.user?.user_metadata ?? {}) as { must_change_password?: boolean };
     if (meta.must_change_password) {
       navigate({ to: "/change-password" });
@@ -101,6 +104,8 @@ function AuthPage() {
       return;
     }
     toast.success("Cuenta creada. Iniciando sesión…");
+    // Splash + intro sound only on a real login (see SplashScreen).
+    window.dispatchEvent(new Event(SPLASH_EVENT));
     const userId = signUpData.user?.id;
     let to: "/" | "/agent" = "/agent";
     if (userId) {

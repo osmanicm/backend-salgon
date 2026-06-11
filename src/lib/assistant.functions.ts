@@ -2,6 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+// Endpoint OpenAI-compatible de Gemini. Soporta tool-calling en formato OpenAI
+// (tools / tool_calls / role:"tool" / tool_call_id), por lo que el loop de abajo
+// se reutiliza sin cambios. Doc: https://ai.google.dev/gemini-api/docs/openai
+const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const GEMINI_MODEL = "gemini-2.5-flash";
+
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
   content: z.string().max(4000),
@@ -255,9 +261,9 @@ export const askAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return { reply: "El asistente no está configurado (falta LOVABLE_API_KEY)." };
+      return { reply: "El asistente no está configurado (falta GEMINI_API_KEY)." };
     }
     const { supabase, userId } = context as { supabase: any; userId: string };
 
@@ -273,23 +279,30 @@ export const askAssistant = createServerFn({ method: "POST" })
     ];
 
     for (let step = 0; step < 6; step++) {
-      const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const resp = await fetch(GEMINI_BASE_URL, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: GEMINI_MODEL,
           messages: convo,
           tools: TOOLS,
+          tool_choice: "auto",
         }),
       });
-      if (resp.status === 429) return { reply: "Demasiadas solicitudes. Intenta de nuevo en unos segundos." };
-      if (resp.status === 402) return { reply: "Se agotaron los créditos del asistente. Contacta al administrador." };
+      if (resp.status === 429) {
+        return { reply: "Demasiadas solicitudes a la IA. Intenta de nuevo en unos segundos." };
+      }
+      if (resp.status === 401 || resp.status === 403) {
+        const t = await resp.text();
+        console.error("Gemini auth error", resp.status, t);
+        return { reply: "El asistente no está autorizado. Verifica la GEMINI_API_KEY." };
+      }
       if (!resp.ok) {
         const t = await resp.text();
-        console.error("AI gateway error", resp.status, t);
+        console.error("Gemini API error", resp.status, t);
         return { reply: "Ocurrió un error al consultar el asistente." };
       }
       const json = await resp.json();
