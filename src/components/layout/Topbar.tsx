@@ -1,4 +1,4 @@
-import { Bell, Search, LogOut, User } from "lucide-react";
+import { Search, LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { CommandPalette } from "@/components/layout/CommandPalette";
+import { NotificationsBell } from "@/components/layout/NotificationsBell";
 
 export function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
   const { profile, user, roles, signOut } = useAuth();
@@ -58,10 +59,7 @@ export function Topbar({ title, subtitle }: { title: string; subtitle?: string }
                 ⌘K
               </kbd>
             </button>
-            <button className="relative h-9 w-9 grid place-items-center rounded-full hover:bg-muted">
-              <Bell className="h-4 w-4" />
-              <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
-            </button>
+            <NotificationsBell />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
