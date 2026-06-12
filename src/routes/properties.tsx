@@ -220,7 +220,7 @@ function PropertiesIndex() {
                 <SelectItem value="all">Todos los estatus</SelectItem>
                 <SelectItem value="Available">Disponible</SelectItem>
                 <SelectItem value="Reserved">Apartado</SelectItem>
-                <SelectItem value="Sold">Vendido</SelectItem>
+                {isAdmin && <SelectItem value="Sold">Vendido</SelectItem>}
               </SelectContent>
             </Select>
             {isAdmin && (
