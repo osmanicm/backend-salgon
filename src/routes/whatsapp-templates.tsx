@@ -58,9 +58,20 @@ export const Route = createFileRoute("/whatsapp-templates")({
   ),
 });
 
+const VAR_SOURCES = ["lead.name", "lead.phone", "lead.email", "manual"] as const;
+
+const varMapSchema = z.object({
+  source: z.enum(VAR_SOURCES),
+  label: z.string().max(60).optional().default(""),
+});
+
 const templateSchema = z.object({
   name: z.string().trim().min(2, "Nombre demasiado corto").max(80),
   body: z.string().trim().min(2, "El mensaje es demasiado corto").max(2000),
+  meta_template_name: z.string().trim().max(120).optional().default(""),
+  meta_language: z.string().trim().min(2).max(10).default("es_MX"),
+  header_format: z.enum(["NONE", "TEXT", "IMAGE", "DOCUMENT"]).default("NONE"),
+  variable_mapping: z.array(varMapSchema).max(10).default([]),
 });
 
 function WhatsappTemplatesPage() {
@@ -206,6 +217,10 @@ function TemplateFormDialog({
   const update = useUpdateWhatsappTemplate();
   const [name, setName] = useState("");
   const [body, setBody] = useState("");
+  const [metaName, setMetaName] = useState("");
+  const [metaLang, setMetaLang] = useState("es_MX");
+  const [headerFormat, setHeaderFormat] = useState<"NONE" | "TEXT" | "IMAGE" | "DOCUMENT">("NONE");
+  const [varMap, setVarMap] = useState<{ source: string; label: string }[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -213,23 +228,46 @@ function TemplateFormDialog({
     setError(null);
     setName(initial?.name ?? "");
     setBody(initial?.body ?? "");
+    setMetaName(initial?.meta_template_name ?? "");
+    setMetaLang(initial?.meta_language ?? "es_MX");
+    setHeaderFormat((initial?.header_format as "NONE" | "TEXT" | "IMAGE" | "DOCUMENT") ?? "NONE");
+    setVarMap(
+      Array.isArray(initial?.variable_mapping)
+        ? (initial!.variable_mapping as { source: string; label: string }[])
+        : [],
+    );
   }, [open, initial]);
 
   const pending = create.isPending || update.isPending;
 
   async function save() {
     setError(null);
-    const parsed = templateSchema.safeParse({ name, body });
+    const parsed = templateSchema.safeParse({
+      name,
+      body,
+      meta_template_name: metaName,
+      meta_language: metaLang,
+      header_format: headerFormat,
+      variable_mapping: varMap,
+    });
     if (!parsed.success) {
       setError(parsed.error.issues.map((i) => i.message).join(" · "));
       return;
     }
     try {
+      const payload = {
+        name: parsed.data.name,
+        body: parsed.data.body,
+        meta_template_name: parsed.data.meta_template_name || null,
+        meta_language: parsed.data.meta_language,
+        header_format: parsed.data.header_format,
+        variable_mapping: parsed.data.variable_mapping,
+      };
       if (isEdit && initial) {
-        await update.mutateAsync({ id: initial.id, patch: parsed.data });
+        await update.mutateAsync({ id: initial.id, patch: payload });
         toast.success("Plantilla actualizada");
       } else {
-        await create.mutateAsync(parsed.data);
+        await create.mutateAsync(payload);
         toast.success("Plantilla creada");
       }
       onOpenChange(false);
@@ -242,11 +280,11 @@ function TemplateFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Editar plantilla" : "Nueva plantilla"}</DialogTitle>
           <DialogDescription>
-            Variables disponibles: {"{{name}}"}, {"{{property}}"}, {"{{date}}"}
+            Vincula esta plantilla con una aprobada en Meta. El cuerpo es solo vista previa interna.
           </DialogDescription>
         </DialogHeader>
         {error && (
@@ -265,7 +303,7 @@ function TemplateFormDialog({
           className="space-y-4"
         >
           <div className="space-y-1.5">
-            <Label>Nombre *</Label>
+            <Label>Nombre (interno) *</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -274,10 +312,108 @@ function TemplateFormDialog({
               required
             />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Nombre de plantilla en Meta</Label>
+              <Input
+                value={metaName}
+                onChange={(e) => setMetaName(e.target.value)}
+                placeholder="hello_world"
+                maxLength={120}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Idioma (código Meta)</Label>
+              <Input
+                value={metaLang}
+                onChange={(e) => setMetaLang(e.target.value)}
+                placeholder="es_MX"
+                maxLength={10}
+              />
+            </div>
+          </div>
           <div className="space-y-1.5">
-            <Label>Mensaje *</Label>
+            <Label>Encabezado (header)</Label>
+            <select
+              value={headerFormat}
+              onChange={(e) =>
+                setHeaderFormat(e.target.value as "NONE" | "TEXT" | "IMAGE" | "DOCUMENT")
+              }
+              className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="NONE">Sin encabezado</option>
+              <option value="TEXT">Texto</option>
+              <option value="IMAGE">Imagen</option>
+              <option value="DOCUMENT">Documento</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <Label>Variables del cuerpo ({"{{1}}, {{2}}…"})</Label>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                onClick={() => setVarMap((v) => [...v, { source: "lead.name", label: "" }])}
+              >
+                <Plus className="h-3.5 w-3.5" /> Agregar
+              </Button>
+            </div>
+            {varMap.length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                Sin variables (plantilla de texto fijo).
+              </p>
+            )}
+            <div className="space-y-2">
+              {varMap.map((vm, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground w-10 shrink-0">{`{{${i + 1}}}`}</span>
+                  <select
+                    value={vm.source}
+                    onChange={(e) =>
+                      setVarMap((arr) =>
+                        arr.map((x, j) => (j === i ? { ...x, source: e.target.value } : x)),
+                      )
+                    }
+                    className="h-9 rounded-md border border-input bg-background px-2 text-sm flex-1"
+                  >
+                    <option value="lead.name">Nombre del lead</option>
+                    <option value="lead.phone">Teléfono del lead</option>
+                    <option value="lead.email">Email del lead</option>
+                    <option value="manual">Manual (se escribe al enviar)</option>
+                  </select>
+                  {vm.source === "manual" && (
+                    <Input
+                      value={vm.label}
+                      onChange={(e) =>
+                        setVarMap((arr) =>
+                          arr.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)),
+                        )
+                      }
+                      placeholder="Etiqueta (ej. Propiedad)"
+                      className="h-9 flex-1"
+                      maxLength={60}
+                    />
+                  )}
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-destructive shrink-0"
+                    aria-label="Quitar variable"
+                    onClick={() => setVarMap((arr) => arr.filter((_, j) => j !== i))}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Vista previa interna</Label>
             <Textarea
-              rows={6}
+              rows={4}
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Hola {{name}}, …"
@@ -285,7 +421,12 @@ function TemplateFormDialog({
             />
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={pending} aria-busy={pending}>
