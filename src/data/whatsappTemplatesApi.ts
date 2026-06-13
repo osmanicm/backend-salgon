@@ -26,7 +26,7 @@ export function useWhatsappTemplates() {
 export function useCreateWhatsappTemplate() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; body: string }) => {
+    mutationFn: async (input: WhatsappTemplateInsert) => {
       const { data, error } = await supabase
         .from("whatsapp_templates")
         .insert(input)
