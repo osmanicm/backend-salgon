@@ -797,30 +797,100 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_messages: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          lead_id: string | null
+          meta_message_id: string | null
+          sent_by: string | null
+          status: string
+          template_id: string | null
+          to_phone: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string | null
+          meta_message_id?: string | null
+          sent_by?: string | null
+          status: string
+          template_id?: string | null
+          to_phone: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string | null
+          meta_message_id?: string | null
+          sent_by?: string | null
+          status?: string
+          template_id?: string | null
+          to_phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_templates: {
         Row: {
           body: string
           created_at: string
           deleted_at: string | null
+          header_format: string
           id: string
+          meta_language: string
+          meta_template_name: string | null
           name: string
           updated_at: string
+          variable_mapping: Json
         }
         Insert: {
           body: string
           created_at?: string
           deleted_at?: string | null
+          header_format?: string
           id?: string
+          meta_language?: string
+          meta_template_name?: string | null
           name: string
           updated_at?: string
+          variable_mapping?: Json
         }
         Update: {
           body?: string
           created_at?: string
           deleted_at?: string | null
+          header_format?: string
           id?: string
+          meta_language?: string
+          meta_template_name?: string | null
           name?: string
           updated_at?: string
+          variable_mapping?: Json
         }
         Relationships: []
       }
