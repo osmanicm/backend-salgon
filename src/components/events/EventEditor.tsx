@@ -48,7 +48,7 @@ function toLocalInput(d: string | null) {
 const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
 
 const empty: FormState = {
-  title: "", description: "", type: "Open House", status: "Draft",
+  title: "", description: "", type: "Open House", status: "Published",
   image_url: null, starts_at: null, ends_at: null, location: "",
   capacity: null, related_property_id: null, highlighted: false,
 };

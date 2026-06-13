@@ -347,7 +347,7 @@ function EventFormDialog({
   const { data: properties = [] } = useProperties();
 
   const [form, setForm] = useState<FormState>({
-    title: "", description: "", type: "Open House", status: "Draft",
+    title: "", description: "", type: "Open House", status: "Published",
     image_url: null, starts_at: null, ends_at: null, location: "",
     capacity: null, related_property_id: null, highlighted: false,
   });
@@ -364,7 +364,7 @@ function EventFormDialog({
       });
     } else {
       setForm({
-        title: "", description: "", type: "Open House", status: "Draft",
+        title: "", description: "", type: "Open House", status: "Published",
         image_url: null, starts_at: null, ends_at: null, location: "",
         capacity: null, related_property_id: null, highlighted: false,
       });
