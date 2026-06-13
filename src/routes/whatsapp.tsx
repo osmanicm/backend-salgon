@@ -1,175 +1,202 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, MessageCircle, CheckCheck, FileText, X, Download, ImagePlus } from "lucide-react";
+import { Send, MessageCircle, FileText, X, ImagePlus, Loader2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useLeads } from "@/data/leadsApi";
-import { useWhatsappTemplates } from "@/data/whatsappTemplatesApi";
-import { consumeWhatsappHandoff, blobToDataUrl, type WhatsappHandoff } from "@/data/whatsappHandoff";
+import { useWhatsappTemplates, type WhatsappTemplateRow } from "@/data/whatsappTemplatesApi";
+import { blobToDataUrl } from "@/data/whatsappHandoff";
+import { sendWhatsappTemplate } from "@/lib/whatsapp.functions";
+import { getAuthHeaders } from "@/lib/serverFnAuth";
+import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 import { toast } from "sonner";
 
-interface ExtraPhoto {
-  id: string;
-  filename: string;
-  dataUrl: string;
-  sizeBytes: number;
-  mimeType: string;
-}
-
-const MAX_EXTRA_PHOTOS = 6;
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
-
-import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
+const MAX_MEDIA_BYTES = 5 * 1024 * 1024;
 
 export const Route = createFileRoute("/whatsapp")({
   component: WhatsappPage,
-  errorComponent: ({ error, reset }) => <RouteErrorBoundary title="WhatsApp" error={error} reset={reset} />,
+  errorComponent: ({ error, reset }) => (
+    <RouteErrorBoundary title="WhatsApp" error={error} reset={reset} />
+  ),
 });
 
-function formatBytes(n: number) {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(2)} MB`;
+type VarMap = { source: string; label?: string };
+
+function getVarMapping(t: WhatsappTemplateRow | undefined): VarMap[] {
+  if (!t || !Array.isArray(t.variable_mapping)) return [];
+  return t.variable_mapping as VarMap[];
 }
 
 function WhatsappPage() {
   const { data: leads = [], isLoading: leadsLoading } = useLeads();
   const { data: templates = [], isLoading: templatesLoading } = useWhatsappTemplates();
-  const [body, setBody] = useState("");
-  const [to, setTo] = useState("");
-  const [attachment, setAttachment] = useState<WhatsappHandoff["attachment"] | null>(null);
-  const [image, setImage] = useState<WhatsappHandoff["image"] | null>(null);
-  const [extraPhotos, setExtraPhotos] = useState<ExtraPhoto[]>([]);
+  const send = useServerFn(sendWhatsappTemplate);
+
+  const [leadId, setLeadId] = useState("");
+  const [altPhone, setAltPhone] = useState("");
+  const [templateId, setTemplateId] = useState("");
+  const [manualVars, setManualVars] = useState<Record<number, string>>({});
+  const [media, setMedia] = useState<{
+    kind: "image" | "document";
+    dataUrl: string;
+    filename: string;
+    mimeType: string;
+  } | null>(null);
+  const [sending, setSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function handlePhotoPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
+  const selectedLead = leads.find((l) => l.id === leadId);
+  const template = templates.find((t) => t.id === templateId);
+  const mapping = getVarMapping(template);
+  const needsMedia = template?.header_format === "IMAGE" || template?.header_format === "DOCUMENT";
+
+  useEffect(() => {
+    if (!leadId && leads.length > 0) setLeadId(leads[0].id);
+  }, [leads, leadId]);
+  useEffect(() => {
+    if (!templateId && templates.length > 0) setTemplateId(templates[0].id);
+  }, [templates, templateId]);
+  useEffect(() => {
+    setManualVars({});
+    setMedia(null);
+  }, [templateId]);
+
+  function resolveVar(vm: VarMap, index: number): string {
+    if (vm.source === "lead.name") return selectedLead?.name ?? "";
+    if (vm.source === "lead.phone") return selectedLead?.phone ?? "";
+    if (vm.source === "lead.email") return selectedLead?.email ?? "";
+    return manualVars[index] ?? "";
+  }
+
+  const resolvedVars = mapping.map((vm, i) => resolveVar(vm, i));
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
     e.target.value = "";
-    if (!files.length) return;
-    const slotsLeft = MAX_EXTRA_PHOTOS - extraPhotos.length;
-    if (slotsLeft <= 0) {
-      toast.error(`Máximo ${MAX_EXTRA_PHOTOS} fotos adicionales`);
+    if (!f) return;
+    if (f.size > MAX_MEDIA_BYTES) {
+      toast.error("El archivo supera 5 MB");
       return;
     }
-    const accepted = files.filter((f) => f.type.startsWith("image/")).slice(0, slotsLeft);
-    const rejectedType = files.length - files.filter((f) => f.type.startsWith("image/")).length;
-    if (rejectedType > 0) toast.error(`${rejectedType} archivo(s) ignorados (no son imágenes)`);
-    const next: ExtraPhoto[] = [];
-    for (const f of accepted) {
-      if (f.size > MAX_PHOTO_BYTES) {
-        toast.error(`${f.name} supera 5 MB`);
-        continue;
-      }
-      try {
-        const dataUrl = await blobToDataUrl(f);
-        next.push({
-          id: `${f.name}-${f.lastModified}-${f.size}`,
-          filename: f.name,
-          dataUrl,
-          sizeBytes: f.size,
-          mimeType: f.type,
+    const isImage = f.type.startsWith("image/");
+    if (template?.header_format === "IMAGE" && !isImage) {
+      toast.error("Esta plantilla requiere una imagen");
+      return;
+    }
+    try {
+      const dataUrl = await blobToDataUrl(f);
+      setMedia({
+        kind: template?.header_format === "IMAGE" ? "image" : "document",
+        dataUrl,
+        filename: f.name,
+        mimeType: f.type || "application/octet-stream",
+      });
+    } catch {
+      toast.error("No se pudo leer el archivo");
+    }
+  }
+
+  async function doSend() {
+    if (sending) return;
+    const phone = altPhone.trim() || selectedLead?.phone || "";
+    if (!phone) {
+      toast.error("No hay teléfono destino (selecciona un lead o escribe uno).");
+      return;
+    }
+    if (!template) {
+      toast.error("Selecciona una plantilla.");
+      return;
+    }
+    if (!template.meta_template_name) {
+      toast.error(
+        "La plantilla no está vinculada a Meta. Pide a un admin completarla en Configuración.",
+      );
+      return;
+    }
+    if (needsMedia && !media) {
+      toast.error("Esta plantilla requiere adjuntar un archivo.");
+      return;
+    }
+    const missing = mapping.findIndex((vm, i) => resolveVar(vm, i).trim() === "");
+    if (missing >= 0) {
+      toast.error(`Falta el valor de la variable {{${missing + 1}}}.`);
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await send({
+        data: {
+          templateId: template.id,
+          toPhone: phone,
+          variables: resolvedVars,
+          media: needsMedia ? media : null,
+          leadId: leadId || null,
+        },
+        headers: await getAuthHeaders(),
+      });
+      if (res.ok) {
+        toast.success("Mensaje enviado por WhatsApp", {
+          description: res.messageId ? `ID: ${res.messageId}` : undefined,
         });
-      } catch {
-        toast.error(`No se pudo leer ${f.name}`);
+        setMedia(null);
+      } else {
+        toast.error(res.error);
       }
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al enviar el mensaje.");
+    } finally {
+      setSending(false);
     }
-    if (next.length) {
-      setExtraPhotos((prev) => [...prev, ...next]);
-      toast.success(`${next.length} foto(s) adjuntada(s)`);
-    }
-  }
-
-  function removeExtraPhoto(id: string) {
-    setExtraPhotos((prev) => prev.filter((p) => p.id !== id));
-  }
-
-  // Consume handoff from Availability → WhatsApp on mount
-  useEffect(() => {
-    const h = consumeWhatsappHandoff();
-    if (!h) return;
-    setBody(h.message);
-    if (h.toLeadId) setTo(h.toLeadId);
-    if (h.attachment) {
-      setAttachment(h.attachment);
-      toast.success("PDF adjunto desde Disponibilidad", {
-        description: `${h.attachment.filename} · ${formatBytes(h.attachment.sizeBytes)}`,
-      });
-    }
-    if (h.image) {
-      setImage(h.image);
-      toast.success("Imagen adjunta", {
-        description: `${h.image.filename} · ${formatBytes(h.image.sizeBytes)}`,
-      });
-    }
-    if (!h.attachment && !h.image) {
-      toast.success("Mensaje pre-cargado", {
-        description: "Revisa el contenido antes de enviar.",
-      });
-    }
-  }, []);
-
-  // Select the first lead by default once they load, unless a handoff already
-  // pre-selected one.
-  useEffect(() => {
-    if (!to && leads.length > 0) setTo(leads[0].id);
-  }, [leads, to]);
-
-  function send() {
-    const lead = leads.find((l) => l.id === to);
-    if (!lead) {
-      toast.error("Selecciona un destinatario");
-      return;
-    }
-    const parts: string[] = [];
-    if (attachment) parts.push(`adjunto ${attachment.filename}`);
-    if (image) parts.push(`imagen ${image.filename}`);
-    if (extraPhotos.length) parts.push(`${extraPhotos.length} foto(s) extra`);
-    toast.success(`Mensaje enviado a ${lead?.name}`, {
-      description: parts.length
-        ? `Envío simulado por WhatsApp API · ${parts.join(" · ")}`
-        : "Envío simulado por WhatsApp API",
-    });
-    setAttachment(null);
-    setImage(null);
-    setExtraPhotos([]);
-  }
-
-  function downloadAttachment() {
-    if (!attachment) return;
-    const a = document.createElement("a");
-    a.href = attachment.dataUrl;
-    a.download = attachment.filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
   }
 
   return (
-    <AppShell title="Integración con WhatsApp" subtitle="Envía plantillas pre-aprobadas a tus prospectos">
+    <AppShell
+      title="Integración con WhatsApp"
+      subtitle="Envía plantillas aprobadas a tus prospectos"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <PageCard title="Plantillas" description="Da clic para cargar una plantilla" className="lg:col-span-1">
+        <PageCard
+          title="Plantillas"
+          description="Selecciona una plantilla aprobada"
+          className="lg:col-span-1"
+        >
           <ul className="space-y-2">
             {templates.map((t) => (
               <li key={t.id}>
                 <button
-                  onClick={() => setBody(t.body)}
-                  className="w-full text-left rounded-lg border border-border p-3 hover:bg-muted/50 transition-colors"
+                  onClick={() => setTemplateId(t.id)}
+                  className={
+                    "w-full text-left rounded-lg border p-3 transition-colors " +
+                    (t.id === templateId
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:bg-muted/50")
+                  }
                 >
                   <div className="text-sm font-medium flex items-center gap-2">
                     <MessageCircle className="h-4 w-4 text-success" />
                     {t.name}
                   </div>
                   <div className="text-xs text-muted-foreground line-clamp-2 mt-1">{t.body}</div>
+                  {!t.meta_template_name && (
+                    <div className="text-[10px] text-destructive mt-1">Sin vincular a Meta</div>
+                  )}
                 </button>
               </li>
             ))}
             {templatesLoading && (
-              <li className="text-center text-xs text-muted-foreground py-6">Cargando plantillas…</li>
+              <li className="text-center text-xs text-muted-foreground py-6">Cargando…</li>
             )}
             {!templatesLoading && templates.length === 0 && (
               <li className="text-center text-xs text-muted-foreground py-6">
@@ -180,17 +207,23 @@ function WhatsappPage() {
         </PageCard>
 
         <PageCard
-          title="Redactar Mensaje"
-          description="Variables: {{name}}, {{property}}, {{date}}"
+          title="Enviar mensaje"
+          description="Las variables se llenan desde el prospecto"
           className="lg:col-span-2"
         >
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Destinatario</Label>
-                <Select value={to} onValueChange={setTo} disabled={leadsLoading || leads.length === 0}>
+                <Select
+                  value={leadId}
+                  onValueChange={setLeadId}
+                  disabled={leadsLoading || leads.length === 0}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={leadsLoading ? "Cargando prospectos…" : "Selecciona un prospecto"} />
+                    <SelectValue
+                      placeholder={leadsLoading ? "Cargando…" : "Selecciona un prospecto"}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {leads.map((l) => (
@@ -200,184 +233,104 @@ function WhatsappPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                {!leadsLoading && leads.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No hay prospectos registrados todavía.</p>
-                )}
               </div>
               <div className="space-y-1.5">
                 <Label>Teléfono (alterno)</Label>
-                <Input placeholder="+52 …" />
+                <Input
+                  value={altPhone}
+                  onChange={(e) => setAltPhone(e.target.value)}
+                  placeholder="+52 …"
+                />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Mensaje</Label>
-              <Textarea rows={6} value={body} onChange={(e) => setBody(e.target.value)} />
-            </div>
 
-            {attachment && (
-              <div className="space-y-1.5">
-                <Label>Documento adjunto</Label>
-                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
-                  <div className="h-9 w-9 rounded-md bg-destructive/10 text-destructive grid place-items-center">
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{attachment.filename}</div>
-                    <div className="text-xs text-muted-foreground">
-                      PDF · {formatBytes(attachment.sizeBytes)}
+            {mapping.length > 0 && (
+              <div className="space-y-2">
+                <Label>Variables</Label>
+                {mapping.map((vm, i) => {
+                  const isManual = vm.source === "manual";
+                  return (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-10 shrink-0">{`{{${i + 1}}}`}</span>
+                      {isManual ? (
+                        <Input
+                          value={manualVars[i] ?? ""}
+                          onChange={(e) => setManualVars((m) => ({ ...m, [i]: e.target.value }))}
+                          placeholder={vm.label || "Valor"}
+                        />
+                      ) : (
+                        <Input value={resolveVar(vm, i)} disabled className="bg-muted/50" />
+                      )}
                     </div>
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
-                    aria-label="Descargar adjunto"
-                    onClick={downloadAttachment}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-destructive"
-                    aria-label="Quitar adjunto"
-                    onClick={() => setAttachment(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+                  );
+                })}
               </div>
             )}
 
-            {image && (
+            {needsMedia && (
               <div className="space-y-1.5">
-                <Label>Imagen adjunta</Label>
-                <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
-                  <img
-                    src={image.dataUrl}
-                    alt={image.filename}
-                    className="h-12 w-16 rounded-md object-cover border border-border"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{image.filename}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {image.mimeType} · {formatBytes(image.sizeBytes)}
+                <Label>
+                  {template?.header_format === "IMAGE"
+                    ? "Imagen del encabezado"
+                    : "Documento del encabezado"}
+                </Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept={template?.header_format === "IMAGE" ? "image/*" : "*/*"}
+                  className="hidden"
+                  onChange={handleFile}
+                />
+                {media ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+                    <div className="h-9 w-9 rounded-md bg-success/10 text-success grid place-items-center">
+                      <FileText className="h-4 w-4" />
                     </div>
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 text-destructive"
-                    aria-label="Quitar imagen"
-                    onClick={() => setImage(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label>Fotos adicionales</Label>
-                <span className="text-xs text-muted-foreground">
-                  {extraPhotos.length}/{MAX_EXTRA_PHOTOS}
-                </span>
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handlePhotoPick}
-              />
-              <div className="flex flex-wrap gap-2">
-                {extraPhotos.map((p) => (
-                  <div
-                    key={p.id}
-                    className="group relative h-20 w-20 rounded-md overflow-hidden border border-border bg-muted"
-                  >
-                    <img src={p.dataUrl} alt={p.filename} className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeExtraPhoto(p.id)}
-                      aria-label={`Quitar ${p.filename}`}
-                      className="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-background/90 text-destructive grid place-items-center opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                    <div className="flex-1 min-w-0 text-sm truncate">{media.filename}</div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-destructive"
+                      aria-label="Quitar"
+                      onClick={() => setMedia(null)}
                     >
-                      <X className="h-3 w-3" />
-                    </button>
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
-                ))}
-                {extraPhotos.length < MAX_EXTRA_PHOTOS && (
-                  <button
+                ) : (
+                  <Button
                     type="button"
+                    variant="outline"
+                    className="gap-1.5"
                     onClick={() => fileInputRef.current?.click()}
-                    className="h-20 w-20 rounded-md border border-dashed border-border bg-muted/30 hover:bg-muted/60 transition-colors grid place-items-center text-muted-foreground"
-                    aria-label="Agregar fotos"
                   >
-                    <ImagePlus className="h-5 w-5" />
-                  </button>
+                    <ImagePlus className="h-4 w-4" /> Adjuntar archivo
+                  </Button>
                 )}
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Hasta {MAX_EXTRA_PHOTOS} imágenes · 5 MB c/u
-              </p>
-            </div>
+            )}
 
             <div className="rounded-xl bg-[oklch(0.96_0.04_150)] p-4">
               <div className="ml-auto max-w-sm rounded-2xl rounded-br-sm bg-success text-success-foreground px-3 py-2 text-sm shadow-[var(--shadow-soft)] space-y-2">
-                {image && (
-                  <img
-                    src={image.dataUrl}
-                    alt={image.filename}
-                    className="rounded-lg w-full max-h-56 object-cover border border-success-foreground/10"
-                  />
-                )}
-                {extraPhotos.length > 0 && (
-                  <div
-                    className={
-                      extraPhotos.length === 1
-                        ? "grid grid-cols-1 gap-1"
-                        : "grid grid-cols-2 gap-1"
-                    }
-                  >
-                    {extraPhotos.slice(0, 4).map((p, i) => (
-                      <div key={p.id} className="relative">
-                        <img
-                          src={p.dataUrl}
-                          alt={p.filename}
-                          className="rounded-md w-full h-24 object-cover border border-success-foreground/10"
-                        />
-                        {i === 3 && extraPhotos.length > 4 && (
-                          <div className="absolute inset-0 rounded-md bg-black/50 grid place-items-center text-white text-sm font-semibold">
-                            +{extraPhotos.length - 4}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {attachment && (
-                  <div className="flex items-center gap-2 rounded-lg bg-success-foreground/10 px-2 py-1.5">
-                    <FileText className="h-4 w-4 shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium truncate">{attachment.filename}</div>
-                      <div className="text-[10px] opacity-80">PDF · {formatBytes(attachment.sizeBytes)}</div>
-                    </div>
-                  </div>
-                )}
                 <div className="whitespace-pre-wrap break-words">
-                  {body || "La vista previa aparecerá aquí"}
+                  {template?.body || "Selecciona una plantilla"}
                 </div>
-                <div className="text-[10px] opacity-80 flex items-center justify-end gap-1">
-                  10:24 <CheckCheck className="h-3 w-3" />
-                </div>
+                {mapping.length > 0 && (
+                  <div className="text-[10px] opacity-80">
+                    Variables: {resolvedVars.map((v) => v || "—").join(" · ")}
+                  </div>
+                )}
               </div>
             </div>
+
             <div className="flex justify-end">
-              <Button onClick={send} className="gap-1.5">
-                <Send className="h-4 w-4" /> Enviar por WhatsApp API
+              <Button onClick={doSend} className="gap-1.5" disabled={sending}>
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                Enviar por WhatsApp
               </Button>
             </div>
           </div>
