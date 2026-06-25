@@ -3,13 +3,14 @@
 // Al cambiar el texto de forma sustancial, incrementa PRIVACY_VERSION (fecha ISO)
 // para forzar la re-aceptación a todos los usuarios.
 
-export const PRIVACY_VERSION = "2026-06-24";
+export const PRIVACY_VERSION = "2026-06-25";
 
-// Datos del responsable. Completa los marcadores [PENDIENTE: …] con la
-// información legal real antes de publicar.
+// Datos del responsable (Constancia de Situación Fiscal, SAT, 04/06/2026).
 export const PRIVACY_RESPONSIBLE = {
-  legalName: "[PENDIENTE: razón social, p. ej. Inmobiliaria Salgón, S.A. de C.V.]",
-  address: "[PENDIENTE: domicilio fiscal — calle, número, colonia, ciudad, estado, C.P.]",
+  legalName: "Inmobiliaria Salgón, S.A. de C.V.",
+  rfc: "ISA941202SA1",
+  address:
+    "Calle Ébanos No. 112, Local 27, Col. Framboyanes, C.P. 86020, Villahermosa, Centro, Tabasco, México",
   email: "inmobiliariasalgon@gmail.com",
   phone: "+52 993 155 8336",
   website: "https://app.salgon.com",
@@ -45,6 +46,7 @@ export const PRIVACY_NOTICE: PrivacyNotice = {
       heading: "1. Identidad y domicilio del Responsable",
       paragraphs: [
         `Responsable: ${R.legalName}.`,
+        `RFC: ${R.rfc}.`,
         `Domicilio: ${R.address}.`,
         `Correo de contacto en materia de privacidad: ${R.email}.`,
         `Teléfono: ${R.phone}.`,
