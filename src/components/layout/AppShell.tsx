@@ -6,8 +6,10 @@ import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
 import { ForbiddenScreen } from "./ForbiddenScreen";
 import { PendingActivationScreen } from "./PendingActivationScreen";
+import { PrivacyGateScreen } from "@/components/privacy/PrivacyGateScreen";
 import { useAuth } from "@/hooks/useAuth";
 import { useSessionLogger } from "@/data/agentEvents";
+import { useHasAcceptedPrivacy } from "@/data/privacyApi";
 import { Loader2 } from "lucide-react";
 
 // Routes that only admins should access. Agents see a 403 screen.
@@ -25,6 +27,8 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isAdmin = roles.includes("admin");
+  // Every authenticated user must accept the current privacy notice before continuing.
+  const { data: acceptedPrivacy, isLoading: privacyLoading } = useHasAcceptedPrivacy(user?.id);
   // Non-admin users must be activated by an admin before accessing the app.
   const inactive = !loading && !!user && !isAdmin && profile != null && profile.is_active === false;
   const blocked = !loading && !!user && !isAdmin && isAdminOnly(pathname);
@@ -42,7 +46,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
     }
   }, [loading, user, isAdmin, pathname, navigate]);
 
-  if (loading || !user) {
+  if (loading || !user || privacyLoading) {
     return (
       <div className="min-h-screen grid place-items-center bg-background">
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
@@ -51,6 +55,11 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
         </div>
       </div>
     );
+  }
+
+  // Legal consent gate: block until the current privacy notice is accepted.
+  if (acceptedPrivacy === false) {
+    return <PrivacyGateScreen />;
   }
 
   if (inactive) {

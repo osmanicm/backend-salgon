@@ -20,6 +20,7 @@ import { Route as NewsRouteImport } from './routes/news'
 import { Route as MoreRouteImport } from './routes/more'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
+import { Route as AvisoDePrivacidadRouteImport } from './routes/aviso-de-privacidad'
 import { Route as AvailabilityRouteImport } from './routes/availability'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppointmentsRouteImport } from './routes/appointments'
@@ -88,6 +89,11 @@ const LeadsRoute = LeadsRouteImport.update({
 const ChangePasswordRoute = ChangePasswordRouteImport.update({
   id: '/change-password',
   path: '/change-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AvisoDePrivacidadRoute = AvisoDePrivacidadRouteImport.update({
+  id: '/aviso-de-privacidad',
+  path: '/aviso-de-privacidad',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AvailabilityRoute = AvailabilityRouteImport.update({
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
+  '/aviso-de-privacidad': typeof AvisoDePrivacidadRoute
   '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
+  '/aviso-de-privacidad': typeof AvisoDePrivacidadRoute
   '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/appointments': typeof AppointmentsRoute
   '/auth': typeof AuthRoute
   '/availability': typeof AvailabilityRoute
+  '/aviso-de-privacidad': typeof AvisoDePrivacidadRoute
   '/change-password': typeof ChangePasswordRoute
   '/leads': typeof LeadsRoute
   '/more': typeof MoreRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/auth'
     | '/availability'
+    | '/aviso-de-privacidad'
     | '/change-password'
     | '/leads'
     | '/more'
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/auth'
     | '/availability'
+    | '/aviso-de-privacidad'
     | '/change-password'
     | '/leads'
     | '/more'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/appointments'
     | '/auth'
     | '/availability'
+    | '/aviso-de-privacidad'
     | '/change-password'
     | '/leads'
     | '/more'
@@ -334,6 +346,7 @@ export interface RootRouteChildren {
   AppointmentsRoute: typeof AppointmentsRoute
   AuthRoute: typeof AuthRoute
   AvailabilityRoute: typeof AvailabilityRoute
+  AvisoDePrivacidadRoute: typeof AvisoDePrivacidadRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
   LeadsRoute: typeof LeadsRoute
   MoreRoute: typeof MoreRoute
@@ -430,6 +443,13 @@ declare module '@tanstack/react-router' {
       path: '/change-password'
       fullPath: '/change-password'
       preLoaderRoute: typeof ChangePasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aviso-de-privacidad': {
+      id: '/aviso-de-privacidad'
+      path: '/aviso-de-privacidad'
+      fullPath: '/aviso-de-privacidad'
+      preLoaderRoute: typeof AvisoDePrivacidadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/availability': {
@@ -562,6 +582,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppointmentsRoute: AppointmentsRoute,
   AuthRoute: AuthRoute,
   AvailabilityRoute: AvailabilityRoute,
+  AvisoDePrivacidadRoute: AvisoDePrivacidadRoute,
   ChangePasswordRoute: ChangePasswordRoute,
   LeadsRoute: LeadsRoute,
   MoreRoute: MoreRoute,

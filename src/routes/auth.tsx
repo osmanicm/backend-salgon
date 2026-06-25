@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { recordPrivacyAcceptance } from "@/data/privacyApi";
 import { SPLASH_EVENT } from "@/components/layout/SplashScreen";
 
 import { toast } from "sonner";
@@ -55,6 +57,7 @@ function AuthPage() {
   const [loading, setLoading] = React.useState(false);
   const [showLoginPwd, setShowLoginPwd] = React.useState(false);
   const [showSignupPwd, setShowSignupPwd] = React.useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = React.useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -89,6 +92,10 @@ function AuthPage() {
       toast.error(parsed.error.issues[0].message);
       return;
     }
+    if (!acceptedPrivacy) {
+      toast.error("Debes aceptar el Aviso de Privacidad para crear tu cuenta");
+      return;
+    }
     setLoading(true);
     const { data: signUpData, error } = await supabase.auth.signUp({
       email: parsed.data.email,
@@ -110,6 +117,8 @@ function AuthPage() {
     let to: "/" | "/agent" = "/agent";
     if (userId) {
       await new Promise((r) => setTimeout(r, 400));
+      // Deja constancia de la aceptación del aviso (fecha/hora la asigna el servidor).
+      await recordPrivacyAcceptance(userId);
       to = await resolveLandingForUser(userId);
     }
     navigate({ to });
@@ -168,7 +177,22 @@ function AuthPage() {
                     </button>
                   </div>
                 </Field>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <label htmlFor="signup-privacy" className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
+                  <Checkbox
+                    id="signup-privacy"
+                    checked={acceptedPrivacy}
+                    onCheckedChange={(v) => setAcceptedPrivacy(v === true)}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    He leído y acepto el{" "}
+                    <Link to="/aviso-de-privacidad" target="_blank" className="text-primary underline underline-offset-2">
+                      Aviso de Privacidad
+                    </Link>
+                    .
+                  </span>
+                </label>
+                <Button type="submit" className="w-full" disabled={loading || !acceptedPrivacy}>
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />} Crear cuenta
                 </Button>
                 <p className="text-[11px] text-muted-foreground text-center">

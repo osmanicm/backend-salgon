@@ -7,6 +7,7 @@ import {
   MessageSquareText,
   Building2,
   UserCog,
+  ShieldCheck,
   ChevronRight,
   type LucideIcon,
 } from "lucide-react";
@@ -34,7 +35,12 @@ export const Route = createFileRoute("/settings")({
  * Rutas internas a las que un ítem de configuración puede navegar hoy.
  * Conforme se construyan más pantallas, agrégalas aquí y al ítem correspondiente.
  */
-type SettingRoute = "/profile" | "/change-password" | "/users" | "/whatsapp-templates";
+type SettingRoute =
+  | "/profile"
+  | "/change-password"
+  | "/users"
+  | "/whatsapp-templates"
+  | "/aviso-de-privacidad";
 
 interface SettingItem {
   label: string;
@@ -73,6 +79,12 @@ const sections: SettingSection[] = [
         description: "Actualiza tu acceso",
         icon: KeyRound,
         to: "/change-password",
+      },
+      {
+        label: "Aviso de Privacidad",
+        description: "Cómo tratamos tus datos personales",
+        icon: ShieldCheck,
+        to: "/aviso-de-privacidad",
       },
     ],
   },
