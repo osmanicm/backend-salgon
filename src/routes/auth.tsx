@@ -14,6 +14,16 @@ import { SPLASH_EVENT } from "@/components/layout/SplashScreen";
 import { toast } from "sonner";
 import { z } from "zod";
 
+// Dominio canónico de producción. En producción el correo de confirmación debe
+// llevar siempre al login de app.salgon.com (no al origin desde el que se registró).
+const SITE_URL = "https://app.salgon.com";
+
+/** URL de redirección para el correo de confirmación: login en el dominio público. */
+function emailConfirmRedirectUrl(): string {
+  const base = import.meta.env.PROD ? SITE_URL : window.location.origin;
+  return `${base}/auth`;
+}
+
 async function resolveLandingForUser(userId: string): Promise<"/" | "/agent"> {
   const { data } = await supabase
     .from("user_roles")
@@ -101,7 +111,7 @@ function AuthPage() {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: emailConfirmRedirectUrl(),
         data: { full_name: parsed.data.full_name },
       },
     });
