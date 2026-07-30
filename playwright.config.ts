@@ -20,12 +20,27 @@ export default defineConfig({
       testMatch: /auth\.setup\.ts/,
     },
     {
+      name: "setup-agent",
+      testMatch: /auth\.agent\.setup\.ts/,
+    },
+    {
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
         storageState: "e2e/.auth/user.json",
       },
       dependencies: ["setup"],
+      // El spec de agente corre en su propio proyecto con la sesión del agente
+      testIgnore: /leads-agent\.spec\.ts/,
+    },
+    {
+      name: "chromium-agent",
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "e2e/.auth/agent.json",
+      },
+      dependencies: ["setup-agent"],
+      testMatch: /leads-agent\.spec\.ts/,
     },
   ],
   webServer: {

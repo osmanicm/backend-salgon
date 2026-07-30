@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Building2, Users, CalendarDays, MoreHorizontal, Newspaper, Ticket } from "lucide-react";
+import { Home, Building2, Users, CalendarDays, MoreHorizontal, Newspaper } from "lucide-react";
 import { ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,8 +22,8 @@ const adminTabs: Tab[] = [
 const agentTabs: Tab[] = [
   { to: "/agent", label: "Inicio", icon: Home, exact: true },
   { to: "/properties", label: "Propiedades", icon: Building2 },
+  { to: "/leads", label: "Prospectos", icon: Users },
   { to: "/news", label: "Noticias", icon: Newspaper },
-  { to: "/events", label: "Eventos", icon: Ticket },
   { to: "/more", label: "Más", icon: MoreHorizontal },
 ];
 

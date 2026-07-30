@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ClipboardList, KanbanSquare, MessageCircle, UserCog,
-  Settings, LogOut, ChevronRight, BarChart3, Newspaper, CalendarDays, Ticket,
+  Settings, LogOut, ChevronRight, BarChart3, Newspaper, CalendarDays, Ticket, Users,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/more")({
 });
 
 type Item = {
-  to: "/availability" | "/appointments" | "/pipeline" | "/news" | "/events" | "/whatsapp" | "/analytics" | "/users";
+  to: "/leads" | "/availability" | "/appointments" | "/pipeline" | "/news" | "/events" | "/whatsapp" | "/analytics" | "/users";
   label: string;
   description: string;
   icon: typeof ClipboardList;
@@ -27,6 +27,7 @@ const sections: Section[] = [
   {
     title: "Operaciones",
     items: [
+      { to: "/leads",        label: "Prospectos", description: "Tus clientes potenciales", icon: Users },
       { to: "/availability", label: "Disponibilidad", description: "Inventario centralizado", icon: ClipboardList },
       { to: "/appointments", label: "Citas", description: "Agenda de visitas", icon: CalendarDays },
       { to: "/pipeline",     label: "Embudo de Ventas", description: "Tablero de etapas", icon: KanbanSquare, adminOnly: true },

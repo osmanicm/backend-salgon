@@ -16,7 +16,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useLeads, useCreateLead, useUpdateLead, useDeleteLead, type LeadRow, type LeadSource, type LeadStatus } from "@/data/leadsApi";
 import { notifyNewLead } from "@/utils/notifications.functions";
 import { useAgentsList } from "@/data/propertiesApi";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, useHasRole } from "@/hooks/useAuth";
 import { fmtMoney } from "@/data/mock";
 import { cn } from "@/lib/utils";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
@@ -37,6 +37,7 @@ const SOURCE_ES: Record<string, string> = {
 
 function LeadsPage() {
   const { q: urlQ } = Route.useSearch();
+  const isAdmin = useHasRole("admin");
   const { data: leads = [], isLoading } = useLeads();
   const [q, setQ] = useState(urlQ);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -68,7 +69,7 @@ function LeadsPage() {
   return (
     <AppShell title="Prospectos y Clientes" subtitle="Da seguimiento y califica a tus clientes potenciales">
       <PageCard
-        title="Todos los Prospectos"
+        title={isAdmin ? "Todos los Prospectos" : "Mis Prospectos"}
         description={isLoading ? "Cargando…" : `${filtered.length}${filtered.length !== leads.length ? ` de ${leads.length}` : ""} prospectos`}
         action={
           <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
@@ -115,7 +116,7 @@ function LeadsPage() {
                 <th className="px-3 py-3 font-medium">Presupuesto</th>
                 <th className="px-3 py-3 font-medium">Origen</th>
                 <th className="px-3 py-3 font-medium">Estatus</th>
-                <th className="px-3 py-3 font-medium">Agente</th>
+                {isAdmin && <th className="px-3 py-3 font-medium">Agente</th>}
                 <th className="px-5 py-3 font-medium sr-only">Acciones</th>
               </tr>
             </thead>
@@ -164,6 +165,7 @@ function LeadsPage() {
 
 function LeadCard({ lead: l }: { lead: LeadRow }) {
   const [editOpen, setEditOpen] = useState(false);
+  const isAdmin = useHasRole("admin");
   const deleteLead = useDeleteLead();
   const initials = l.name.split(" ").map(n => n[0]).slice(0, 2).join("");
 
@@ -225,7 +227,7 @@ function LeadCard({ lead: l }: { lead: LeadRow }) {
             <span className="text-sm font-semibold text-primary tabular-nums">{fmtMoney(Number(l.budget))}</span>
             <span className="text-[10px] px-2 py-0.5 rounded-md bg-muted text-muted-foreground">{SOURCE_ES[l.source] ?? l.source}</span>
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1.5 truncate">Agente · {l.agent?.full_name ?? "—"}</div>
+          {isAdmin && <div className="text-[11px] text-muted-foreground mt-1.5 truncate">Agente · {l.agent?.full_name ?? "—"}</div>}
         </div>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
@@ -245,6 +247,7 @@ function LeadCard({ lead: l }: { lead: LeadRow }) {
 
 function LeadTableRow({ lead: l }: { lead: LeadRow }) {
   const [editOpen, setEditOpen] = useState(false);
+  const isAdmin = useHasRole("admin");
   const deleteLead = useDeleteLead();
 
   async function handleDelete() {
@@ -270,7 +273,7 @@ function LeadTableRow({ lead: l }: { lead: LeadRow }) {
       <td className="px-3 py-3 font-medium">{fmtMoney(Number(l.budget))}</td>
       <td className="px-3 py-3"><span className="text-xs px-2 py-0.5 rounded-md bg-muted">{SOURCE_ES[l.source] ?? l.source}</span></td>
       <td className="px-3 py-3"><StatusBadge status={l.status} /></td>
-      <td className="px-5 py-3">{l.agent?.full_name ?? "—"}</td>
+      {isAdmin && <td className="px-5 py-3">{l.agent?.full_name ?? "—"}</td>}
       <td className="px-5 py-3">
         <div className="flex items-center gap-1">
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -364,6 +367,7 @@ function LeadFormDialog({ trigger }: { trigger?: React.ReactNode }) {
 function LeadFormDialogContent({ lead, onClose, defaultAgentId }: { lead?: LeadRow; onClose?: () => void; defaultAgentId?: string }) {
   const isEdit = Boolean(lead);
   const { user } = useAuth();
+  const isAdmin = useHasRole("admin");
   const agentsQuery = useAgentsList();
   const create = useCreateLead();
   const update = useUpdateLead();
@@ -479,16 +483,18 @@ function LeadFormDialogContent({ lead, onClose, defaultAgentId }: { lead?: LeadR
             </SelectContent>
           </Select>
         </FormField>
-        <FormField label="Agente asignado *" error={errors.agent_id} className="col-span-2">
-          <Select value={form.agent_id} onValueChange={(v) => updateField("agent_id", v)}>
-            <SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
-            <SelectContent>
-              {(agentsQuery.data ?? []).map((a) => (
-                <SelectItem key={a.id} value={a.id}>{a.full_name ?? a.email ?? a.id}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormField>
+        {isAdmin && (
+          <FormField label="Agente asignado *" error={errors.agent_id} className="col-span-2">
+            <Select value={form.agent_id} onValueChange={(v) => updateField("agent_id", v)}>
+              <SelectTrigger><SelectValue placeholder="Selecciona un agente" /></SelectTrigger>
+              <SelectContent>
+                {(agentsQuery.data ?? []).map((a) => (
+                  <SelectItem key={a.id} value={a.id}>{a.full_name ?? a.email ?? a.id}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        )}
         <FormField label="Notas" error={errors.notes} className="col-span-2">
           <Textarea rows={3} value={form.notes} onChange={(e) => updateField("notes", e.target.value)} placeholder="Observaciones adicionales…" maxLength={1000} />
         </FormField>
