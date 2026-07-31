@@ -13,9 +13,9 @@ import { useHasAcceptedPrivacy } from "@/data/privacyApi";
 import { Loader2 } from "lucide-react";
 
 // Routes that only admins should access. Agents see a 403 screen.
-// Agents can see: /properties, /availability, /appointments, /leads (scoped to their own
-// via RLS) (+ /agent home).
-const ADMIN_ONLY_PATHS = ["/", "/users", "/pipeline", "/whatsapp", "/analytics"];
+// Agents can see: /properties, /availability, /appointments, /leads, /pipeline (scoped to
+// their own via RLS) (+ /agent home).
+const ADMIN_ONLY_PATHS = ["/", "/users", "/whatsapp", "/analytics"];
 
 function isAdminOnly(pathname: string) {
   return ADMIN_ONLY_PATHS.some((p) =>

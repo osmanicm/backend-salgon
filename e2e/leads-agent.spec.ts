@@ -52,3 +52,18 @@ test.describe.serial("Prospectos — acceso de agente", () => {
     await expect(page.locator("tr", { hasText: `${unique} Test` })).toHaveCount(0, { timeout: 8_000 });
   });
 });
+
+test.describe.serial("Embudo — acceso de agente", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/pipeline");
+    await page.waitForLoadState("networkidle");
+  });
+
+  test("accede a /pipeline (no 403) y ve las columnas del embudo", async ({ page }) => {
+    await expect(page.getByRole("heading", { name: "Embudo de Ventas" })).toBeVisible();
+    // El layout renderiza columnas tanto para mobile como desktop (una oculta por CSS),
+    // por lo que el texto aparece duplicado en el DOM.
+    await expect(page.getByText("Nuevo Prospecto").last()).toBeVisible();
+    await expect(page.getByText("Negociación").last()).toBeVisible();
+  });
+});
