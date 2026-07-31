@@ -30,7 +30,7 @@ const sections: Section[] = [
       { to: "/leads",        label: "Prospectos", description: "Tus clientes potenciales", icon: Users },
       { to: "/availability", label: "Disponibilidad", description: "Inventario centralizado", icon: ClipboardList },
       { to: "/appointments", label: "Citas", description: "Agenda de visitas", icon: CalendarDays },
-      { to: "/pipeline",     label: "Embudo de Ventas", description: "Tablero de etapas", icon: KanbanSquare, adminOnly: true },
+      { to: "/pipeline",     label: "Embudo de Ventas", description: "Tablero de etapas", icon: KanbanSquare },
       { to: "/news",         label: "Noticias", description: "Comunicación interna", icon: Newspaper },
       { to: "/events",       label: "Eventos", description: "Asistencia y logística", icon: Ticket },
       { to: "/whatsapp",     label: "WhatsApp", description: "Plantillas y envíos", icon: MessageCircle, adminOnly: true },

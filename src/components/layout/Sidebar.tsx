@@ -39,6 +39,7 @@ const agentNav = [
   { to: "/leads", label: "Prospectos", icon: Users },
   { to: "/availability", label: "Disponibilidad", icon: ClipboardList },
   { to: "/appointments", label: "Citas", icon: CalendarDays },
+  { to: "/pipeline", label: "Embudo de Ventas", icon: KanbanSquare },
   { to: "/news", label: "Noticias", icon: Newspaper },
   { to: "/events", label: "Eventos", icon: Ticket },
 ] as const;
