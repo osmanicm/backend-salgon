@@ -413,6 +413,7 @@ export type Database = {
           id: string
           interest: string
           name: string
+          next_contact_at: string | null
           notes: string
           phone: string
           source: Database["public"]["Enums"]["lead_source"]
@@ -427,6 +428,7 @@ export type Database = {
           id?: string
           interest?: string
           name: string
+          next_contact_at?: string | null
           notes?: string
           phone?: string
           source?: Database["public"]["Enums"]["lead_source"]
@@ -441,6 +443,7 @@ export type Database = {
           id?: string
           interest?: string
           name?: string
+          next_contact_at?: string | null
           notes?: string
           phone?: string
           source?: Database["public"]["Enums"]["lead_source"]
