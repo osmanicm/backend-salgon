@@ -79,6 +79,14 @@ test.describe.serial("Embudo — acceso de agente", () => {
     const desktopBoard = page.locator("div.hidden.md\\:grid");
     const followBtn = desktopBoard.getByRole("button", { name: "Seguimiento", exact: true }).first();
     await expect(followBtn).toBeVisible();
+
+    // Captura la identidad de la tarjeta sobre la que se actúa (su nombre de prospecto) para
+    // luego, tras recargar, verificar el badge específicamente en ESA tarjeta y no en
+    // cualquier tarjeta del tablero.
+    const card = followBtn.locator("xpath=ancestor::div[@role='button'][1]");
+    const leadName = (await card.locator(".text-sm.font-medium").first().innerText()).trim();
+    expect(leadName.length).toBeGreaterThan(0);
+
     await followBtn.click();
 
     const popover = page.getByRole("dialog");
@@ -105,11 +113,14 @@ test.describe.serial("Embudo — acceso de agente", () => {
     // Aparece el toast de guardado
     await expect(page.locator("[data-sonner-toast]").filter({ hasText: /seguimiento guardado/i }).first()).toBeVisible({ timeout: 8_000 });
 
-    // Recarga y verifica que el badge "Próx:" persiste. El layout renderiza columnas tanto
-    // para mobile como desktop (una oculta por CSS), por lo que el texto aparece duplicado
-    // en el DOM; se escoge la copia visible con .last().
+    // Recarga y verifica que el badge "Próx:" persiste EN LA MISMA TARJETA sobre la que se
+    // actuó (no en cualquier tarjeta del tablero). El layout renderiza columnas dos veces
+    // (mobile oculto + desktop visible), así que se vuelve a escopar al tablero de escritorio
+    // y se ubica la tarjeta por el nombre de prospecto capturado antes de abrir el editor.
     await page.reload();
     await page.waitForLoadState("networkidle");
-    await expect(page.getByText(/Próx:/i).last()).toBeVisible();
+    const desktopBoardAfterReload = page.locator("div.hidden.md\\:grid");
+    const cardAfterReload = desktopBoardAfterReload.locator('div[role="button"]', { hasText: leadName });
+    await expect(cardAfterReload.getByText(/Próx:/i)).toBeVisible();
   });
 });

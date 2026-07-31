@@ -4,7 +4,7 @@ import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useDroppable, use
 import { GripVertical, Phone, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
-import { useLeads, useUpdateLead, type LeadRow, type LeadStatus } from "@/data/leadsApi";
+import { useLeads, useUpdateLead, type LeadRow, type LeadStatus, type LeadUpdate } from "@/data/leadsApi";
 import { fmtMoney } from "@/data/mock";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -128,7 +128,7 @@ function FollowUpEditor({ lead }: { lead: LeadRow }) {
   const [notes, setNotes] = useState(lead.notes ?? "");
   const selected = parseDbDate(lead.next_contact_at) ?? undefined;
 
-  async function save(next: { next_contact_at?: string | null; notes?: string }) {
+  async function save(next: Pick<LeadUpdate, "next_contact_at" | "notes">) {
     try {
       await update.mutateAsync({ id: lead.id, patch: next });
       toast.success("Seguimiento guardado");
