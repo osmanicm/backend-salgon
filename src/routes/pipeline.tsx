@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { DndContext, DragEndEvent, DragOverlay, PointerSensor, useDroppable, useSensor, useSensors, useDraggable } from "@dnd-kit/core";
-import { GripVertical, Phone } from "lucide-react";
+import { GripVertical, Phone, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/AppShell";
 import { useLeads, useUpdateLead, type LeadRow, type LeadStatus } from "@/data/leadsApi";
 import { fmtMoney } from "@/data/mock";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useHasRole } from "@/hooks/useAuth";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
@@ -90,9 +95,103 @@ function Column({ id, label, tint, count, children }: { id: LeadStatus; label: s
   );
 }
 
+// Fecha "YYYY-MM-DD" (date de Postgres) → Date local a medianoche
+function parseDbDate(d: string | null): Date | null {
+  if (!d) return null;
+  const [y, m, day] = d.split("-").map(Number);
+  if (!y || !m || !day) return null;
+  return new Date(y, m - 1, day);
+}
+
+function toDbDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function fmtShort(d: Date): string {
+  return d.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+}
+
+function isOverdue(nextContactAt: string | null, status: LeadStatus): boolean {
+  const d = parseDbDate(nextContactAt);
+  if (!d || status === "Closed") return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d.getTime() < today.getTime();
+}
+
+function FollowUpEditor({ lead }: { lead: LeadRow }) {
+  const update = useUpdateLead();
+  const [open, setOpen] = useState(false);
+  const [notes, setNotes] = useState(lead.notes ?? "");
+  const selected = parseDbDate(lead.next_contact_at) ?? undefined;
+
+  async function save(next: { next_contact_at?: string | null; notes?: string }) {
+    try {
+      await update.mutateAsync({ id: lead.id, patch: next });
+      toast.success("Seguimiento guardado");
+    } catch (err) {
+      toast.error((err as { message?: string }).message ?? "No se pudo guardar");
+    }
+  }
+
+  return (
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) setNotes(lead.notes ?? ""); }}>
+      <PopoverTrigger asChild>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 px-2 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+          aria-label="Seguimiento"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <CalendarClock className="h-3.5 w-3.5" /> Seguimiento
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-72 space-y-3"
+        align="start"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <div>
+          <div className="text-xs font-medium mb-1.5">Próximo contacto</div>
+          <Calendar
+            mode="single"
+            selected={selected}
+            onSelect={(d) => { if (d) void save({ next_contact_at: toDbDate(d) }); }}
+            className="rounded-md border"
+          />
+          {lead.next_contact_at && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="mt-1 h-7 px-2 text-[11px] text-destructive"
+              onClick={() => void save({ next_contact_at: null })}
+            >
+              Limpiar fecha
+            </Button>
+          )}
+        </div>
+        <div>
+          <div className="text-xs font-medium mb-1.5">Nota</div>
+          <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={1000} placeholder="Observaciones de seguimiento…" />
+        </div>
+        <div className="flex justify-end">
+          <Button size="sm" disabled={update.isPending} onClick={async () => { await save({ notes }); setOpen(false); }}>
+            Guardar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function LeadCard({ lead, dragging }: { lead: LeadRow; dragging?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: lead.id });
   const style = transform ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` } : undefined;
+  const isAdmin = useHasRole("admin");
   return (
     <div
       ref={setNodeRef}
@@ -108,10 +207,25 @@ function LeadCard({ lead, dragging }: { lead: LeadRow; dragging?: boolean }) {
           <div className="text-xs text-muted-foreground truncate">{lead.interest}</div>
           <div className="mt-2 flex items-center justify-between text-xs">
             <span className="font-semibold text-primary">{fmtMoney(Number(lead.budget))}</span>
-            <span className="text-muted-foreground">{lead.agent?.full_name?.split(" ")[0] ?? ""}</span>
+            {isAdmin && <span className="text-muted-foreground">{lead.agent?.full_name?.split(" ")[0] ?? ""}</span>}
           </div>
           <div className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
             <Phone className="h-3 w-3" />{lead.phone}
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            {lead.next_contact_at ? (
+              <span className={cn(
+                "text-[11px] px-2 py-0.5 rounded-md",
+                isOverdue(lead.next_contact_at, lead.status)
+                  ? "bg-destructive/10 text-destructive font-medium"
+                  : "bg-muted text-muted-foreground",
+              )}>
+                Próx: {fmtShort(parseDbDate(lead.next_contact_at)!)}
+              </span>
+            ) : (
+              <span className="text-[11px] text-muted-foreground/60">Sin seguimiento</span>
+            )}
+            <FollowUpEditor lead={lead} />
           </div>
         </div>
       </div>
