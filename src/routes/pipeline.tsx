@@ -143,7 +143,7 @@ function FollowUpEditor({ lead }: { lead: LeadRow }) {
         <Button
           size="sm"
           variant="ghost"
-          className="h-7 px-2 gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+          className="h-7 px-2 gap-1 shrink-0 whitespace-nowrap text-[11px] text-muted-foreground hover:text-foreground"
           aria-label="Seguimiento"
           onPointerDown={(e) => e.stopPropagation()}
         >
@@ -212,10 +212,10 @@ function LeadCard({ lead, dragging }: { lead: LeadRow; dragging?: boolean }) {
           <div className="mt-2 flex items-center gap-1 text-[11px] text-muted-foreground">
             <Phone className="h-3 w-3" />{lead.phone}
           </div>
-          <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="mt-2 flex items-center justify-between gap-2 min-w-0">
             {lead.next_contact_at ? (
               <span className={cn(
-                "text-[11px] px-2 py-0.5 rounded-md",
+                "text-[11px] px-2 py-0.5 rounded-md truncate min-w-0",
                 isOverdue(lead.next_contact_at, lead.status)
                   ? "bg-destructive/10 text-destructive font-medium"
                   : "bg-muted text-muted-foreground",
@@ -223,7 +223,7 @@ function LeadCard({ lead, dragging }: { lead: LeadRow; dragging?: boolean }) {
                 Próx: {fmtShort(parseDbDate(lead.next_contact_at)!)}
               </span>
             ) : (
-              <span className="text-[11px] text-muted-foreground/60">Sin seguimiento</span>
+              <span className="text-[11px] text-muted-foreground/60 truncate min-w-0">Sin seguimiento</span>
             )}
             <FollowUpEditor lead={lead} />
           </div>
