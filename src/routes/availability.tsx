@@ -35,7 +35,7 @@ import {
 } from "@/data/availabilityApi";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
+import { useHasRole } from "@/hooks/useAuth";
 
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
 
@@ -60,10 +60,9 @@ const STATUS_DOT: Record<AvailabilityStatus, string> = {
 };
 
 function AvailabilityPage() {
-  const { user } = useAuth();
-  const isAuthed = !!user;
-  // Any authenticated user can manage inventory now (admin gating removed at the data layer too)
-  const isAdmin = isAuthed;
+  // Solo el admin administra el inventario: crear/actualizar en lote/editar/marcar vendido/eliminar.
+  // Los agentes ven la matriz y generan el PDF (RLS refuerza esto en la base de datos).
+  const isAdmin = useHasRole("admin");
   const { data: rows, isLoading } = useAvailabilityUnits();
   const updateUnit = useUpdateAvailabilityUnit();
   const bulkUpdate = useBulkUpdateAvailabilityStatus();
@@ -109,6 +108,9 @@ function AvailabilityPage() {
     });
     return Array.from(map.entries());
   }, [filtered]);
+
+  // Columnas visibles: 7 base + (checkbox de selección y columna de acciones) solo para admin.
+  const colCount = isAdmin ? 9 : 7;
 
   const counts = useMemo(() => ({
     total: rows.length,
@@ -258,7 +260,7 @@ function AvailabilityPage() {
       {/* Toolbar */}
       <PageCard
         title="Matriz de inventario"
-        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo · clic en ✏️ para editar`}
+        description={`${filtered.length} de ${rows.length} unidades · agrupadas por modelo${isAdmin ? " · clic en ✏️ para editar" : ""}`}
         action={
           <div className="flex flex-wrap items-center gap-2">
             {isAdmin && (
@@ -323,6 +325,7 @@ function AvailabilityPage() {
                   model={modelName}
                   items={items}
                   isAdmin={isAdmin}
+                  colCount={colCount}
                   editingId={editingId}
                   draft={draft}
                   setDraft={setDraft}
@@ -339,7 +342,7 @@ function AvailabilityPage() {
               ))}
               {grouped.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="text-center text-muted-foreground py-12">
+                  <td colSpan={colCount} className="text-center text-muted-foreground py-12">
                     Ninguna unidad coincide con los filtros actuales.
                   </td>
                 </tr>
@@ -357,43 +360,47 @@ function AvailabilityPage() {
         </div>
       </PageCard>
 
-      <BulkUpdateDialog
-        open={bulkOpen}
-        onOpenChange={setBulkOpen}
-        count={selected.size}
-        status={bulkStatus}
-        setStatus={setBulkStatus}
-        onApply={applyBulk}
-      />
-
       <PdfPreviewDialog
         open={pdfOpen}
         onOpenChange={setPdfOpen}
         groups={grouped}
       />
 
-      <CreateLoteDialog open={createOpen} onOpenChange={setCreateOpen} />
+      {isAdmin && (
+        <>
+          <BulkUpdateDialog
+            open={bulkOpen}
+            onOpenChange={setBulkOpen}
+            count={selected.size}
+            status={bulkStatus}
+            setStatus={setBulkStatus}
+            onApply={applyBulk}
+          />
 
-      <AlertDialog open={!!deletingRow} onOpenChange={(o) => !o && setDeletingRow(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar lote {deletingRow?.lot}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción elimina el lote del inventario y envía la propiedad vinculada a la papelera.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); void confirmDelete(); }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteUnit.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
-              Eliminar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          <CreateLoteDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+          <AlertDialog open={!!deletingRow} onOpenChange={(o) => !o && setDeletingRow(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Eliminar lote {deletingRow?.lot}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción elimina el lote del inventario y envía la propiedad vinculada a la papelera.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => { e.preventDefault(); void confirmDelete(); }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleteUnit.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
 
       {isLoading && (
         <div className="fixed bottom-4 right-4 rounded-full bg-card border border-border shadow px-3 py-1.5 text-xs text-muted-foreground flex items-center gap-2">
@@ -550,12 +557,13 @@ function FilterSelect({
 }
 
 function ModelGroup({
-  model, items, isAdmin, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
+  model, items, isAdmin, colCount, editingId, draft, setDraft, startEdit, cancelEdit, saveEdit,
   selected, toggleRow, quickMarkSold, expanded, toggleExpand, onDelete,
 }: {
   model: string;
   items: AvailabilityRow[];
   isAdmin: boolean;
+  colCount: number;
   editingId: string | null;
   draft: Partial<AvailabilityRow>;
   setDraft: (d: Partial<AvailabilityRow>) => void;
@@ -573,7 +581,7 @@ function ModelGroup({
   return (
     <>
       <tr className="bg-primary/[0.04] border-y border-primary/15">
-        <td colSpan={9} className="px-5 py-2.5">
+        <td colSpan={colCount} className="px-5 py-2.5">
           <div className="flex items-center gap-3">
             <ChevronDown className="h-3.5 w-3.5 text-primary" />
             <span className="font-semibold text-sm tracking-tight">{model}</span>
@@ -696,7 +704,7 @@ function ModelGroup({
             </tr>
             {isOpen && (
               <tr className="border-b border-border/60 bg-muted/10">
-                <td colSpan={9} className="px-5 py-3">
+                <td colSpan={colCount} className="px-5 py-3">
                   <HistoryLog unitId={r.id} lot={r.lot} />
                 </td>
               </tr>
