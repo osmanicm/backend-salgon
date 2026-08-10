@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Users as UsersIcon,
   Share2,
-  FileText,
   ClipboardList,
   CalendarCheck,
   Activity,
@@ -68,6 +67,8 @@ function useAgentProfiles() {
   });
 }
 
+// Se conservan todas las etiquetas para nombrar los eventos históricos en el CSV
+// de eventos, incluidos los de tipos que ya no se producen.
 const EVENT_LABEL: Record<AgentEventType, string> = {
   session_start: "Sesiones",
   property_share: "Compartidos",
@@ -76,6 +77,16 @@ const EVENT_LABEL: Record<AgentEventType, string> = {
   availability_pdf_model: "PDF disp. modelo",
   appointment_created: "Citas creadas",
 };
+
+// Tipos que se reportan en la página. `property_pdf` quedó fuera al retirarse la
+// generación de fichas desde el detalle de propiedad: ya no se generan eventos.
+const REPORTED_EVENT_TYPES: AgentEventType[] = [
+  "session_start",
+  "property_share",
+  "availability_pdf_general",
+  "availability_pdf_model",
+  "appointment_created",
+];
 
 interface AgentMetrics {
   agentId: string;
@@ -217,7 +228,6 @@ function AnalyticsPage() {
     { label: "Agentes activos", value: profiles.length, icon: UsersIcon, tint: "text-primary bg-primary/10" },
     { label: "Sesiones", value: totals.byType.session_start, icon: Activity, tint: "text-info bg-info/10" },
     { label: "Compartidos", value: totals.byType.property_share, icon: Share2, tint: "text-emerald-600 bg-emerald-500/10" },
-    { label: "PDFs propiedad", value: totals.byType.property_pdf, icon: FileText, tint: "text-amber-600 bg-amber-500/10" },
     { label: "PDFs disponibilidad", value: totals.byType.availability_pdf_general + totals.byType.availability_pdf_model, icon: ClipboardList, tint: "text-violet-600 bg-violet-500/10" },
     { label: "Citas creadas", value: totals.byType.appointment_created, icon: CalendarCheck, tint: "text-rose-600 bg-rose-500/10" },
   ];
@@ -227,11 +237,11 @@ function AnalyticsPage() {
 
   function handleExportMetrics() {
     const dateTag = new Date().toISOString().slice(0, 10);
-    const header = ["Agente", "Email", "Sesiones", "Compartidos", "PDF Prop.", "PDF Disp. Gen.", "PDF Disp. Modelo", "Citas", "Total", "Última actividad"];
+    const header = ["Agente", "Email", "Sesiones", "Compartidos", "PDF Disp. Gen.", "PDF Disp. Modelo", "Citas", "Total", "Última actividad"];
     const rows = metrics.map((m) => [
       m.name, m.email ?? "",
       m.byType.session_start, m.byType.property_share,
-      m.byType.property_pdf, m.byType.availability_pdf_general,
+      m.byType.availability_pdf_general,
       m.byType.availability_pdf_model, m.byType.appointment_created,
       m.total, m.lastActiveAt ? fmtDate(m.lastActiveAt) : "",
     ]);
@@ -356,7 +366,7 @@ function AnalyticsPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
         {kpis.map((k) => {
           const Icon = k.icon;
           return (
@@ -422,7 +432,7 @@ function AnalyticsPage() {
 
         <PageCard title="Distribución de eventos" description="Total por tipo de acción">
           <ul className="space-y-2.5">
-            {(Object.keys(EVENT_LABEL) as AgentEventType[]).map((t) => {
+            {REPORTED_EVENT_TYPES.map((t) => {
               const v = totals.byType[t];
               const pct = totals.total ? Math.round((v / totals.total) * 100) : 0;
               return (
@@ -469,7 +479,6 @@ function AnalyticsPage() {
                 <TableHead>Agente</TableHead>
                 <TableHead className="text-right">Sesiones</TableHead>
                 <TableHead className="text-right">Compartidos</TableHead>
-                <TableHead className="text-right">PDF prop.</TableHead>
                 <TableHead className="text-right">PDF disp. gen.</TableHead>
                 <TableHead className="text-right">PDF disp. modelo</TableHead>
                 <TableHead className="text-right">Citas</TableHead>
@@ -480,7 +489,7 @@ function AnalyticsPage() {
             <TableBody>
               {metrics.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                     {isLoading ? "Cargando…" : "Sin agentes con actividad."}
                   </TableCell>
                 </TableRow>
@@ -502,7 +511,6 @@ function AnalyticsPage() {
                     </TableCell>
                     <TableCell className="text-right tabular-nums">{m.byType.session_start}</TableCell>
                     <TableCell className="text-right tabular-nums">{m.byType.property_share}</TableCell>
-                    <TableCell className="text-right tabular-nums">{m.byType.property_pdf}</TableCell>
                     <TableCell className="text-right tabular-nums">{m.byType.availability_pdf_general}</TableCell>
                     <TableCell className="text-right tabular-nums">{m.byType.availability_pdf_model}</TableCell>
                     <TableCell className="text-right tabular-nums">{m.byType.appointment_created}</TableCell>
