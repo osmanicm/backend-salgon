@@ -9,7 +9,6 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Sparkles,
-  RefreshCw,
   Lock,
   MapPin,
   Calendar,
@@ -20,7 +19,6 @@ import {
   Loader2,
   ExternalLink,
   Download,
-  X,
   Trash2,
 } from "lucide-react";
 import {
@@ -51,7 +49,6 @@ import {
   useProperty,
   usePropertyMedia,
   usePropertyFiles,
-  type PropertyRow,
   type PropertyMediaRow,
   type PropertyFileRow,
   useProperties,
@@ -202,39 +199,6 @@ function PropertyDetailPage() {
   const renders = useMemo(() => media.filter((m) => m.kind === "render"), [media]);
   const videos = useMemo(() => media.filter((m) => m.kind === "video"), [media]);
 
-  const MAX_PDF_RETRIES = 3;
-  type PdfStatus = "idle" | "queued" | "generating" | "ready" | "error" | "cancelled";
-  const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [pdfAttempt, setPdfAttempt] = useState(0);
-  const [pdfError, setPdfError] = useState<string | null>(null);
-  const [pdfStatus, setPdfStatus] = useState<PdfStatus>("idle");
-  const [pdfStartedAt, setPdfStartedAt] = useState<number | null>(null);
-  const [pdfElapsedMs, setPdfElapsedMs] = useState(0);
-  const [pdfDurationMs, setPdfDurationMs] = useState<number | null>(null);
-  const pdfCancelRef = React.useRef<{ cancelled: boolean } | null>(null);
-
-  // Tick elapsed time while generating/queued
-  useEffect(() => {
-    if (pdfStatus !== "generating" && pdfStatus !== "queued") return;
-    const start = pdfStartedAt ?? Date.now();
-    const interval = setInterval(() => setPdfElapsedMs(Date.now() - start), 100);
-    return () => clearInterval(interval);
-  }, [pdfStatus, pdfStartedAt]);
-
-  // Cancel if user closes/hides the tab while generating
-  useEffect(() => {
-    function onVisibility() {
-      if (document.visibilityState === "hidden" && pdfCancelRef.current && !pdfCancelRef.current.cancelled) {
-        pdfCancelRef.current.cancelled = true;
-      }
-    }
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibility);
-      if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
-    };
-  }, []);
-
   if (propertyQuery.isLoading) {
     return <PropertyDetailSkeleton />;
   }
@@ -249,109 +213,6 @@ function PropertyDetailPage() {
         </PageCard>
       </AppShell>
     );
-  }
-
-  function cancelPdf() {
-    if (pdfCancelRef.current) pdfCancelRef.current.cancelled = true;
-    setPdfStatus("cancelled");
-    setGeneratingPdf(false);
-    toast.message("Generación cancelada");
-  }
-
-  async function handleGeneratePdf(isRetry = false) {
-    if (!property || generatingPdf) return;
-    const attempt = isRetry ? pdfAttempt + 1 : 1;
-    const token = { cancelled: false };
-    pdfCancelRef.current = token;
-    setPdfAttempt(attempt);
-    setGeneratingPdf(true);
-    setPdfError(null);
-    setPdfDurationMs(null);
-    setPdfElapsedMs(0);
-    const startedAt = Date.now();
-    setPdfStartedAt(startedAt);
-    setPdfStatus("queued");
-
-    const loadingMsg = isRetry
-      ? `Reintentando Ficha PDF… (intento ${attempt} de ${MAX_PDF_RETRIES})`
-      : "Generando Ficha PDF…";
-    const t = toast.loading(loadingMsg);
-
-    // Brief queued phase to surface the "En cola" state
-    await new Promise((r) => setTimeout(r, 250));
-    if (token.cancelled) {
-      toast.dismiss(t);
-      return;
-    }
-    setPdfStatus("generating");
-
-    try {
-      await generatePropertyPdf(property);
-      if (token.cancelled) {
-        toast.dismiss(t);
-        return;
-      }
-      const duration = Date.now() - startedAt;
-      setPdfDurationMs(duration);
-      setPdfStatus("ready");
-      toast.success(`Ficha PDF lista en ${(duration / 1000).toFixed(1)}s.`, { id: t });
-      setPdfAttempt(0);
-      setPdfError(null);
-      void logAgentEvent({ type: "property_pdf", propertyId: property.id, model: property.model });
-    } catch (e) {
-      if (token.cancelled) {
-        toast.dismiss(t);
-        return;
-      }
-      const raw = e instanceof Error ? e.message : String(e);
-      const isPopupBlocked = /popup/i.test(raw);
-      const baseDescription = isPopupBlocked
-        ? "Tu navegador bloqueó la ventana emergente. Permite popups para este sitio e inténtalo de nuevo."
-        : raw || "Ocurrió un error inesperado.";
-      setPdfError(baseDescription);
-      setPdfStatus("error");
-      setPdfDurationMs(Date.now() - startedAt);
-
-      if (attempt >= MAX_PDF_RETRIES) {
-        toast.error("Se alcanzó el máximo de reintentos", {
-          id: t,
-          description: `${baseDescription} Intentos: ${attempt}/${MAX_PDF_RETRIES}. Espera unos segundos antes de volver a intentar.`,
-          duration: 12000,
-          action: {
-            label: "Empezar de nuevo",
-            onClick: () => {
-              setPdfAttempt(0);
-              setPdfError(null);
-              void handleGeneratePdf(false);
-            },
-          },
-        });
-      } else {
-        toast.error("No se pudo generar el PDF", {
-          id: t,
-          description: `${baseDescription} (Intento ${attempt}/${MAX_PDF_RETRIES})`,
-          duration: 10000,
-          action: {
-            label: `Reintentar (${MAX_PDF_RETRIES - attempt} restantes)`,
-            onClick: () => {
-              void handleGeneratePdf(true);
-            },
-          },
-        });
-      }
-    } finally {
-      setGeneratingPdf(false);
-      if (pdfCancelRef.current === token) pdfCancelRef.current = null;
-    }
-  }
-  function handleRetryPdf() {
-    if (pdfAttempt >= MAX_PDF_RETRIES) {
-      setPdfAttempt(0);
-      setPdfError(null);
-      void handleGeneratePdf(false);
-    } else {
-      void handleGeneratePdf(true);
-    }
   }
 
   return (
@@ -430,21 +291,7 @@ function PropertyDetailPage() {
               {filesQuery.isLoading ? (
                 <FichaPdfTabSkeleton />
               ) : (
-                <FichaPdfTab
-                  property={property}
-                  files={files}
-                  onGenerate={() => handleGeneratePdf()}
-                  onRetry={handleRetryPdf}
-                  onCancel={cancelPdf}
-                  generating={generatingPdf}
-                  canManage={canManage}
-                  error={pdfError}
-                  attempt={pdfAttempt}
-                  maxRetries={MAX_PDF_RETRIES}
-                  status={pdfStatus}
-                  elapsedMs={pdfElapsedMs}
-                  durationMs={pdfDurationMs}
-                />
+                <FichaPdfTab files={files} canManage={canManage} />
               )}
             </TabsContent>
 
@@ -806,210 +653,20 @@ function VideoGallery({ items, zipBaseName }: { items: PropertyMediaRow[]; zipBa
   );
 }
 
-type PdfStatusValue = "idle" | "queued" | "generating" | "ready" | "error" | "cancelled";
-
-function PdfStatusIndicator({
-  status,
-  elapsedMs,
-  durationMs,
-  attempt,
-  maxRetries,
-}: {
-  status: PdfStatusValue;
-  elapsedMs: number;
-  durationMs: number | null;
-  attempt: number;
-  maxRetries: number;
-}) {
-  if (status === "idle") return null;
-  const meta: Record<PdfStatusValue, { label: string; cls: string; dot: string }> = {
-    idle: { label: "Inactivo", cls: "", dot: "" },
-    queued: {
-      label: "En cola",
-      cls: "border-amber-500/40 bg-amber-500/5 text-amber-700 dark:text-amber-400",
-      dot: "bg-amber-500",
-    },
-    generating: {
-      label: "Generando",
-      cls: "border-primary/40 bg-primary/5 text-primary",
-      dot: "bg-primary",
-    },
-    ready: {
-      label: "Listo",
-      cls: "border-emerald-500/40 bg-emerald-500/5 text-emerald-700 dark:text-emerald-400",
-      dot: "bg-emerald-500",
-    },
-    error: {
-      label: "Error",
-      cls: "border-destructive/50 bg-destructive/5 text-destructive",
-      dot: "bg-destructive",
-    },
-    cancelled: {
-      label: "Cancelado",
-      cls: "border-border bg-muted text-muted-foreground",
-      dot: "bg-muted-foreground",
-    },
-  };
-  const m = meta[status];
-  const live = status === "queued" || status === "generating";
-  const seconds = ((live ? elapsedMs : durationMs ?? elapsedMs) / 1000).toFixed(1);
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${m.cls}`}
-      role="status"
-      aria-live="polite"
-    >
-      <span className="relative flex h-1.5 w-1.5">
-        {live && (
-          <span className={`absolute inline-flex h-full w-full rounded-full ${m.dot} opacity-60 animate-ping`} />
-        )}
-        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${m.dot}`} />
-      </span>
-      <span>{m.label}</span>
-      <span className="tabular-nums opacity-80">· {seconds}s</span>
-      {attempt > 0 && (status === "generating" || status === "error" || status === "queued") && (
-        <span className="opacity-70">· {attempt}/{maxRetries}</span>
-      )}
-    </span>
-  );
-}
-
 function FichaPdfTab({
-  property,
   files,
-  onGenerate,
-  onRetry,
-  onCancel,
-  generating,
   canManage,
-  error,
-  attempt,
-  maxRetries,
-  status,
-  elapsedMs,
-  durationMs,
 }: {
-  property: PropertyRow;
   files: PropertyFileRow[];
-  onGenerate: () => void;
-  onRetry: () => void;
-  onCancel: () => void;
-  generating: boolean;
   canManage: boolean;
-  error: string | null;
-  attempt: number;
-  maxRetries: number;
-  status: PdfStatusValue;
-  elapsedMs: number;
-  durationMs: number | null;
 }) {
-  const [printing, setPrinting] = useState(false);
-
-  async function handlePrintable() {
-    setPrinting(true);
-    try {
-      await generatePropertyPdf(property);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo abrir la versión imprimible");
-    } finally {
-      setPrinting(false);
-    }
-  }
   const pdfs = files.filter(
     (f) => f.mime_type === "application/pdf" || /\.pdf($|\?)/i.test(f.url)
   );
   const ficha = pdfs.find((f) => /ficha/i.test(f.label)) ?? pdfs[0] ?? null;
-  const reachedMax = attempt >= maxRetries;
-  const remaining = Math.max(0, maxRetries - attempt);
-  const live = status === "queued" || status === "generating";
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={onGenerate} disabled={generating} className="gap-1.5">
-          {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-          {generating ? "Generando Ficha…" : "Generar Ficha (PDF)"}
-        </Button>
-        {live && (
-          <Button size="sm" variant="outline" onClick={onCancel} className="gap-1.5">
-            <X className="h-3.5 w-3.5" /> Cancelar
-          </Button>
-        )}
-        <PdfStatusIndicator
-          status={status}
-          elapsedMs={elapsedMs}
-          durationMs={durationMs}
-          attempt={attempt}
-          maxRetries={maxRetries}
-        />
-        {ficha && (
-          <a
-            href={ficha.url}
-            target="_blank"
-            rel="noreferrer"
-            download
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-sm hover:bg-muted transition-colors"
-          >
-            <Download className="h-4 w-4 text-primary" /> Descargar ficha actual
-          </a>
-        )}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={handlePrintable}
-          disabled={printing}
-          title="Abre una versión lista para imprimir o guardar como PDF desde el navegador"
-        >
-          {printing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
-          Versión imprimible
-        </Button>
-        {ficha && (
-          <a
-            href={ficha.url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          >
-            <ExternalLink className="h-3.5 w-3.5" /> Abrir en pestaña nueva
-          </a>
-        )}
-      </div>
-
-      {(status === "error" || error) && !generating && (
-        <div className="rounded-lg border border-destructive/50 bg-destructive/5 px-3 py-2.5 text-sm space-y-2">
-          <div className="flex items-start gap-2">
-            <span className="text-destructive font-medium">Error al generar la Ficha PDF</span>
-            {attempt > 0 && (
-              <span className="text-[11px] text-muted-foreground ml-auto shrink-0">
-                Intento {attempt}/{maxRetries}
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">{error}</p>
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onRetry}
-              disabled={generating}
-              className="gap-1.5"
-            >
-              <RefreshCw className="h-3.5 w-3.5" />
-              {reachedMax
-                ? "Empezar de nuevo"
-                : `Reintentar generación${remaining ? ` (${remaining} restantes)` : ""}`}
-            </Button>
-            {reachedMax && (
-              <span className="text-[11px] text-muted-foreground">
-                Se alcanzó el máximo de reintentos. Esto reiniciará el contador.
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
       {ficha ? (
         <div className="rounded-lg border border-border overflow-hidden bg-muted">
           <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-background">
@@ -1038,7 +695,7 @@ function FichaPdfTab({
           <FileDown className="h-8 w-8 mx-auto text-muted-foreground" />
           <div className="text-sm font-medium">No hay Ficha PDF cargada</div>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Genera una ficha automática con los datos de la propiedad o sube tu propio PDF
+            Aún no se ha subido una Ficha PDF para esta propiedad
             {canManage ? (
               <>
                 {" "}desde{" "}
@@ -1100,81 +757,6 @@ function DownloadGroup({
       <span className="ml-auto text-xs text-muted-foreground">{items.length}</span>
     </Button>
   );
-}
-
-// --- Simple client-side PDF generator (HTML → print) ---
-function generatePropertyPdf(property: PropertyRow): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
-    if (!w) {
-      reject(new Error("Tu navegador bloqueó la ventana del PDF. Permite popups e intenta de nuevo."));
-      return;
-    }
-  const fmt = (v: number) =>
-    new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(v);
-  const html = `<!doctype html>
-<html lang="es"><head><meta charset="utf-8" />
-<title>Ficha ${property.code} — ${property.title}</title>
-<style>
-  *{box-sizing:border-box} body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;margin:32px}
-  h1{font-size:22px;margin:0 0 4px} .muted{color:#64748b;font-size:12px}
-  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#eef2ff;color:#3730a3;margin-left:8px}
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
-  .cell{border:1px solid #e2e8f0;border-radius:8px;padding:10px}
-  .cell .label{font-size:10px;text-transform:uppercase;color:#64748b;letter-spacing:.04em}
-  .cell .value{font-size:14px;font-weight:600;margin-top:2px}
-  img.cover{width:100%;height:280px;object-fit:cover;border-radius:12px;margin-top:12px}
-  .notes{margin-top:16px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;font-size:13px;white-space:pre-wrap}
-  .foot{margin-top:24px;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:8px}
-  @media print{ body{margin:16mm} .noprint{display:none} }
-</style></head><body>
-  <h1>${escapeHtml(property.title)} <span class="badge">${escapeHtml(property.status)}</span></h1>
-  <div class="muted">Folio ${escapeHtml(property.code)} · ${escapeHtml(property.location)}</div>
-  ${property.image_url ? `<img class="cover" src="${escapeHtml(normalizeImageUrl(property.image_url))}" />` : ""}
-  <div class="grid">
-    <div class="cell"><div class="label">Modelo</div><div class="value">${escapeHtml(property.model || "—")}</div></div>
-    <div class="cell"><div class="label">Lote</div><div class="value">${escapeHtml(property.lot || "—")}</div></div>
-    <div class="cell"><div class="label">Precio</div><div class="value">${fmt(Number(property.price))}</div></div>
-    <div class="cell"><div class="label">Recámaras</div><div class="value">${property.bedrooms}</div></div>
-    <div class="cell"><div class="label">Baños</div><div class="value">${property.bathrooms}</div></div>
-    <div class="cell"><div class="label">Área</div><div class="value">${property.area} m²</div></div>
-    <div class="cell"><div class="label">Fecha de entrega</div><div class="value">${
-      property.delivery_date
-        ? new Date(property.delivery_date).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })
-        : "Por definir"
-    }</div></div>
-    <div class="cell" style="grid-column:span 2"><div class="label">Ubicación</div><div class="value">${escapeHtml(
-      property.location
-    )}</div></div>
-  </div>
-  ${property.notes ? `<div class="notes"><strong>Notas:</strong><br/>${escapeHtml(property.notes)}</div>` : ""}
-  <div class="foot">Generado ${new Date().toLocaleString("es-MX")} · Salgon · Ficha de propiedad</div>
-  <div class="noprint" style="margin-top:16px;text-align:center">
-    <button onclick="window.print()" style="padding:8px 16px;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;font-weight:600">Imprimir / Guardar PDF</button>
-  </div>
-  <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300))</script>
-</body></html>`;
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-    const done = () => resolve();
-    if (w.document.readyState === "complete") {
-      setTimeout(done, 400);
-    } else {
-      w.addEventListener("load", () => setTimeout(done, 400), { once: true });
-      // Safety timeout in case 'load' never fires
-      setTimeout(done, 3000);
-    }
-  });
-}
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
 
 function ModelAvailabilityPdfButton({ model }: { model?: string | null }) {

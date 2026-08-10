@@ -18,10 +18,7 @@ export function FichaPdfTabSkeleton() {
         <Skeleton className="h-4 w-40" />
       </div>
       <Skeleton className="h-3 w-72 max-w-full" />
-      <div className="flex gap-2 pt-1">
-        <Skeleton className="h-9 w-32 rounded-md" />
-        <Skeleton className="h-9 w-24 rounded-md" />
-      </div>
+      <Skeleton className="h-48 w-full rounded-md" />
     </div>
   );
 }
