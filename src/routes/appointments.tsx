@@ -119,7 +119,9 @@ function AppointmentsPage() {
         </TabsContent>
       </Tabs>
 
-      <div className="md:hidden fixed right-4 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 5rem)" }}>
+      {/* FAB móvil. Va apilado ARRIBA del lanzador del asistente (fixed, z-50, en
+          bottom safe+5.5rem con 42px de alto): a la misma altura quedaba tapado. */}
+      <div className="md:hidden fixed right-4 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 9rem)" }}>
         <NewAppointmentFab />
       </div>
     </AppShell>
