@@ -72,26 +72,36 @@ function LeadsPage() {
         title={isAdmin ? "Todos los Prospectos" : "Mis Prospectos"}
         description={isLoading ? "Cargando…" : `${filtered.length}${filtered.length !== leads.length ? ` de ${leads.length}` : ""} prospectos`}
         action={
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:flex-none">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nombre, correo, interés…" className="pl-9 w-full md:w-56" />
+          <div className="flex items-center gap-2">
+            {/* En escritorio los filtros caben en la barra del título; en móvil van en el cuerpo. */}
+            <LeadFilters
+              className="hidden md:flex"
+              q={q}
+              setQ={setQ}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+            />
+            {/* Móvil: botón redondo en la línea del título, con el mismo diámetro (42px)
+                que el lanzador del asistente. Antes era un FAB flotante. */}
+            <div className="md:hidden">
+              <LeadFormDialog trigger={
+                <Button size="icon" aria-label="Agregar prospecto" className="h-[42px] w-[42px] rounded-full shadow-[var(--shadow-elevated)]">
+                  <Plus className="h-5 w-5" />
+                </Button>
+              } />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estatus</SelectItem>
-                <SelectItem value="New">Nuevo</SelectItem>
-                <SelectItem value="Contacted">Contactado</SelectItem>
-                <SelectItem value="Visit">Visita</SelectItem>
-                <SelectItem value="Negotiation">Negociación</SelectItem>
-                <SelectItem value="Closed">Cerrado</SelectItem>
-              </SelectContent>
-            </Select>
             <div className="hidden md:block"><LeadFormDialog /></div>
           </div>
         }
       >
+        <LeadFilters
+          className="md:hidden mb-3"
+          q={q}
+          setQ={setQ}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
+
         {!isLoading && filtered.length === 0 ? (
           <div className="text-sm text-muted-foreground py-8 text-center">
             {leads.length === 0
@@ -150,17 +160,41 @@ function LeadsPage() {
           </div>
         )}
       </PageCard>
-
-      {/* Mobile FAB. Va apilado ARRIBA del lanzador del asistente (fixed, z-50, en
-          bottom safe+5.5rem con 42px de alto): a la misma altura quedaba tapado. */}
-      <div className="md:hidden fixed right-4 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 9rem)" }}>
-        <LeadFormDialog trigger={
-          <Button size="icon" aria-label="Agregar prospecto" className="h-14 w-14 rounded-full shadow-[var(--shadow-elevated)]">
-            <Plus className="h-6 w-6" />
-          </Button>
-        } />
-      </div>
     </AppShell>
+  );
+}
+
+function LeadFilters({
+  q,
+  setQ,
+  statusFilter,
+  setStatusFilter,
+  className,
+}: {
+  q: string;
+  setQ: (v: string) => void;
+  statusFilter: string;
+  setStatusFilter: (v: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-center gap-2", className)}>
+      <div className="relative flex-1 md:flex-none">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nombre, correo, interés…" className="pl-9 w-full md:w-56" />
+      </div>
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Todos los estatus</SelectItem>
+          <SelectItem value="New">Nuevo</SelectItem>
+          <SelectItem value="Contacted">Contactado</SelectItem>
+          <SelectItem value="Visit">Visita</SelectItem>
+          <SelectItem value="Negotiation">Negociación</SelectItem>
+          <SelectItem value="Closed">Cerrado</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
