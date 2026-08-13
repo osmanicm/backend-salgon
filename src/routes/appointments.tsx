@@ -80,9 +80,13 @@ function AppointmentsPage() {
           <PageCard
             title={format(month, "MMMM yyyy", { locale: es }).replace(/^./, c => c.toUpperCase())}
             action={
-              <div className="flex gap-1">
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(subMonths(month, 1))} aria-label="Mes anterior"><ChevronLeft className="h-4 w-4" /></Button>
-                <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(addMonths(month, 1))} aria-label="Mes siguiente"><ChevronRight className="h-4 w-4" /></Button>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(subMonths(month, 1))} aria-label="Mes anterior"><ChevronLeft className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setMonth(addMonths(month, 1))} aria-label="Mes siguiente"><ChevronRight className="h-4 w-4" /></Button>
+                </div>
+                {/* En móvil el alta vive en la línea del título (en escritorio está junto a las pestañas). */}
+                <div className="md:hidden"><NewAppointmentRoundButton /></div>
               </div>
             }
           >
@@ -99,12 +103,15 @@ function AppointmentsPage() {
             title="Citas programadas"
             description={listDesc}
             action={
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cliente, propiedad…" className="pl-9 w-full md:w-56" />
+              <div className="flex items-center gap-2">
+                {/* En escritorio el buscador cabe en la barra del título; en móvil baja al cuerpo. */}
+                <AppointmentSearch className="hidden md:block" q={q} setQ={setQ} />
+                <div className="md:hidden"><NewAppointmentRoundButton /></div>
               </div>
             }
           >
+            <AppointmentSearch className="md:hidden mb-3" q={q} setQ={setQ} />
+
             {!isLoading && filtered.length === 0 ? (
               <div className="text-sm text-muted-foreground py-8 text-center">
                 {appointments.length === 0 ? "Aún no tienes citas programadas." : "Sin resultados para la búsqueda."}
@@ -118,13 +125,16 @@ function AppointmentsPage() {
           </PageCard>
         </TabsContent>
       </Tabs>
-
-      {/* FAB móvil. Va apilado ARRIBA del lanzador del asistente (fixed, z-50, en
-          bottom safe+5.5rem con 42px de alto): a la misma altura quedaba tapado. */}
-      <div className="md:hidden fixed right-4 z-30" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 9rem)" }}>
-        <NewAppointmentFab />
-      </div>
     </AppShell>
+  );
+}
+
+function AppointmentSearch({ q, setQ, className }: { q: string; setQ: (v: string) => void; className?: string }) {
+  return (
+    <div className={cn("relative", className)}>
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cliente, propiedad…" className="pl-9 w-full md:w-56" />
+    </div>
   );
 }
 
@@ -194,25 +204,24 @@ function AppointmentListItem({ appointment: a }: { appointment: AppointmentRow }
   );
 }
 
-function NewAppointmentFab() {
+/** Botón redondo de alta para móvil: 42px, el mismo diámetro que el lanzador del asistente. */
+function NewAppointmentRoundButton() {
+  return (
+    <NewAppointmentDialog trigger={
+      <Button size="icon" aria-label="Nueva cita" className="h-[42px] w-[42px] rounded-full shadow-[var(--shadow-elevated)]">
+        <Plus className="h-5 w-5" />
+      </Button>
+    } />
+  );
+}
+
+function NewAppointmentDialog({ trigger }: { trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" className="h-14 w-14 rounded-full shadow-[var(--shadow-elevated)] bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95 transition" aria-label="Nueva cita">
-          <Plus className="h-6 w-6" />
-        </Button>
+        {trigger ?? <Button className="gap-1.5"><Plus className="h-4 w-4" /> Nueva Cita</Button>}
       </DialogTrigger>
-      <AppointmentFormDialogContent onClose={() => setOpen(false)} />
-    </Dialog>
-  );
-}
-
-function NewAppointmentDialog() {
-  const [open, setOpen] = useState(false);
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button className="gap-1.5"><Plus className="h-4 w-4" /> Nueva Cita</Button></DialogTrigger>
       <AppointmentFormDialogContent onClose={() => setOpen(false)} />
     </Dialog>
   );
