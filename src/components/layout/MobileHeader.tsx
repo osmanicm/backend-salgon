@@ -1,4 +1,4 @@
-import { Bell, Search, LogOut, User } from "lucide-react";
+import { Search, LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationsBell } from "@/components/layout/NotificationsBell";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -44,13 +45,9 @@ export function MobileHeader({ title, subtitle }: { title: string; subtitle?: st
         >
           <Search className="h-4.5 w-4.5" />
         </button>
-        <button
-          className="relative h-9 w-9 grid place-items-center rounded-full hover:bg-muted active:scale-95 transition"
-          aria-label="Notificaciones"
-        >
-          <Bell className="h-4.5 w-4.5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
-        </button>
+        {/* Campana real (mismo componente que el Topbar): abre el panel y trae el
+            contador de no leídas. Antes era un ícono decorativo con un punto fijo. */}
+        <NotificationsBell />
         {/* Mismo menú que en escritorio: se abre al tocar la foto de perfil. */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
