@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Building2, CalendarCheck, ArrowRight, ShieldAlert, X } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
+import { QuickAccess } from "@/components/common/QuickAccess";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppointments } from "@/data/appointmentsApi";
 import { useProperties } from "@/data/propertiesApi";
@@ -101,12 +102,8 @@ function AgentDashboard() {
         })}
       </div>
 
-      <PageCard title="Acciones rápidas">
-        <div className="flex flex-wrap gap-2">
-          <Link to="/properties" search={{ q: "" }} className="text-sm text-primary hover:underline">Ver propiedades</Link>
-          <span className="text-muted-foreground">·</span>
-          <Link to="/appointments" search={{ q: "" }} className="text-sm text-primary hover:underline">Agenda</Link>
-        </div>
+      <PageCard title="Acceso rápido" description="Ve directo a la sección que necesitas">
+        <QuickAccess />
       </PageCard>
     </AppShell>
   );

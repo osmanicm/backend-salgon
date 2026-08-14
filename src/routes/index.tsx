@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
+import { QuickAccess } from "@/components/common/QuickAccess";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { fmtMoney } from "@/data/mock";
 import { useAvailabilityUnits } from "@/data/availabilityApi";
@@ -77,6 +78,10 @@ function DashboardPage() {
           );
         })}
       </div>
+
+      <PageCard title="Acceso rápido" description="Ve directo a la sección que necesitas">
+        <QuickAccess />
+      </PageCard>
 
       {/* Ventas recientes (DB: availability_units) */}
       <PageCard
