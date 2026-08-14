@@ -1,5 +1,12 @@
-import { Bell, Search, LogOut } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Bell, Search, LogOut, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -44,19 +51,31 @@ export function MobileHeader({ title, subtitle }: { title: string; subtitle?: st
           <Bell className="h-4.5 w-4.5" />
           <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-gold" />
         </button>
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-primary text-primary-foreground text-[11px]">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-        <button
-          onClick={handleSignOut}
-          className="h-9 w-9 grid place-items-center rounded-full hover:bg-muted active:scale-95 transition text-muted-foreground"
-          aria-label="Cerrar sesión"
-          title="Cerrar sesión"
-        >
-          <LogOut className="h-4.5 w-4.5" />
-        </button>
+        {/* Mismo menú que en escritorio: se abre al tocar la foto de perfil. */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="rounded-full focus:outline-none active:scale-95 transition"
+              aria-label="Abrir menú de cuenta"
+            >
+              <Avatar className="h-8 w-8">
+                {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={displayName} />}
+                <AvatarFallback className="bg-primary text-primary-foreground text-[11px]">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
+              <User className="h-4 w-4 mr-2" /> Mi perfil
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+              <LogOut className="h-4 w-4 mr-2" /> Cerrar sesión
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
