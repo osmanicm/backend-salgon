@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
@@ -23,10 +23,14 @@ async function fetchAvailability(): Promise<AvailabilityUnit[]> {
 export function useAvailabilityUnits(model?: string | null) {
   const qc = useQueryClient();
   const query = useQuery({ queryKey: KEY, queryFn: fetchAvailability });
+  // El nombre del canal debe ser único por instancia: con un nombre fijo, montar
+  // el hook dos veces en la misma pantalla reusa el canal ya suscrito y Supabase
+  // lanza "cannot add postgres_changes callbacks ... after subscribe()".
+  const channelId = useId();
 
   useEffect(() => {
     const channel = supabase
-      .channel("availability_units_realtime")
+      .channel(`availability_units_realtime:${channelId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "availability_units" },
@@ -39,7 +43,7 @@ export function useAvailabilityUnits(model?: string | null) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, [qc, channelId]);
 
   const data = model
     ? (query.data ?? []).filter((r) => r.model === model)
