@@ -102,7 +102,7 @@ function AgentDashboard() {
         })}
       </div>
 
-      <PageCard title="Acceso rápido" description="Ve directo a la sección que necesitas">
+      <PageCard>
         <QuickAccess />
       </PageCard>
     </AppShell>
