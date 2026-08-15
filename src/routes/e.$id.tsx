@@ -6,12 +6,75 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { usePublicEvent, useGuestRegister, GUEST_ERRORS } from "@/data/publicEventsApi";
+import { fetchPublicEvent, useGuestRegister, GUEST_ERRORS } from "@/data/publicEventsApi";
 import { TurnstileWidget, TURNSTILE_SITE_KEY } from "@/components/common/TurnstileWidget";
 import { normalizeImageUrl } from "@/lib/imageUrl";
 import { cn } from "@/lib/utils";
 
+/** Dominio público: las URLs de Open Graph tienen que ser absolutas. */
+const SITE_URL = "https://app.salgon.com";
+
+/** Recorta la descripción para la vista previa sin cortar a media palabra. */
+function preview(text: string, max = 180) {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.lastIndexOf(" ", max);
+  return clean.slice(0, cut > 0 ? cut : max) + "…";
+}
+
+function absoluteImage(url: string | null | undefined): string | null {
+  const normalized = normalizeImageUrl(url ?? "");
+  if (!normalized) return null;
+  if (/^https?:\/\//i.test(normalized)) return normalized;
+  return `${SITE_URL}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+}
+
 export const Route = createFileRoute("/e/$id")({
+  // El loader corre en el servidor en la primera carga, así que el HTML sale con
+  // el evento dentro: es lo que leen WhatsApp, Facebook y los buscadores.
+  loader: async ({ params }) => ({ event: await fetchPublicEvent(params.id) }),
+  head: ({ loaderData, params }) => {
+    const ev = loaderData?.event ?? null;
+    const url = `${SITE_URL}/e/${params.id}`;
+
+    if (!ev) {
+      const title = "Evento no disponible · Inmobiliaria Salgon";
+      return {
+        meta: [
+          { title },
+          { name: "robots", content: "noindex" },
+          { property: "og:title", content: title },
+          { property: "og:url", content: url },
+        ],
+      };
+    }
+
+    const when = ev.starts_at
+      ? new Date(ev.starts_at).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short" })
+      : null;
+    const title = `${ev.title} · Inmobiliaria Salgon`;
+    const description = preview(
+      ev.description || [when, ev.location].filter(Boolean).join(" · ") || "Evento de Inmobiliaria Salgon",
+    );
+    const image = absoluteImage(ev.image_url);
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:type", content: "article" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { property: "og:site_name", content: "Inmobiliaria Salgon" },
+        ...(image ? [{ property: "og:image", content: image }] : []),
+        { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        ...(image ? [{ name: "twitter:image", content: image }] : []),
+      ],
+    };
+  },
   component: PublicEventPage,
 });
 
@@ -32,8 +95,7 @@ function fmtSlot(d: string) {
 }
 
 function PublicEventPage() {
-  const { id } = Route.useParams();
-  const { data: ev, isLoading } = usePublicEvent(id);
+  const { event: ev } = Route.useLoaderData();
   const register = useGuestRegister();
 
   const [form, setForm] = useState({ guest_name: "", guest_email: "", guest_phone: "", notes: "" });
@@ -45,14 +107,6 @@ function PublicEventPage() {
   const mountedAt = useRef(Date.now());
   const [turnstileToken, setTurnstileToken] = useState("");
   const handleToken = useCallback((t: string) => setTurnstileToken(t), []);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen grid place-items-center bg-gray-50">
-        <div className="animate-pulse text-sm text-gray-400">Cargando…</div>
-      </div>
-    );
-  }
 
   if (!ev) {
     return (

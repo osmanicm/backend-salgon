@@ -1,28 +1,26 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { registerEventGuest, GUEST_ERRORS } from "@/utils/publicEvents.functions";
 import type { EventRow } from "./eventsApi";
 
 /**
- * Datos de la página pública del evento (/e/{id}), que se consultan SIN sesión.
- * La RLS de `events` y `event_slots` deja leer a `anon` solo lo publicado, así que
- * un borrador devuelve null igual que un id inexistente.
+ * Evento de la página pública (/e/{id}), consultado SIN sesión. La RLS de
+ * `events` y `event_slots` deja leer a `anon` solo lo publicado, así que un
+ * borrador devuelve null igual que un id inexistente.
+ *
+ * Lo llama el `loader` de la ruta, que corre también en el servidor: así el HTML
+ * sale ya con el contenido y las etiquetas Open Graph para las vistas previas de
+ * WhatsApp y redes.
  */
-export function usePublicEvent(id: string | undefined) {
-  return useQuery({
-    enabled: !!id,
-    queryKey: ["public_event", id],
-    queryFn: async (): Promise<EventRow | null> => {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*, slots:event_slots(*)")
-        .eq("id", id!)
-        .eq("status", "Published")
-        .maybeSingle();
-      if (error) throw error;
-      return (data as unknown as EventRow | null) ?? null;
-    },
-  });
+export async function fetchPublicEvent(id: string): Promise<EventRow | null> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*, slots:event_slots(*)")
+    .eq("id", id)
+    .eq("status", "Published")
+    .maybeSingle();
+  if (error) throw error;
+  return (data as unknown as EventRow | null) ?? null;
 }
 
 export { GUEST_ERRORS };
