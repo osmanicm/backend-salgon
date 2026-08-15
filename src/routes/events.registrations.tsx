@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Download, FileSpreadsheet, Filter, Users as UsersIcon } from "lucide-react";
+import { ArrowLeft, Check, Download, FileSpreadsheet, Filter, Users as UsersIcon, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/layout/AppShell";
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
-import { useAllEventRegistrations, useEvents } from "@/data/eventsApi";
+import { useAllEventRegistrations, useEvents, useSetRegistrationStatus } from "@/data/eventsApi";
 import {
   exportRegistrationsCsv,
   exportRegistrationsPdf,
@@ -22,6 +22,10 @@ import {
 
 export const Route = createFileRoute("/events/registrations")({
   beforeLoad: async () => {
+    // En SSR no hay localStorage, así que getSession() siempre da null y esto
+    // expulsaba a /auth al recargar la página con una sesión válida. La guarda
+    // corre solo en el navegador; los datos los protege la RLS de todos modos.
+    if (typeof window === "undefined") return;
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -39,14 +43,37 @@ export const Route = createFileRoute("/events/registrations")({
   ),
 });
 
-function nameOf(r: { user?: { full_name: string | null; email: string | null } | null; user_id: string }) {
-  return r.user?.full_name || r.user?.email || r.user_id;
+function nameOf(r: {
+  user?: { full_name: string | null; email: string | null } | null;
+  user_id: string | null;
+  guest_name?: string | null;
+  guest_email?: string | null;
+}) {
+  // Los registros que llegan de la página pública no tienen cuenta: van con guest_*.
+  return r.user?.full_name || r.user?.email || r.guest_name || r.guest_email || r.user_id || "—";
 }
+
+const STATUS_ES: Record<string, { label: string; cls: string }> = {
+  Pending: { label: "Pendiente", cls: "bg-amber-50 text-amber-800 ring-1 ring-amber-200" },
+  Confirmed: { label: "Aprobado", cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" },
+  Attended: { label: "Asistió", cls: "bg-sky-50 text-sky-700 ring-1 ring-sky-200" },
+  Cancelled: { label: "Rechazado", cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-200" },
+};
 
 function EventRegistrationsPage() {
   const navigate = useNavigate();
   const regsQuery = useAllEventRegistrations();
   const { data: events = [] } = useEvents();
+  const setStatus = useSetRegistrationStatus();
+
+  async function decide(id: string, status: "Confirmed" | "Cancelled") {
+    try {
+      await setStatus.mutateAsync({ id, status });
+      toast.success(status === "Confirmed" ? "Solicitud aprobada" : "Solicitud rechazada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo actualizar la solicitud");
+    }
+  }
 
   const [eventId, setEventId] = useState<string>("all");
   const [from, setFrom] = useState<string>("");
@@ -209,18 +236,66 @@ function EventRegistrationsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre completo</TableHead>
+                  <TableHead>Origen y contacto</TableHead>
                   <TableHead>Fecha y hora de registro</TableHead>
                   <TableHead>Evento</TableHead>
+                  <TableHead>Estatus</TableHead>
+                  <TableHead className="text-right">Aprobación</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-medium">{nameOf(r)}</TableCell>
-                    <TableCell className="text-muted-foreground">{fmtRegisteredAt(r.created_at)}</TableCell>
-                    <TableCell>{r.event?.title ?? "—"}</TableCell>
-                  </TableRow>
-                ))}
+                {filtered.map((r) => {
+                  const esInvitado = !r.user_id;
+                  const st = STATUS_ES[r.status] ?? { label: r.status, cls: "bg-muted text-muted-foreground" };
+                  return (
+                    <TableRow key={r.id}>
+                      <TableCell className="font-medium">{nameOf(r)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {esInvitado ? (
+                          <>
+                            <div className="font-medium text-foreground">Página pública</div>
+                            <div>{r.guest_email}</div>
+                            {r.guest_phone && <div>{r.guest_phone}</div>}
+                          </>
+                        ) : (
+                          "Usuario de la app"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{fmtRegisteredAt(r.created_at)}</TableCell>
+                      <TableCell>{r.event?.title ?? "—"}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${st.cls}`}>
+                          {st.label}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {r.status === "Pending" ? (
+                          <div className="inline-flex gap-1">
+                            <Button
+                              size="sm"
+                              className="h-7 gap-1 text-xs"
+                              disabled={setStatus.isPending}
+                              onClick={() => void decide(r.id, "Confirmed")}
+                            >
+                              <Check className="h-3.5 w-3.5" /> Aprobar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 gap-1 text-xs text-destructive"
+                              disabled={setStatus.isPending}
+                              onClick={() => void decide(r.id, "Cancelled")}
+                            >
+                              <X className="h-3.5 w-3.5" /> Rechazar
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

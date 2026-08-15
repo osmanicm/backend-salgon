@@ -128,7 +128,9 @@ export function useEventRegistrations(eventId: string | undefined) {
       if (regs.length === 0) return [];
 
       // user_id no tiene FK a profiles, así que enriquecemos en un query aparte.
-      const userIds = [...new Set(regs.map((r) => r.user_id))];
+      // Los registros de invitados (página pública) no tienen user_id: se excluyen.
+      const userIds = [...new Set(regs.map((r) => r.user_id).filter((id): id is string => !!id))];
+      if (userIds.length === 0) return regs.map((r) => ({ ...r, user: null }));
       const { data: profiles, error: pErr } = await supabase
         .from("profiles")
         .select("id, full_name, email")
@@ -136,7 +138,7 @@ export function useEventRegistrations(eventId: string | undefined) {
       if (pErr) throw pErr;
 
       const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
-      return regs.map((r) => ({ ...r, user: byId.get(r.user_id) ?? null }));
+      return regs.map((r) => ({ ...r, user: (r.user_id ? byId.get(r.user_id) : null) ?? null }));
     },
   });
 }
@@ -162,7 +164,9 @@ export function useAllEventRegistrations() {
       if (regs.length === 0) return [];
 
       // user_id no tiene FK a profiles → enriquecemos en un query aparte.
-      const userIds = [...new Set(regs.map((r) => r.user_id))];
+      // Los registros de invitados (página pública) no tienen user_id: se excluyen.
+      const userIds = [...new Set(regs.map((r) => r.user_id).filter((id): id is string => !!id))];
+      if (userIds.length === 0) return regs.map((r) => ({ ...r, user: null }));
       const { data: profiles, error: pErr } = await supabase
         .from("profiles")
         .select("id, full_name, email")
@@ -170,7 +174,7 @@ export function useAllEventRegistrations() {
       if (pErr) throw pErr;
 
       const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
-      return regs.map((r) => ({ ...r, user: byId.get(r.user_id) ?? null }));
+      return regs.map((r) => ({ ...r, user: (r.user_id ? byId.get(r.user_id) : null) ?? null }));
     },
   });
 }
@@ -214,6 +218,25 @@ export function useRegister() {
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["event_registrations", vars.event_id] });
     },
+  });
+}
+
+/**
+ * Aprueba o rechaza un registro (admin por RLS). Lo usa la moderación de las
+ * solicitudes que llegan como "Pending" desde la página pública del evento.
+ */
+export function useSetRegistrationStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: EventRegistration["status"] }) => {
+      const { error } = await supabase
+        .from("event_registrations")
+        .update({ status })
+        .eq("id", id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["event_registrations"] }),
   });
 }
 

@@ -33,6 +33,7 @@ import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as NewsIdRouteImport } from './routes/news.$id'
 import { Route as EventsRegistrationsRouteImport } from './routes/events.registrations'
 import { Route as EventsNewRouteImport } from './routes/events.new'
+import { Route as EIdRouteImport } from './routes/e.$id'
 import { Route as EventsIdIndexRouteImport } from './routes/events.$id.index'
 import { Route as EventsIdEditRouteImport } from './routes/events.$id.edit'
 
@@ -156,6 +157,11 @@ const EventsNewRoute = EventsNewRouteImport.update({
   path: '/events/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EIdRoute = EIdRouteImport.update({
+  id: '/e/$id',
+  path: '/e/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsIdIndexRoute = EventsIdIndexRouteImport.update({
   id: '/events/$id/',
   path: '/events/$id/',
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/whatsapp-templates': typeof WhatsappTemplatesRoute
+  '/e/$id': typeof EIdRoute
   '/events/new': typeof EventsNewRoute
   '/events/registrations': typeof EventsRegistrationsRoute
   '/news/$id': typeof NewsIdRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/whatsapp-templates': typeof WhatsappTemplatesRoute
+  '/e/$id': typeof EIdRoute
   '/events/new': typeof EventsNewRoute
   '/events/registrations': typeof EventsRegistrationsRoute
   '/news/$id': typeof NewsIdRoute
@@ -243,6 +251,7 @@ export interface FileRoutesById {
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/whatsapp-templates': typeof WhatsappTemplatesRoute
+  '/e/$id': typeof EIdRoute
   '/events/new': typeof EventsNewRoute
   '/events/registrations': typeof EventsRegistrationsRoute
   '/news/$id': typeof NewsIdRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/whatsapp-templates'
+    | '/e/$id'
     | '/events/new'
     | '/events/registrations'
     | '/news/$id'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/whatsapp-templates'
+    | '/e/$id'
     | '/events/new'
     | '/events/registrations'
     | '/news/$id'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/whatsapp-templates'
+    | '/e/$id'
     | '/events/new'
     | '/events/registrations'
     | '/news/$id'
@@ -358,6 +370,7 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
   WhatsappTemplatesRoute: typeof WhatsappTemplatesRoute
+  EIdRoute: typeof EIdRoute
   EventsNewRoute: typeof EventsNewRoute
   EventsRegistrationsRoute: typeof EventsRegistrationsRoute
   PIdRoute: typeof PIdRoute
@@ -536,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/e/$id': {
+      id: '/e/$id'
+      path: '/e/$id'
+      fullPath: '/e/$id'
+      preLoaderRoute: typeof EIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/$id/': {
       id: '/events/$id/'
       path: '/events/$id'
@@ -594,6 +614,7 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
   WhatsappTemplatesRoute: WhatsappTemplatesRoute,
+  EIdRoute: EIdRoute,
   EventsNewRoute: EventsNewRoute,
   EventsRegistrationsRoute: EventsRegistrationsRoute,
   PIdRoute: PIdRoute,

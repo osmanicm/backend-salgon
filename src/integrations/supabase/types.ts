@@ -254,32 +254,41 @@ export type Database = {
         Row: {
           created_at: string
           event_id: string
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
           id: string
           notes: string
           slot_id: string | null
           status: Database["public"]["Enums"]["registration_status"]
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           event_id: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           notes?: string
           slot_id?: string | null
           status?: Database["public"]["Enums"]["registration_status"]
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           event_id?: string
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           notes?: string
           slot_id?: string | null
           status?: Database["public"]["Enums"]["registration_status"]
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -964,7 +973,7 @@ export type Database = {
         | "Avisos Internos"
       news_status: "Published" | "Draft"
       property_status: "Available" | "Reserved" | "Sold"
-      registration_status: "Confirmed" | "Cancelled" | "Attended"
+      registration_status: "Confirmed" | "Cancelled" | "Attended" | "Pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1120,7 +1129,7 @@ export const Constants = {
       ],
       news_status: ["Published", "Draft"],
       property_status: ["Available", "Reserved", "Sold"],
-      registration_status: ["Confirmed", "Cancelled", "Attended"],
+      registration_status: ["Confirmed", "Cancelled", "Attended", "Pending"],
     },
   },
 } as const

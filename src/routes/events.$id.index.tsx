@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, CalendarDays, MapPin, Users as UsersIcon, Star, CheckCircle2, X,
-  Plus, Trash2, Ticket, Loader2, Download, FileSpreadsheet,
+  Plus, Trash2, Ticket, Loader2, Download, FileSpreadsheet, Share2,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
@@ -24,6 +24,9 @@ import {
   exportRegistrationsPdf,
   type RegistrationExportRow,
 } from "@/lib/eventRegistrationsExport";
+
+/** Dominio público desde el que se comparten los enlaces en producción. */
+const PUBLIC_SITE_URL = "https://app.salgon.com";
 
 export const Route = createFileRoute("/events/$id/")({
   component: EventDetailPage,
@@ -69,9 +72,32 @@ function EventDetailPage() {
     } catch (e) { toast.error((e as Error).message); }
   }
 
+  /** Enlace público del evento: lo abre cualquiera, sin cuenta. */
+  async function handleShare() {
+    const base = import.meta.env.PROD ? PUBLIC_SITE_URL : window.location.origin;
+    const url = `${base}/e/${ev!.id}`;
+    const shareData = { title: ev!.title, text: `${ev!.title} · Inmobiliaria Salgon`, url };
+    // En móvil abre la hoja nativa de compartir; en escritorio copia al portapapeles.
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // El usuario canceló la hoja de compartir: caemos a copiar.
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Enlace público copiado", { description: url });
+    } catch {
+      toast.error("No se pudo copiar el enlace", { description: url });
+    }
+  }
+
   function exportRows(): RegistrationExportRow[] {
     return registrations.map((r) => ({
-      fullName: r.user?.full_name || r.user?.email || r.user_id,
+      // Los inscritos desde la página pública no tienen cuenta: van con guest_*.
+      fullName: r.user?.full_name || r.user?.email || r.guest_name || r.guest_email || r.user_id || "—",
       registeredAt: r.created_at,
       eventTitle: ev?.title ?? "—",
     }));
@@ -98,7 +124,14 @@ function EventDetailPage() {
   return (
     <AppShell title="Eventos">
       <PageCard>
-        <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/events" })} className="mb-3 -ml-2"><ArrowLeft className="h-4 w-4 mr-1" /> Volver</Button>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/events" })} className="-ml-2"><ArrowLeft className="h-4 w-4 mr-1" /> Volver</Button>
+          {ev.status === "Published" && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void handleShare()}>
+              <Share2 className="h-3.5 w-3.5" /> Compartir
+            </Button>
+          )}
+        </div>
         {img && <div className="rounded-xl overflow-hidden mb-4 aspect-video bg-muted"><img src={img} alt="" className="h-full w-full object-cover" /></div>}
         <div className="flex flex-wrap items-start gap-2 mb-2">
           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary text-primary-foreground uppercase tracking-wider">{ev.type}</span>
