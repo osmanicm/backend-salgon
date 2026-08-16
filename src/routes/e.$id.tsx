@@ -7,7 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchPublicEvent, useGuestRegister, GUEST_ERRORS } from "@/data/publicEventsApi";
-import { TurnstileWidget, TURNSTILE_SITE_KEY } from "@/components/common/TurnstileWidget";
+import {
+  TurnstileWidget,
+  TURNSTILE_SITE_KEY,
+  type TurnstileStatus,
+} from "@/components/common/TurnstileWidget";
 import { normalizeImageUrl } from "@/lib/imageUrl";
 import { cn } from "@/lib/utils";
 
@@ -106,7 +110,9 @@ function PublicEventPage() {
   const [honeypot, setHoneypot] = useState("");
   const mountedAt = useRef(Date.now());
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileStatus, setTurnstileStatus] = useState<TurnstileStatus>("loading");
   const handleToken = useCallback((t: string) => setTurnstileToken(t), []);
+  const handleStatus = useCallback((s: TurnstileStatus) => setTurnstileStatus(s), []);
 
   if (!ev) {
     return (
@@ -136,7 +142,11 @@ function PublicEventPage() {
       return;
     }
     if (TURNSTILE_SITE_KEY && !turnstileToken) {
-      setError("Marca la casilla de verificación para continuar.");
+      setError(
+        turnstileStatus === "error"
+          ? "No pudimos cargar la verificación de seguridad. Desactiva el bloqueador de anuncios o recarga la página; si sigue igual, escríbenos por WhatsApp."
+          : "Espera a que termine la verificación de seguridad y vuelve a intentarlo.",
+      );
       return;
     }
     try {
@@ -318,7 +328,13 @@ function PublicEventPage() {
                 />
               </div>
 
-              <TurnstileWidget onToken={handleToken} />
+              <TurnstileWidget onToken={handleToken} onStatus={handleStatus} />
+              {turnstileStatus === "error" && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                  No pudimos cargar la verificación de seguridad. Desactiva el bloqueador de anuncios
+                  o recarga la página para poder enviar tu solicitud.
+                </p>
+              )}
 
               {error && (
                 <p role="alert" className="text-sm text-destructive">{error}</p>

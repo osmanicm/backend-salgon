@@ -19,7 +19,17 @@ declare global {
   }
 }
 
-export const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+/**
+ * La site key es pública por diseño (viaja en el HTML) y está atada a los
+ * hostnames configurados en Cloudflare, así que vive en el código: si dependiera
+ * de un .env ausente, el captcha se apagaría en silencio en cualquier build hecho
+ * desde otra máquina. `VITE_TURNSTILE_SITE_KEY` la sobreescribe si hace falta
+ * (por ejemplo, para un widget de pruebas).
+ */
+const DEFAULT_SITE_KEY = "0x4AAAAAAER8XagMvLbO0YIG";
+
+export const TURNSTILE_SITE_KEY =
+  (import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined) || DEFAULT_SITE_KEY;
 
 function loadScript(): Promise<void> {
   if (window.turnstile) return Promise.resolve();
@@ -41,7 +51,16 @@ function loadScript(): Promise<void> {
   });
 }
 
-export function TurnstileWidget({ onToken }: { onToken: (token: string) => void }) {
+export type TurnstileStatus = "loading" | "ready" | "error";
+
+export function TurnstileWidget({
+  onToken,
+  onStatus,
+}: {
+  onToken: (token: string) => void;
+  /** Permite al formulario explicar por qué no puede enviarse si el reto falla. */
+  onStatus?: (status: TurnstileStatus) => void;
+}) {
   const boxRef = useRef<HTMLDivElement | null>(null);
   const widgetId = useRef<string | null>(null);
 
@@ -54,13 +73,21 @@ export function TurnstileWidget({ onToken }: { onToken: (token: string) => void 
         if (cancelled || !window.turnstile || !boxRef.current) return;
         widgetId.current = window.turnstile.render(boxRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
-          callback: (token: string) => onToken(token),
+          callback: (token: string) => {
+            onStatus?.("ready");
+            onToken(token);
+          },
           "expired-callback": () => onToken(""),
-          "error-callback": () => onToken(""),
+          // Dominio no autorizado, bloqueadores, red caída: el visitante nunca
+          // obtendrá token, así que hay que decírselo en vez de dejarlo atorado.
+          "error-callback": () => {
+            onStatus?.("error");
+            onToken("");
+          },
         });
       })
       .catch(() => {
-        // Si el script no carga, el envío sigue protegido por honeypot y tiempo.
+        if (!cancelled) onStatus?.("error");
       });
 
     return () => {
