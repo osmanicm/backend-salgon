@@ -19,6 +19,8 @@ import {
   exportRegistrationsCsv,
   exportRegistrationsPdf,
   fmtRegisteredAt,
+  fmtCheckedIn,
+  REGISTRATION_STATUS_LABEL,
   type RegistrationExportRow,
 } from "@/lib/eventRegistrationsExport";
 
@@ -55,11 +57,11 @@ function nameOf(r: {
   return r.user?.full_name || r.user?.email || r.guest_name || r.guest_email || r.user_id || "—";
 }
 
-const STATUS_ES: Record<string, { label: string; cls: string }> = {
-  Pending: { label: "Pendiente", cls: "bg-amber-50 text-amber-800 ring-1 ring-amber-200" },
-  Confirmed: { label: "Aprobado", cls: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" },
-  Attended: { label: "Asistió", cls: "bg-sky-50 text-sky-700 ring-1 ring-sky-200" },
-  Cancelled: { label: "Rechazado", cls: "bg-rose-50 text-rose-700 ring-1 ring-rose-200" },
+const STATUS_CLS: Record<string, string> = {
+  Pending: "bg-amber-50 text-amber-800 ring-1 ring-amber-200",
+  Confirmed: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  Attended: "bg-sky-50 text-sky-700 ring-1 ring-sky-200",
+  Cancelled: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
 };
 
 function EventRegistrationsPage() {
@@ -92,6 +94,7 @@ function EventRegistrationsPage() {
   }
 
   const [eventId, setEventId] = useState<string>("all");
+  const [status, setStatus] = useState<string>("all");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
 
@@ -102,12 +105,15 @@ function EventRegistrationsPage() {
     const toMs = to ? new Date(to + "T23:59:59.999").getTime() : undefined;
     return all.filter((r) => {
       if (eventId !== "all" && r.event_id !== eventId) return false;
+      if (status === "attended" ? !r.checked_in_at : status !== "all" && r.status !== status) return false;
       const t = new Date(r.created_at).getTime();
       if (fromMs !== undefined && t < fromMs) return false;
       if (toMs !== undefined && t > toMs) return false;
       return true;
     });
-  }, [all, eventId, from, to]);
+  }, [all, eventId, status, from, to]);
+
+  const asistieron = useMemo(() => filtered.filter((r) => !!r.checked_in_at).length, [filtered]);
 
   const exportRows: RegistrationExportRow[] = useMemo(
     () =>
@@ -115,6 +121,8 @@ function EventRegistrationsPage() {
         fullName: nameOf(r),
         registeredAt: r.created_at,
         eventTitle: r.event?.title ?? "—",
+        status: r.status,
+        checkedInAt: r.checked_in_at,
       })),
     [filtered],
   );
@@ -164,7 +172,7 @@ function EventRegistrationsPage() {
         description={
           regsQuery.isLoading
             ? "Cargando…"
-            : `${filtered.length} de ${all.length} inscripciones`
+            : `${filtered.length} de ${all.length} inscripciones · ${asistieron} con entrada registrada`
         }
         action={
           <div className="flex flex-wrap items-center gap-2">
@@ -213,6 +221,21 @@ function EventRegistrationsPage() {
             </Select>
           </div>
           <div className="space-y-1">
+            <Label className="text-xs">Estatus</Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="h-9 w-[190px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estatus</SelectItem>
+                <SelectItem value="attended">Solo con entrada</SelectItem>
+                <SelectItem value="Pending">Pendientes</SelectItem>
+                <SelectItem value="Confirmed">Aprobados</SelectItem>
+                <SelectItem value="Cancelled">Rechazados</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs">Desde</Label>
             <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-9 w-[160px]" />
           </div>
@@ -220,12 +243,13 @@ function EventRegistrationsPage() {
             <Label className="text-xs">Hasta</Label>
             <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 w-[160px]" />
           </div>
-          {(eventId !== "all" || from || to) && (
+          {(eventId !== "all" || status !== "all" || from || to) && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
                 setEventId("all");
+                setStatus("all");
                 setFrom("");
                 setTo("");
               }}
@@ -256,13 +280,15 @@ function EventRegistrationsPage() {
                   <TableHead>Fecha y hora de registro</TableHead>
                   <TableHead>Evento</TableHead>
                   <TableHead>Estatus</TableHead>
+                  <TableHead>Entrada</TableHead>
                   <TableHead className="text-right">Aprobación</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => {
                   const esInvitado = !r.user_id;
-                  const st = STATUS_ES[r.status] ?? { label: r.status, cls: "bg-muted text-muted-foreground" };
+                  const label = REGISTRATION_STATUS_LABEL[r.status] ?? r.status;
+                  const cls = STATUS_CLS[r.status] ?? "bg-muted text-muted-foreground";
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{nameOf(r)}</TableCell>
@@ -280,9 +306,12 @@ function EventRegistrationsPage() {
                       <TableCell className="text-muted-foreground">{fmtRegisteredAt(r.created_at)}</TableCell>
                       <TableCell>{r.event?.title ?? "—"}</TableCell>
                       <TableCell>
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${st.cls}`}>
-                          {st.label}
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${cls}`}>
+                          {label}
                         </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground whitespace-nowrap">
+                        {fmtCheckedIn(r.checked_in_at)}
                       </TableCell>
                       <TableCell className="text-right">
                         {r.status === "Pending" ? (

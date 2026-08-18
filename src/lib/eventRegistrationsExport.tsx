@@ -1,11 +1,23 @@
 import { downloadCsv } from "@/lib/csv";
 
-/** Fila de inscrito lista para exportar. `registeredAt` en ISO. */
+/** Fila de inscrito lista para exportar. Fechas en ISO. */
 export interface RegistrationExportRow {
   fullName: string;
   registeredAt: string;
   eventTitle: string;
+  /** Estatus crudo de la inscripción; se traduce al exportar. */
+  status: string;
+  /** Hora de entrada, o null si no ha llegado. */
+  checkedInAt: string | null;
 }
+
+/** Etiquetas en español del estatus, compartidas por la tabla y las exportaciones. */
+export const REGISTRATION_STATUS_LABEL: Record<string, string> = {
+  Pending: "Pendiente",
+  Confirmed: "Aprobado",
+  Attended: "Asistió",
+  Cancelled: "Rechazado",
+};
 
 /** Día y hora legible (es-MX) para CSV/PDF. */
 export function fmtRegisteredAt(iso: string): string {
@@ -18,9 +30,20 @@ export function fmtRegisteredAt(iso: string): string {
   });
 }
 
+/** Hora de entrada; guion cuando la persona no llegó. */
+export function fmtCheckedIn(iso: string | null): string {
+  return iso ? fmtRegisteredAt(iso) : "—";
+}
+
 export function exportRegistrationsCsv(rows: RegistrationExportRow[], filenameTag: string) {
-  const header = ["Nombre completo", "Fecha y hora de registro", "Evento"];
-  const body = rows.map((r) => [r.fullName, fmtRegisteredAt(r.registeredAt), r.eventTitle]);
+  const header = ["Nombre completo", "Fecha y hora de registro", "Evento", "Estatus", "Entrada"];
+  const body = rows.map((r) => [
+    r.fullName,
+    fmtRegisteredAt(r.registeredAt),
+    r.eventTitle,
+    REGISTRATION_STATUS_LABEL[r.status] ?? r.status,
+    fmtCheckedIn(r.checkedInAt),
+  ]);
   downloadCsv([header, ...body], `inscritos-${filenameTag}.csv`);
 }
 
@@ -41,6 +64,8 @@ export async function exportRegistrationsPdf(
     fullName: r.fullName,
     registeredAt: fmtRegisteredAt(r.registeredAt),
     eventTitle: r.eventTitle,
+    status: REGISTRATION_STATUS_LABEL[r.status] ?? r.status,
+    checkedIn: fmtCheckedIn(r.checkedInAt),
   }));
   const blob = await pdf(
     <EventRegistrationsPdfDoc
@@ -48,6 +73,7 @@ export async function exportRegistrationsPdf(
       title={meta.title}
       subtitle={meta.subtitle}
       dateLabel={dateLabel}
+      attended={rows.filter((r) => !!r.checkedInAt).length}
     />,
   ).toBlob();
   const url = URL.createObjectURL(blob);

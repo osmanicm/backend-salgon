@@ -23,10 +23,12 @@ const styles = StyleSheet.create({
   trAlt: { backgroundColor: "#fafafa" },
   td: { fontSize: 9, color: "#262626" },
 
-  cNum: { width: "6%", paddingRight: 4, color: "#a3a3a3" },
-  cName: { width: "34%", paddingRight: 6 },
-  cDate: { width: "26%", paddingRight: 6 },
-  cEvent: { width: "34%", paddingRight: 2 },
+  cNum: { width: "5%", paddingRight: 4, color: "#a3a3a3" },
+  cName: { width: "25%", paddingRight: 6 },
+  cDate: { width: "19%", paddingRight: 6 },
+  cEvent: { width: "23%", paddingRight: 6 },
+  cStatus: { width: "11%", paddingRight: 6 },
+  cEntry: { width: "17%", paddingRight: 2 },
 
   empty: { paddingHorizontal: 28, paddingTop: 24, fontSize: 10, color: "#737373", textAlign: "center" },
 
@@ -37,6 +39,8 @@ export interface RegistrationPdfRow {
   fullName: string;
   registeredAt: string; // ya formateada
   eventTitle: string;
+  status: string; // ya traducida
+  checkedIn: string; // hora de entrada ya formateada, o guion
 }
 
 export interface EventRegistrationsPdfDocProps {
@@ -44,9 +48,11 @@ export interface EventRegistrationsPdfDocProps {
   title: string;
   subtitle?: string;
   dateLabel: string;
+  /** Cuántos de los inscritos llegaron; se resume en el encabezado. */
+  attended: number;
 }
 
-export function EventRegistrationsPdfDoc({ rows, title, subtitle, dateLabel }: EventRegistrationsPdfDocProps) {
+export function EventRegistrationsPdfDoc({ rows, title, subtitle, dateLabel, attended }: EventRegistrationsPdfDocProps) {
   return (
     <Document title={`Salgon · ${title}`} author="Salgon Real Estate">
       <Page size="A4" style={styles.page} wrap>
@@ -63,6 +69,8 @@ export function EventRegistrationsPdfDoc({ rows, title, subtitle, dateLabel }: E
             <Text style={styles.metaValue}>{dateLabel}</Text>
             <Text style={styles.metaLabel}>Total inscritos</Text>
             <Text style={styles.metaValue}>{rows.length}</Text>
+            <Text style={styles.metaLabel}>Asistieron</Text>
+            <Text style={styles.metaValue}>{attended}</Text>
           </View>
         </View>
 
@@ -77,6 +85,8 @@ export function EventRegistrationsPdfDoc({ rows, title, subtitle, dateLabel }: E
               <Text style={[styles.th, styles.cName]}>Nombre completo</Text>
               <Text style={[styles.th, styles.cDate]}>Fecha y hora de registro</Text>
               <Text style={[styles.th, styles.cEvent]}>Evento</Text>
+              <Text style={[styles.th, styles.cStatus]}>Estatus</Text>
+              <Text style={[styles.th, styles.cEntry]}>Entrada</Text>
             </View>
             {rows.map((r, i) => (
               <View key={i} style={[styles.tr, i % 2 ? styles.trAlt : {}]} wrap={false}>
@@ -84,6 +94,8 @@ export function EventRegistrationsPdfDoc({ rows, title, subtitle, dateLabel }: E
                 <Text style={[styles.td, styles.cName]}>{r.fullName}</Text>
                 <Text style={[styles.td, styles.cDate]}>{r.registeredAt}</Text>
                 <Text style={[styles.td, styles.cEvent]}>{r.eventTitle}</Text>
+                <Text style={[styles.td, styles.cStatus]}>{r.status}</Text>
+                <Text style={[styles.td, styles.cEntry]}>{r.checkedIn}</Text>
               </View>
             ))}
           </View>

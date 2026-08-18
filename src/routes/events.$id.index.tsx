@@ -101,6 +101,8 @@ function EventDetailPage() {
       fullName: r.user?.full_name || r.user?.email || r.guest_name || r.guest_email || r.user_id || "—",
       registeredAt: r.created_at,
       eventTitle: ev?.title ?? "—",
+      status: r.status,
+      checkedInAt: r.checked_in_at,
     }));
   }
   function handleExportCsv() {
@@ -159,7 +161,14 @@ function EventDetailPage() {
         )}
       </PageCard>
 
-      {isAdmin && ev.status === "Published" && <CheckinCard eventId={ev.id} title={ev.title} />}
+      {isAdmin && ev.status === "Published" && (
+        <CheckinCard
+          eventId={ev.id}
+          title={ev.title}
+          attended={registrations.filter((r) => !!r.checked_in_at).length}
+          approved={registrations.filter((r) => r.status === "Confirmed" || r.status === "Attended").length}
+        />
+      )}
 
       {/* RSVP / Slot picker */}
       {ev.status === "Published" && (
@@ -306,7 +315,17 @@ function AdminSlotManager({ event }: { event: EventRow }) {
  * genera el cartel imprimible cuyo QR lleva al registro por correo, el respaldo
  * para quien llegue sin su pase.
  */
-function CheckinCard({ eventId, title }: { eventId: string; title: string }) {
+function CheckinCard({
+  eventId,
+  title,
+  attended,
+  approved,
+}: {
+  eventId: string;
+  title: string;
+  attended: number;
+  approved: number;
+}) {
   const svgBox = useRef<HTMLDivElement | null>(null);
   const base = import.meta.env.PROD ? PUBLIC_SITE_URL : window.location.origin;
   const posterUrl = `${base}/e/${eventId}/checkin`;
@@ -342,7 +361,7 @@ function CheckinCard({ eventId, title }: { eventId: string; title: string }) {
   return (
     <PageCard
       title="Check-in del evento"
-      description="Escanea los pases en la puerta o imprime el cartel de respaldo"
+      description={`Entraron ${attended} de ${approved} aprobados · escanea los pases o imprime el cartel de respaldo`}
     >
       <div className="flex flex-col sm:flex-row gap-4 items-center">
         <div ref={svgBox} className="rounded-xl border border-border p-3 bg-white shrink-0">
