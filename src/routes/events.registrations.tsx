@@ -12,7 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { RouteErrorBoundary } from "@/components/layout/RouteErrorBoundary";
-import { useAllEventRegistrations, useEvents, useSetRegistrationStatus } from "@/data/eventsApi";
+import { useAllEventRegistrations, useEvents } from "@/data/eventsApi";
+import { decideRegistration } from "@/utils/eventCheckin.functions";
+import { getAuthHeaders } from "@/lib/serverFnAuth";
 import {
   exportRegistrationsCsv,
   exportRegistrationsPdf,
@@ -64,14 +66,28 @@ function EventRegistrationsPage() {
   const navigate = useNavigate();
   const regsQuery = useAllEventRegistrations();
   const { data: events = [] } = useEvents();
-  const setStatus = useSetRegistrationStatus();
+  const [deciding, setDeciding] = useState<string | null>(null);
 
+  // Aprobar pasa por el servidor porque además envía el correo con el pase (QR).
   async function decide(id: string, status: "Confirmed" | "Cancelled") {
+    setDeciding(id);
     try {
-      await setStatus.mutateAsync({ id, status });
-      toast.success(status === "Confirmed" ? "Solicitud aprobada" : "Solicitud rechazada");
+      const res = await decideRegistration({ data: { id, status }, headers: await getAuthHeaders() });
+      if (!res.ok) throw new Error(res.error ?? "No se pudo actualizar");
+      await regsQuery.refetch();
+      if (status !== "Confirmed") {
+        toast.success("Solicitud rechazada");
+      } else if (res.emailSent) {
+        toast.success("Solicitud aprobada", { description: "Se envió el correo con su pase." });
+      } else {
+        toast.success("Solicitud aprobada", {
+          description: "El correo con el pase no pudo enviarse; comparte el enlace del pase a mano.",
+        });
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "No se pudo actualizar la solicitud");
+    } finally {
+      setDeciding(null);
     }
   }
 
@@ -274,7 +290,7 @@ function EventRegistrationsPage() {
                             <Button
                               size="sm"
                               className="h-7 gap-1 text-xs"
-                              disabled={setStatus.isPending}
+                              disabled={deciding === r.id}
                               onClick={() => void decide(r.id, "Confirmed")}
                             >
                               <Check className="h-3.5 w-3.5" /> Aprobar
@@ -283,7 +299,7 @@ function EventRegistrationsPage() {
                               size="sm"
                               variant="outline"
                               className="h-7 gap-1 text-xs text-destructive"
-                              disabled={setStatus.isPending}
+                              disabled={deciding === r.id}
                               onClick={() => void decide(r.id, "Cancelled")}
                             >
                               <X className="h-3.5 w-3.5" /> Rechazar

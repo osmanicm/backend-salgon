@@ -29,11 +29,13 @@ import { Route as AgentRouteImport } from './routes/agent'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as PropertiesIdRouteImport } from './routes/properties.$id'
+import { Route as PaseTokenRouteImport } from './routes/pase.$token'
 import { Route as PIdRouteImport } from './routes/p.$id'
 import { Route as NewsIdRouteImport } from './routes/news.$id'
 import { Route as EventsRegistrationsRouteImport } from './routes/events.registrations'
 import { Route as EventsNewRouteImport } from './routes/events.new'
 import { Route as EIdRouteImport } from './routes/e.$id'
+import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
 import { Route as EventsIdIndexRouteImport } from './routes/events.$id.index'
 import { Route as EventsIdEditRouteImport } from './routes/events.$id.edit'
 
@@ -137,6 +139,11 @@ const PropertiesIdRoute = PropertiesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => PropertiesRoute,
 } as any)
+const PaseTokenRoute = PaseTokenRouteImport.update({
+  id: '/pase/$token',
+  path: '/pase/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PIdRoute = PIdRouteImport.update({
   id: '/p/$id',
   path: '/p/$id',
@@ -160,6 +167,11 @@ const EventsNewRoute = EventsNewRouteImport.update({
 const EIdRoute = EIdRouteImport.update({
   id: '/e/$id',
   path: '/e/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckinTokenRoute = CheckinTokenRouteImport.update({
+  id: '/checkin/$token',
+  path: '/checkin/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsIdIndexRoute = EventsIdIndexRouteImport.update({
@@ -192,11 +204,13 @@ export interface FileRoutesByFullPath {
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/whatsapp-templates': typeof WhatsappTemplatesRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/e/$id': typeof EIdRoute
   '/events/new': typeof EventsNewRoute
   '/events/registrations': typeof EventsRegistrationsRoute
   '/news/$id': typeof NewsIdRoute
   '/p/$id': typeof PIdRoute
+  '/pase/$token': typeof PaseTokenRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
@@ -221,11 +235,13 @@ export interface FileRoutesByTo {
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/whatsapp-templates': typeof WhatsappTemplatesRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/e/$id': typeof EIdRoute
   '/events/new': typeof EventsNewRoute
   '/events/registrations': typeof EventsRegistrationsRoute
   '/news/$id': typeof NewsIdRoute
   '/p/$id': typeof PIdRoute
+  '/pase/$token': typeof PaseTokenRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
@@ -251,11 +267,13 @@ export interface FileRoutesById {
   '/users': typeof UsersRoute
   '/whatsapp': typeof WhatsappRoute
   '/whatsapp-templates': typeof WhatsappTemplatesRoute
+  '/checkin/$token': typeof CheckinTokenRoute
   '/e/$id': typeof EIdRoute
   '/events/new': typeof EventsNewRoute
   '/events/registrations': typeof EventsRegistrationsRoute
   '/news/$id': typeof NewsIdRoute
   '/p/$id': typeof PIdRoute
+  '/pase/$token': typeof PaseTokenRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
   '/events/$id/edit': typeof EventsIdEditRoute
@@ -282,11 +300,13 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/whatsapp-templates'
+    | '/checkin/$token'
     | '/e/$id'
     | '/events/new'
     | '/events/registrations'
     | '/news/$id'
     | '/p/$id'
+    | '/pase/$token'
     | '/properties/$id'
     | '/events/'
     | '/events/$id/edit'
@@ -311,11 +331,13 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/whatsapp-templates'
+    | '/checkin/$token'
     | '/e/$id'
     | '/events/new'
     | '/events/registrations'
     | '/news/$id'
     | '/p/$id'
+    | '/pase/$token'
     | '/properties/$id'
     | '/events'
     | '/events/$id/edit'
@@ -340,11 +362,13 @@ export interface FileRouteTypes {
     | '/users'
     | '/whatsapp'
     | '/whatsapp-templates'
+    | '/checkin/$token'
     | '/e/$id'
     | '/events/new'
     | '/events/registrations'
     | '/news/$id'
     | '/p/$id'
+    | '/pase/$token'
     | '/properties/$id'
     | '/events/'
     | '/events/$id/edit'
@@ -370,10 +394,12 @@ export interface RootRouteChildren {
   UsersRoute: typeof UsersRoute
   WhatsappRoute: typeof WhatsappRoute
   WhatsappTemplatesRoute: typeof WhatsappTemplatesRoute
+  CheckinTokenRoute: typeof CheckinTokenRoute
   EIdRoute: typeof EIdRoute
   EventsNewRoute: typeof EventsNewRoute
   EventsRegistrationsRoute: typeof EventsRegistrationsRoute
   PIdRoute: typeof PIdRoute
+  PaseTokenRoute: typeof PaseTokenRoute
   EventsIndexRoute: typeof EventsIndexRoute
   EventsIdEditRoute: typeof EventsIdEditRoute
   EventsIdIndexRoute: typeof EventsIdIndexRoute
@@ -521,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropertiesIdRouteImport
       parentRoute: typeof PropertiesRoute
     }
+    '/pase/$token': {
+      id: '/pase/$token'
+      path: '/pase/$token'
+      fullPath: '/pase/$token'
+      preLoaderRoute: typeof PaseTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/p/$id': {
       id: '/p/$id'
       path: '/p/$id'
@@ -554,6 +587,13 @@ declare module '@tanstack/react-router' {
       path: '/e/$id'
       fullPath: '/e/$id'
       preLoaderRoute: typeof EIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkin/$token': {
+      id: '/checkin/$token'
+      path: '/checkin/$token'
+      fullPath: '/checkin/$token'
+      preLoaderRoute: typeof CheckinTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/$id/': {
@@ -614,10 +654,12 @@ const rootRouteChildren: RootRouteChildren = {
   UsersRoute: UsersRoute,
   WhatsappRoute: WhatsappRoute,
   WhatsappTemplatesRoute: WhatsappTemplatesRoute,
+  CheckinTokenRoute: CheckinTokenRoute,
   EIdRoute: EIdRoute,
   EventsNewRoute: EventsNewRoute,
   EventsRegistrationsRoute: EventsRegistrationsRoute,
   PIdRoute: PIdRoute,
+  PaseTokenRoute: PaseTokenRoute,
   EventsIndexRoute: EventsIndexRoute,
   EventsIdEditRoute: EventsIdEditRoute,
   EventsIdIndexRoute: EventsIdIndexRoute,

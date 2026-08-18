@@ -252,6 +252,9 @@ export type Database = {
       }
       event_registrations: {
         Row: {
+          checked_in_at: string | null
+          checked_in_by: string | null
+          checkin_token: string
           created_at: string
           event_id: string
           guest_email: string | null
@@ -265,6 +268,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          checked_in_at?: string | null
+          checked_in_by?: string | null
+          checkin_token?: string
           created_at?: string
           event_id: string
           guest_email?: string | null
@@ -278,6 +284,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          checked_in_at?: string | null
+          checked_in_by?: string | null
+          checkin_token?: string
           created_at?: string
           event_id?: string
           guest_email?: string | null
