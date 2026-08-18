@@ -38,6 +38,8 @@ import { Route as EIdRouteImport } from './routes/e.$id'
 import { Route as CheckinTokenRouteImport } from './routes/checkin.$token'
 import { Route as EventsIdIndexRouteImport } from './routes/events.$id.index'
 import { Route as EventsIdEditRouteImport } from './routes/events.$id.edit'
+import { Route as EventsIdCheckinRouteImport } from './routes/events.$id.checkin'
+import { Route as EIdCheckinRouteImport } from './routes/e_.$id.checkin'
 
 const WhatsappTemplatesRoute = WhatsappTemplatesRouteImport.update({
   id: '/whatsapp-templates',
@@ -184,6 +186,16 @@ const EventsIdEditRoute = EventsIdEditRouteImport.update({
   path: '/events/$id/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsIdCheckinRoute = EventsIdCheckinRouteImport.update({
+  id: '/events/$id/checkin',
+  path: '/events/$id/checkin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EIdCheckinRoute = EIdCheckinRouteImport.update({
+  id: '/e_/$id/checkin',
+  path: '/e/$id/checkin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -213,6 +225,8 @@ export interface FileRoutesByFullPath {
   '/pase/$token': typeof PaseTokenRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
+  '/e/$id/checkin': typeof EIdCheckinRoute
+  '/events/$id/checkin': typeof EventsIdCheckinRoute
   '/events/$id/edit': typeof EventsIdEditRoute
   '/events/$id/': typeof EventsIdIndexRoute
 }
@@ -244,6 +258,8 @@ export interface FileRoutesByTo {
   '/pase/$token': typeof PaseTokenRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events': typeof EventsIndexRoute
+  '/e/$id/checkin': typeof EIdCheckinRoute
+  '/events/$id/checkin': typeof EventsIdCheckinRoute
   '/events/$id/edit': typeof EventsIdEditRoute
   '/events/$id': typeof EventsIdIndexRoute
 }
@@ -276,6 +292,8 @@ export interface FileRoutesById {
   '/pase/$token': typeof PaseTokenRoute
   '/properties/$id': typeof PropertiesIdRoute
   '/events/': typeof EventsIndexRoute
+  '/e_/$id/checkin': typeof EIdCheckinRoute
+  '/events/$id/checkin': typeof EventsIdCheckinRoute
   '/events/$id/edit': typeof EventsIdEditRoute
   '/events/$id/': typeof EventsIdIndexRoute
 }
@@ -309,6 +327,8 @@ export interface FileRouteTypes {
     | '/pase/$token'
     | '/properties/$id'
     | '/events/'
+    | '/e/$id/checkin'
+    | '/events/$id/checkin'
     | '/events/$id/edit'
     | '/events/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -340,6 +360,8 @@ export interface FileRouteTypes {
     | '/pase/$token'
     | '/properties/$id'
     | '/events'
+    | '/e/$id/checkin'
+    | '/events/$id/checkin'
     | '/events/$id/edit'
     | '/events/$id'
   id:
@@ -371,6 +393,8 @@ export interface FileRouteTypes {
     | '/pase/$token'
     | '/properties/$id'
     | '/events/'
+    | '/e_/$id/checkin'
+    | '/events/$id/checkin'
     | '/events/$id/edit'
     | '/events/$id/'
   fileRoutesById: FileRoutesById
@@ -401,6 +425,8 @@ export interface RootRouteChildren {
   PIdRoute: typeof PIdRoute
   PaseTokenRoute: typeof PaseTokenRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  EIdCheckinRoute: typeof EIdCheckinRoute
+  EventsIdCheckinRoute: typeof EventsIdCheckinRoute
   EventsIdEditRoute: typeof EventsIdEditRoute
   EventsIdIndexRoute: typeof EventsIdIndexRoute
 }
@@ -610,6 +636,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/$id/checkin': {
+      id: '/events/$id/checkin'
+      path: '/events/$id/checkin'
+      fullPath: '/events/$id/checkin'
+      preLoaderRoute: typeof EventsIdCheckinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/e_/$id/checkin': {
+      id: '/e_/$id/checkin'
+      path: '/e/$id/checkin'
+      fullPath: '/e/$id/checkin'
+      preLoaderRoute: typeof EIdCheckinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -661,6 +701,8 @@ const rootRouteChildren: RootRouteChildren = {
   PIdRoute: PIdRoute,
   PaseTokenRoute: PaseTokenRoute,
   EventsIndexRoute: EventsIndexRoute,
+  EIdCheckinRoute: EIdCheckinRoute,
+  EventsIdCheckinRoute: EventsIdCheckinRoute,
   EventsIdEditRoute: EventsIdEditRoute,
   EventsIdIndexRoute: EventsIdIndexRoute,
 }

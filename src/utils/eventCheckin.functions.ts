@@ -138,11 +138,13 @@ export const getEventPass = createServerFn({ method: "POST" })
     return toPass(reg, name);
   });
 
-/** Marca la entrada. Idempotente: el segundo escaneo informa, no duplica. */
-export const checkInWithToken = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => z.object({ token: z.string().min(10).max(200) }).parse(d))
-  .handler(async ({ data }): Promise<CheckinResult> => {
-    const reg = await loadByToken(data.token);
+/**
+ * Núcleo del check-in, compartido por el enlace del asistente, el escáner del
+ * personal y el respaldo por correo. Idempotente: el segundo paso informa la
+ * hora de entrada en vez de duplicar.
+ */
+async function performCheckin(token: string, staffId: string | null): Promise<CheckinResult> {
+    const reg = await loadByToken(token);
     if (!reg) return { ...EMPTY, reason: "not_found", emailSent: false, hasAccount: false };
 
     const { name, email } = await identify(reg);
@@ -157,7 +159,7 @@ export const checkInWithToken = createServerFn({ method: "POST" })
     const checkedInAt = new Date().toISOString();
     const { error } = await supabaseAdmin
       .from("event_registrations")
-      .update({ status: "Attended", checked_in_at: checkedInAt })
+      .update({ status: "Attended", checked_in_at: checkedInAt, checked_in_by: staffId })
       .eq("id", reg.id);
     if (error) throw error;
 
@@ -193,6 +195,88 @@ export const checkInWithToken = createServerFn({ method: "POST" })
     }
 
     return { ...pass, status: "Attended", checkedInAt, reason: "ok", emailSent, hasAccount };
+}
+
+const TokenInput = (d: unknown) => z.object({ token: z.string().min(10).max(200) }).parse(d);
+
+/** Lo que abre el asistente al escanear su propio QR o tocar "Ya llegué". */
+export const checkInWithToken = createServerFn({ method: "POST" })
+  .inputValidator(TokenInput)
+  .handler(async ({ data }): Promise<CheckinResult> => performCheckin(data.token, null));
+
+/** Escáner del personal: igual, pero registra quién marcó la entrada. */
+export const checkInAsStaff = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(TokenInput)
+  .handler(async ({ data, context }): Promise<CheckinResult> =>
+    performCheckin(data.token, context.userId),
+  );
+
+/**
+ * Respaldo del QR impreso del evento: quien llegue sin su pase escribe su
+ * correo y entra igual. No revela la lista de inscritos — solo confirma o no
+ * la inscripción del correo que se teclea.
+ */
+export const checkInByEmail = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z.object({ event_id: z.string().uuid(), email: z.string().trim().email().max(255) }).parse(d),
+  )
+  .handler(async ({ data }): Promise<CheckinResult> => {
+    const email = data.email.toLowerCase();
+
+    const { data: byGuest } = await supabaseAdmin
+      .from("event_registrations")
+      .select("checkin_token")
+      .eq("event_id", data.event_id)
+      .ilike("guest_email", email)
+      .maybeSingle();
+
+    let token = byGuest?.checkin_token ?? null;
+
+    // También puede ser un usuario de la app inscrito con su cuenta.
+    if (!token) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .ilike("email", email)
+        .maybeSingle();
+      if (profile) {
+        const { data: byUser } = await supabaseAdmin
+          .from("event_registrations")
+          .select("checkin_token")
+          .eq("event_id", data.event_id)
+          .eq("user_id", profile.id)
+          .maybeSingle();
+        token = byUser?.checkin_token ?? null;
+      }
+    }
+
+    if (!token) return { ...EMPTY, reason: "not_found", emailSent: false, hasAccount: false };
+    return performCheckin(token, null);
+  });
+
+export interface CheckinStats {
+  eventTitle: string;
+  approved: number;
+  attended: number;
+}
+
+/** Contadores en vivo para la pantalla del escáner. */
+export const eventCheckinStats = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ event_id: z.string().uuid() }).parse(d))
+  .handler(async ({ data }): Promise<CheckinStats> => {
+    const [{ data: ev }, { data: regs }] = await Promise.all([
+      supabaseAdmin.from("events").select("title").eq("id", data.event_id).maybeSingle(),
+      supabaseAdmin.from("event_registrations").select("status").eq("event_id", data.event_id),
+    ]);
+    const rows = regs ?? [];
+    return {
+      eventTitle: ev?.title ?? "Evento",
+      // "Aprobados" incluye a los que ya entraron: son el total esperado en la puerta.
+      approved: rows.filter((r) => r.status === "Confirmed" || r.status === "Attended").length,
+      attended: rows.filter((r) => r.status === "Attended").length,
+    };
   });
 
 /**

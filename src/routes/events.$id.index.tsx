@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   ArrowLeft, CalendarDays, MapPin, Users as UsersIcon, Star, CheckCircle2, X,
-  Plus, Trash2, Ticket, Loader2, Download, FileSpreadsheet, Share2,
+  Plus, Trash2, Ticket, Loader2, Download, FileSpreadsheet, Share2, Camera, Printer,
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { AppShell } from "@/components/layout/AppShell";
 import { PageCard } from "@/components/common/PageCard";
 import { Button } from "@/components/ui/button";
@@ -158,6 +159,8 @@ function EventDetailPage() {
         )}
       </PageCard>
 
+      {isAdmin && ev.status === "Published" && <CheckinCard eventId={ev.id} title={ev.title} />}
+
       {/* RSVP / Slot picker */}
       {ev.status === "Published" && (
         <PageCard title={ev.type === "Open House" ? "Horarios disponibles" : "Inscripción"}>
@@ -294,6 +297,74 @@ function AdminSlotManager({ event }: { event: EventRow }) {
           ))}
         </ul>
       )}
+    </PageCard>
+  );
+}
+
+/**
+ * Bloque de check-in del evento (solo admin): entra al escáner de puerta y
+ * genera el cartel imprimible cuyo QR lleva al registro por correo, el respaldo
+ * para quien llegue sin su pase.
+ */
+function CheckinCard({ eventId, title }: { eventId: string; title: string }) {
+  const svgBox = useRef<HTMLDivElement | null>(null);
+  const base = import.meta.env.PROD ? PUBLIC_SITE_URL : window.location.origin;
+  const posterUrl = `${base}/e/${eventId}/checkin`;
+
+  /** Abre una ventana mínima solo con el cartel, para no imprimir toda la app. */
+  function imprimirCartel() {
+    const svg = svgBox.current?.querySelector("svg");
+    if (!svg) return;
+    const markup = new XMLSerializer().serializeToString(svg);
+    const w = window.open("", "_blank", "width=800,height=1000");
+    if (!w) {
+      toast.error("El navegador bloqueó la ventana de impresión");
+      return;
+    }
+    w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8" />
+<title>Cartel de check-in</title>
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;text-align:center;padding:48px 32px;color:#0f172a}
+  h1{font-size:30px;margin:0 0 6px} h2{font-size:18px;font-weight:500;color:#475569;margin:0 0 28px}
+  .qr{display:inline-block;padding:20px;border:2px solid #e2e8f0;border-radius:16px}
+  p{color:#475569;font-size:15px;margin-top:26px;line-height:1.6}
+  .url{font-family:monospace;font-size:12px;color:#94a3b8;margin-top:10px;word-break:break-all}
+</style></head><body>
+  <h1>Registro de entrada</h1><h2>${title}</h2>
+  <div class="qr">${markup}</div>
+  <p><strong>¿No traes tu pase?</strong><br/>Escanea este código con la cámara de tu teléfono<br/>y escribe el correo con el que te inscribiste.</p>
+  <div class="url">${posterUrl}</div>
+  <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),250))<\/script>
+</body></html>`);
+    w.document.close();
+  }
+
+  return (
+    <PageCard
+      title="Check-in del evento"
+      description="Escanea los pases en la puerta o imprime el cartel de respaldo"
+    >
+      <div className="flex flex-col sm:flex-row gap-4 items-center">
+        <div ref={svgBox} className="rounded-xl border border-border p-3 bg-white shrink-0">
+          <QRCodeSVG value={posterUrl} size={132} level="M" />
+        </div>
+        <div className="flex-1 min-w-0 space-y-3 text-center sm:text-left">
+          <p className="text-sm text-muted-foreground">
+            El cartel es el respaldo: quien llegue sin su pase lo escanea y entra escribiendo su
+            correo. Para la fila normal, usa el escáner y lee el QR de cada asistente.
+          </p>
+          <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+            <Button asChild size="sm" className="gap-1.5">
+              <Link to="/events/$id/checkin" params={{ id: eventId }}>
+                <Camera className="h-3.5 w-3.5" /> Abrir escáner
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={imprimirCartel}>
+              <Printer className="h-3.5 w-3.5" /> Imprimir cartel
+            </Button>
+          </div>
+        </div>
+      </div>
     </PageCard>
   );
 }
